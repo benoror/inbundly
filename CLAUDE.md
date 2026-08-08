@@ -72,6 +72,14 @@ extension**: every stored option and custom bundle becomes unreachable. Treat it
 breaking change, and rely on Options → **Sync & backup** (JSON export/import) to carry
 settings across such a move. Only the public key is committed; the matching private key
 isn't kept, since unpacked loading doesn't need it (packing a `.crx` would).
+`test/ExtensionId.test.js` asserts the key still resolves to that ID, so the change has
+to be deliberate.
+
+Note that branded Chrome 137+ removed `--load-extension`, so the extension can't be
+side-loaded from the command line for automated checks — use **Load unpacked** on
+`chrome://extensions`, or Chrome for Testing / Chromium. `test/OptionsPage.test.js` covers
+the options page in jsdom instead, which is why it exists: nothing else executes
+`dist/options/options.js`.
 
 ## Releasing
 

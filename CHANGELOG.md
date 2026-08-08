@@ -24,6 +24,9 @@ independent of upstream's versioning. The format is based on
 - **Options → Sync & backup** — shows the extension ID this install is using (it must
   match across computers for sync to work) and exports/imports all settings and custom
   bundles as a JSON file, for moving them when sync is unavailable.
+- Jest coverage for the options page itself (`test/OptionsPage.test.js` runs the real
+  `dist/options/options.js` against the real markup in jsdom) and for the pinned
+  extension ID (`test/ExtensionId.test.js`).
 
 ## [2.1.1] - 2026-08-08
 
