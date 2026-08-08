@@ -10,6 +10,8 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-08-08
+
 ### Fixed
 - **Settings never synced between computers.** `dist/manifest.json` had no `key`, so
   each unpacked install got an extension ID derived from the folder it was loaded from.
@@ -17,8 +19,6 @@ independent of upstream's versioning. The format is based on
   build kept two separate, never-syncing copies of the options. The manifest now pins a
   `key` (extension ID `cpggdbckpaoikhddngoeepdedfkleiab`) plus a Firefox
   `browser_specific_settings.gecko.id`.
-  - **Breaking:** the extension ID changes, so Chrome treats this as a new extension and
-    options/custom bundles saved under the old per-machine ID are not carried over.
 
 ### Added
 - **Options → Sync & backup** — shows the extension ID this install is using (it must
@@ -27,6 +27,15 @@ independent of upstream's versioning. The format is based on
 - Jest coverage for the options page itself (`test/OptionsPage.test.js` runs the real
   `dist/options/options.js` against the real markup in jsdom) and for the pinned
   extension ID (`test/ExtensionId.test.js`).
+
+### ⚠️ Breaking
+- The pinned `key` **changes the extension ID**, so Chrome treats this as a new
+  extension: options and custom bundles saved under the previous per-machine ID are not
+  carried over. Before updating, export your settings (Options → Sync & backup, or just
+  copy the Priority/label lists), then re-save or import once on the new build. This is
+  the one-time cost of getting sync to work across devices from here on.
+
+[3.0.0]: https://github.com/benoror/inbundly/releases/tag/v3.0.0
 
 ## [2.1.1] - 2026-08-08
 
