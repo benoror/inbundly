@@ -493,3 +493,28 @@ input:checked + .slider:before {
     color: #757575;
     font-style: italic;
 }
+
+/**
+ * Sync & backup
+ */
+
+.sync-id {
+    background-color: #F1F1F1;
+    border-radius: 3px;
+    padding: 1px 5px;
+}
+
+.sync-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.backup-status {
+    color: #007C8E;
+    font-size: 13px;
+    min-height: 1rem;
+}
+
+.backup-status.backup-error {
+    color: #d9534f;
+}

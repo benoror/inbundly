@@ -412,6 +412,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 &ldquo;Bundle selected&rdquo; to make one.
             </p>
 
+            <h2>
+                Sync &amp; backup
+                <div class="help-container">
+                    <img src="assets/help.svg" class="help-icon">
+                    <div class="tooltip">
+                        Settings travel through your browser account, but only between installs that share one extension ID. Unpacked builds derive their ID from the &ldquo;key&rdquo; in manifest.json &mdash; without it, each computer gets its own ID and its own private copy of these settings. Export/Import moves settings over by hand.
+                    </div>
+                </div>
+            </h2>
+            <p class="subsection-note">
+                This install's extension ID is <code id="extension-id" class="sync-id">&hellip;</code>
+                &mdash; sync only reaches installs with the same ID, so it should read the same on
+                every computer (compare it at <code>chrome://extensions</code>).
+            </p>
+
+            <div class="sync-actions">
+                <button id="export-button" class="custom-bundle-action">Export settings</button>
+                <button id="import-button" class="custom-bundle-action">Import settings</button>
+                <input type="file" id="import-file" accept="application/json,.json" hidden>
+            </div>
+            <p id="backup-status" class="backup-status"></p>
+
             <button id="save-button" class="save-button">
                 <span class="save-text">Save</span>
                 <span class="saved-text">Saved <img src="assets/small-check.svg"></span>

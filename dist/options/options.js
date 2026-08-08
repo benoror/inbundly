@@ -17,6 +17,22 @@
 const PLACEHOLDER = 'Add the name of each bundle on a new line, for example:\n\nBank\nSchool\nNewsletters/*';
 const PRIORITY_PLACEHOLDER = 'Add a priority rule on each line, for example:\n\nBank\nSchool/*\nWork + Urgent';
 
+// The Save-button options. Mirrors OPTION_DEFAULTS in src/util/Options.js; this
+// page is plain JS outside the webpack bundle, so the list is duplicated here.
+const OPTION_KEYS = [
+    'exclude',
+    'labels',
+    'groupMessagesByDate',
+    'combineLabels',
+    'priorityBundles',
+    'skipSingleItemBundles',
+    'colorBundlesByLabel',
+    'bundleColorStyle',
+    'matchStylusCatppuccin',
+    'showPinnedToggle',
+    'showBundleArchive',
+];
+
 function saveOptions() {
     const exclude = document.getElementById('exclude-radio').checked;
     const labelList = document.getElementById('label-list');
@@ -102,6 +118,7 @@ function restoreOptionsForm() {
 function restoreOptions() {
     restoreOptionsForm();
     renderCustomBundles();
+    showExtensionId();
 }
 
 //
@@ -127,17 +144,132 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
     // Any of the Save-button options — re-read the whole form so a remote
     // sync doesn't leave stale checkboxes next to newer synced values.
-    const optionKeys = [
-        'exclude', 'labels', 'groupMessagesByDate', 'combineLabels',
-        'priorityBundles', 'skipSingleItemBundles', 'colorBundlesByLabel',
-        'bundleColorStyle', 'matchStylusCatppuccin', 'showPinnedToggle',
-        'showBundleArchive',
-    ];
-    if (optionKeys.some(key => Object.prototype.hasOwnProperty.call(changes, key))) {
+    if (OPTION_KEYS.some(key => Object.prototype.hasOwnProperty.call(changes, key))) {
         restoreOptionsForm();
     }
 });
 document.getElementById('save-button').addEventListener('click', saveOptions);
+
+
+//
+// Sync diagnostics & backup
+//
+// chrome.storage.sync only reaches installs that share one extension ID. An
+// unpacked build without a manifest "key" gets an ID derived from its folder
+// path, so the same extension on two computers can end up with two separate
+// buckets and no sync. Showing the ID makes that visible, and export/import
+// moves settings across regardless.
+
+function showExtensionId() {
+    const el = document.getElementById('extension-id');
+    if (el && chrome.runtime && chrome.runtime.id) {
+        el.textContent = chrome.runtime.id;
+    }
+}
+
+function setBackupStatus(message, isError) {
+    const el = document.getElementById('backup-status');
+    el.textContent = message || '';
+    el.classList.toggle('backup-error', !!isError);
+}
+
+function exportSettings() {
+    chrome.storage.sync.get(null, items => {
+        const payload = {
+            app: 'inbundly',
+            v: 1,
+            exportedAt: new Date().toISOString(),
+            settings: items || {},
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `inbundly-settings-${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+        // Revoking synchronously can cancel the download that click() just started.
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+        setBackupStatus('Settings exported.');
+    });
+}
+
+/**
+ * Keep only the keys we recognize, so an edited or unrelated file can't write
+ * junk into storage. Returns null if there's nothing usable.
+ */
+function pickImportableSettings(parsed) {
+    const source = parsed && parsed.settings ? parsed.settings : parsed;
+    if (!source || typeof source !== 'object') {
+        return null;
+    }
+
+    const settings = {};
+    for (const key of OPTION_KEYS) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+            settings[key] = source[key];
+        }
+    }
+
+    const bundles = source[CUSTOM_BUNDLES_KEY] && source[CUSTOM_BUNDLES_KEY].bundles;
+    if (bundles && typeof bundles === 'object') {
+        const cleaned = {};
+        for (const [name, threadIds] of Object.entries(bundles)) {
+            if (Array.isArray(threadIds)) {
+                cleaned[name] = threadIds.filter(id => typeof id === 'string');
+            }
+        }
+        settings[CUSTOM_BUNDLES_KEY] = { v: 1, bundles: cleaned };
+    }
+
+    return Object.keys(settings).length ? settings : null;
+}
+
+function importSettings(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+        let settings;
+        try {
+            settings = pickImportableSettings(JSON.parse(reader.result));
+        }
+        catch (e) {
+            setBackupStatus("That file isn't valid JSON.", true);
+            return;
+        }
+
+        if (!settings) {
+            setBackupStatus('No inboxy settings found in that file.', true);
+            return;
+        }
+
+        chrome.storage.sync.set(settings, () => {
+            const error = chrome.runtime.lastError;
+            if (error) {
+                setBackupStatus(`Import failed: ${error.message}`, true);
+                return;
+            }
+            restoreOptionsForm();
+            renderCustomBundles();
+            setBackupStatus('Settings imported.');
+        });
+    };
+    reader.onerror = () => setBackupStatus("Couldn't read that file.", true);
+    reader.readAsText(file);
+}
+
+document.getElementById('export-button').addEventListener('click', exportSettings);
+document.getElementById('import-button').addEventListener('click', () => {
+    setBackupStatus('');
+    document.getElementById('import-file').click();
+});
+document.getElementById('import-file').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+        importSettings(file);
+    }
+    // Allow re-importing the same file.
+    e.target.value = '';
+});
 
 function readCustomBundles(cb) {
     chrome.storage.sync.get({ [CUSTOM_BUNDLES_KEY]: null }, result => {
