@@ -61,6 +61,25 @@ npm run watch
 
 The `dist` directory can then be loaded as an [unpacked extension](https://developer.chrome.com/extensions/getstarted).
 
+### Syncing settings between computers
+
+Settings live in `chrome.storage.sync`, which only reaches installs that share one
+extension ID. Unpacked builds normally get an ID derived from the folder they're loaded
+from, so the same extension on two machines would get two IDs — and two separate,
+never-syncing copies of your settings. `dist/manifest.json` therefore pins a `key`
+(and a Firefox `browser_specific_settings.gecko.id`), which fixes the ID no matter
+where `dist/` lives:
+
+```
+cpggdbckpaoikhddngoeepdedfkleiab
+```
+
+Options → **Sync & backup** shows the ID this install is actually using — it should
+match on every computer. That section also exports/imports settings as JSON, which is
+the way to move them when sync is off or when the ID changed. Chrome also needs
+extension syncing enabled (`chrome://settings/syncSetup`), and propagation isn't
+instant.
+
 ## Feedback
 
 Feel free to [send feedback](https://github.com/benoror/inboxy/issues) by filing an issue.
