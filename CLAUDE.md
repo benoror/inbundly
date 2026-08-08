@@ -59,6 +59,20 @@ npm test          # Jest tests
 After a rebuild: click **reload ↻** on the inboxy card in `chrome://extensions`, then
 refresh Gmail.
 
+### Extension identity (do not change casually)
+
+`dist/manifest.json` pins a `key` (and Firefox `browser_specific_settings.gecko.id`) so
+every install resolves to the same extension ID — `cpggdbckpaoikhddngoeepdedfkleiab` —
+regardless of the path `dist/` is loaded from. This is what makes `chrome.storage.sync`
+reach a user's other computers; without it Chrome derives the ID from the folder path and
+each machine silently gets its own settings bucket.
+
+Changing or removing `key` changes the extension ID, which Chrome treats as a **different
+extension**: every stored option and custom bundle becomes unreachable. Treat it as a
+breaking change, and rely on Options → **Sync & backup** (JSON export/import) to carry
+settings across such a move. Only the public key is committed; the matching private key
+isn't kept, since unpacked loading doesn't need it (packing a `.crx` would).
+
 ## Releasing
 
 This fork runs its **own release line**, independent of upstream teresa-ou/inboxy — we do
@@ -114,8 +128,11 @@ Flow for landing a feature branch and cutting a release:
   `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
   are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
   `BUNDLING_OPTION_KEYS`, `UI_OPTION_KEYS`). The options page (`dist/options/`)
-  is plain JS outside the webpack bundle, so it duplicates the key list when
-  saving/restoring — keep them in sync when adding an option.
+  is plain JS outside the webpack bundle, so it duplicates the key list as
+  `OPTION_KEYS` — keep both lists in sync when adding an option, since the
+  duplicate also gates the live-reload listener and JSON import.
+- Cross-device sync additionally depends on the pinned extension ID; see
+  **Extension identity** above.
 - **Live sync.** `content.js` listens to `chrome.storage.onChanged` for the
   sync area. UI-only keys (`showPinnedToggle`, `showBundleArchive`) toggle CSS
   classes on `<html>`; bundling keys call `applyOptions` on `SelectiveBundling`,

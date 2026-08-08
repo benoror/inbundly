@@ -10,6 +10,21 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+- **Settings never synced between computers.** `dist/manifest.json` had no `key`, so
+  each unpacked install got an extension ID derived from the folder it was loaded from.
+  `chrome.storage.sync` is partitioned per extension ID, so two laptops running the same
+  build kept two separate, never-syncing copies of the options. The manifest now pins a
+  `key` (extension ID `cpggdbckpaoikhddngoeepdedfkleiab`) plus a Firefox
+  `browser_specific_settings.gecko.id`.
+  - **Breaking:** the extension ID changes, so Chrome treats this as a new extension and
+    options/custom bundles saved under the old per-machine ID are not carried over.
+
+### Added
+- **Options → Sync & backup** — shows the extension ID this install is using (it must
+  match across computers for sync to work) and exports/imports all settings and custom
+  bundles as a JSON file, for moving them when sync is unavailable.
+
 ## [2.1.1] - 2026-08-08
 
 ### Changed
