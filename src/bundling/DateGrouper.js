@@ -123,8 +123,14 @@ class DateGrouper {
     }
 
     _hideInboxLabels(messageList) {
-        messageList.querySelectorAll(Selectors.INBOX_LABEL)
-            .forEach(l => l.parentNode.style.display = 'none');
+        // Don't rely on `.at[title="Inbox"]` — newer Gmail chips often leave
+        // title empty, so resolve the name the same way bundling does.
+        messageList.querySelectorAll(Selectors.LABELS)
+            .forEach(l => {
+                if (DomUtils.getLabelName(l) === 'Inbox' && l.parentNode) {
+                    l.parentNode.style.display = 'none';
+                }
+            });
     }
 } 
 
