@@ -20,14 +20,16 @@ import DomUtils from '../src/util/DomUtils';
  * Build a message row containing a Gmail-style label chip, mirroring the
  * `.ar.as > .at[title] > .au > .av` structure that getLabelColors reads from.
  */
-function messageWithLabel(title, { background, color } = {}) {
+function messageWithLabel(title, { background, color, emptyTitle = false } = {}) {
     const message = document.createElement('tr');
     const container = document.createElement('div');
     container.className = 'ar as';
 
     const chip = document.createElement('div');
     chip.className = 'at';
-    chip.title = title;
+    if (!emptyTitle) {
+        chip.title = title;
+    }
     if (background) {
         chip.style.backgroundColor = background;
     }
@@ -64,6 +66,53 @@ test('getThreadId - reads the stable legacy thread id from the row', () => {
 test('getThreadId - returns null when the row has no thread id', () => {
     const message = document.createElement('tr');
     expect(DomUtils.getThreadId(message)).toBeNull();
+});
+
+//
+// getLabelStrings / getLabelName
+//
+
+test('getLabelStrings - reads titles from classic chips', () => {
+    const message = messageWithLabel('IH/Kamek.ai');
+    message.appendChild(messageWithLabel('Procevi').firstChild);
+
+    expect(DomUtils.getLabelStrings(message)).toEqual(['IH/Kamek.ai', 'Procevi']);
+});
+
+test('getLabelStrings - falls back to .av text when chip title is empty', () => {
+    const message = messageWithLabel('IH/Kamek.ai', { emptyTitle: true });
+    message.appendChild(messageWithLabel('Procevi', { emptyTitle: true }).firstChild);
+
+    expect(DomUtils.getLabelStrings(message)).toEqual(['IH/Kamek.ai', 'Procevi']);
+});
+
+test('getLabelStrings - falls back to a titled descendant when .at title is empty', () => {
+    const message = document.createElement('tr');
+    const container = document.createElement('div');
+    container.className = 'ar as';
+    const chip = document.createElement('div');
+    chip.className = 'at';
+    const nested = document.createElement('span');
+    nested.title = 'IH/Spoînt/BrokerLit';
+    nested.textContent = 'BrokerLit';
+    chip.appendChild(nested);
+    container.appendChild(chip);
+    message.appendChild(container);
+
+    expect(DomUtils.getLabelStrings(message)).toEqual(['IH/Spoînt/BrokerLit']);
+});
+
+test('getLabelColors - still finds a chip when only .av carries the name', () => {
+    const message = messageWithLabel('Work', {
+        background: 'rgb(251, 233, 231)',
+        color: 'rgb(0, 0, 0)',
+        emptyTitle: true,
+    });
+
+    expect(DomUtils.getLabelColors(message, 'Work')).toEqual({
+        background: 'rgb(251, 233, 231)',
+        color: 'rgb(0, 0, 0)',
+    });
 });
 
 //
