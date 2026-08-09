@@ -38,13 +38,16 @@ class CustomBundles {
         // during bundling.
         this._byName = new Map();
         this._nameByThread = new Map();
-        this._load();
+        this.ready = this._load();
     }
 
     _load() {
         const self = this;
-        chrome.storage.sync.get({ [STORAGE_KEY]: null }, result => {
-            self._ingest(result[STORAGE_KEY]);
+        return new Promise(resolve => {
+            chrome.storage.sync.get({ [STORAGE_KEY]: null }, result => {
+                self._ingest(result[STORAGE_KEY]);
+                resolve();
+            });
         });
     }
 

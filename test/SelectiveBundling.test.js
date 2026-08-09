@@ -125,3 +125,39 @@ test('applyOptions leaves omitted keys alone', () => {
     expect(bundling.exclude).toBe(false);
     expect(relevantLabels(bundling, ['Work', 'News'])).toEqual(['News']);
 });
+
+test('priority rule IH/Kamek.ai wins over other labels on the thread', () => {
+    const bundling = makeBundling({
+        exclude: true,
+        labels: [],
+        combineLabels: true,
+        priorityBundles: [
+            'Crypto',
+            'Crypto/*',
+            'IH/Kamek.ai',
+            'IH/AI 🤖',
+            'BrokerLit',
+        ],
+    });
+
+    expect(relevantLabels(bundling, [
+        'Inbox',
+        'IH/Kamek.ai',
+        'IH/Kamek.ai/@ben',
+        'IH/Spoînt',
+        'IH/Spoînt/BrokerLit',
+        'Procevi',
+    ])).toEqual(['IH/Kamek.ai']);
+});
+
+test('plain BrokerLit priority does not match a nested BrokerLit label', () => {
+    const bundling = makeBundling({
+        exclude: true,
+        labels: [],
+        combineLabels: true,
+        priorityBundles: ['BrokerLit'],
+    });
+
+    expect(relevantLabels(bundling, ['IH/Spoînt/BrokerLit', 'Procevi']))
+        .toEqual(['IH/Spoînt/BrokerLit\u001fProcevi']);
+});

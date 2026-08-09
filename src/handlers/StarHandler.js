@@ -34,9 +34,14 @@ class StarHandler {
 
         this.handleStarring = this.handleStarring.bind(this);
 
-        chrome.storage.sync.get(
-            { keepStarredUnbundled: true },
-            options => this.applyOptions(options));
+        this.optionsReady = new Promise(resolve => {
+            chrome.storage.sync.get(
+                { keepStarredUnbundled: true },
+                options => {
+                    this.applyOptions(options);
+                    resolve();
+                });
+        });
     }
 
     applyOptions(options = {}) {

@@ -39,14 +39,19 @@ class SelectiveBundling {
         this.labels = [];
         this.combineLabels = true;
         this.priorityRules = [];
-        chrome.storage.sync.get(
-            {
-                exclude: true,
-                labels: [],
-                combineLabels: true,
-                priorityBundles: [],
-            },
-            options => this.applyOptions(options));
+        this.optionsReady = new Promise(resolve => {
+            chrome.storage.sync.get(
+                {
+                    exclude: true,
+                    labels: [],
+                    combineLabels: true,
+                    priorityBundles: [],
+                },
+                options => {
+                    this.applyOptions(options);
+                    resolve();
+                });
+        });
     }
 
     /**

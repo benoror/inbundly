@@ -36,9 +36,14 @@ class DateGrouper {
         this.refreshDateDividers = this.refreshDateDividers.bind(this);
         this.pinnedMessageListWatcher = new PinnedMessageListWatcher(this.refreshDateDividers);
         this.groupMessagesByDate = true;
-        chrome.storage.sync.get(
-            { groupMessagesByDate: true },
-            options => this.applyOptions(options));
+        this.optionsReady = new Promise(resolve => {
+            chrome.storage.sync.get(
+                { groupMessagesByDate: true },
+                options => {
+                    this.applyOptions(options);
+                    resolve();
+                });
+        });
     }
 
     /**
