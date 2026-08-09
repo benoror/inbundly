@@ -34,9 +34,51 @@ const DomUtils = {
     },
 
     /**
+     * True for Gmail date tooltip strings (e.g. "Fri, Aug 7, 2026, 9:51 AM"),
+     * which sometimes sit near label chips and must not be treated as labels.
+     */
+    _looksLikeDateTitle: function(value) {
+        return /\b20\d{2}\b/.test(value) && (value.includes(',') || value.includes(':'));
+    },
+
+    /**
+     * Pick the best human label name from candidate strings. Prefer nested
+     * paths (contain `/`) over leaf chip text, then the longest remaining name.
+     */
+    _bestLabelCandidate: function(candidates) {
+        const clean = value => (value || '').trim();
+        const pool = candidates
+            .map(clean)
+            .filter(Boolean)
+            .filter(value => !DomUtils._looksLikeDateTitle(value));
+        if (!pool.length) {
+            return '';
+        }
+        return pool.sort((a, b) => {
+            const bySlash = Number(b.includes('/')) - Number(a.includes('/'));
+            return bySlash !== 0 ? bySlash : b.length - a.length;
+        })[0];
+    },
+
+    /**
+     * Collect attribute-based name candidates from an element.
+     */
+    _labelAttrCandidates: function(el) {
+        if (!el || !el.getAttribute) {
+            return [];
+        }
+        return [
+            el.getAttribute('title'),
+            el.getAttribute('aria-label'),
+            el.getAttribute('data-tooltip'),
+            el.getAttribute('data-name'),
+        ];
+    },
+
+    /**
      * Read the human label name from a Gmail label chip (`.ar.as .at`).
-     * Newer Gmail builds often leave `.at[title]` empty and put the name on a
-     * descendant, aria-label, or the visible `.av` text instead.
+     * Newer Gmail builds often leave `.at[title]` empty and put the full path on
+     * a container/sibling/descendant attribute, while `.av` only shows a leaf.
      */
     getLabelName: function(chip) {
         if (!chip) {
@@ -44,23 +86,46 @@ const DomUtils = {
         }
 
         const clean = value => (value || '').trim();
-        const container = chip.closest(Selectors.LABEL_CONTAINERS);
-        const titledDescendant = chip.querySelector('[title]');
-        const av = chip.querySelector('.av');
+        const container = chip.closest(Selectors.LABEL_CONTAINERS) || chip;
+        const candidates = [];
 
-        return clean(chip.getAttribute('title'))
-            || clean(chip.getAttribute('aria-label'))
-            || clean(chip.getAttribute('data-tooltip'))
-            || clean(chip.getAttribute('data-name'))
-            || clean(container && container.getAttribute('title'))
-            || clean(titledDescendant && titledDescendant.getAttribute('title'))
-            || clean(av && av.textContent)
-            || clean(chip.textContent);
+        candidates.push(...DomUtils._labelAttrCandidates(chip));
+        candidates.push(...DomUtils._labelAttrCandidates(container));
+
+        for (const el of container.querySelectorAll(
+            '[title], [aria-label], [data-tooltip], [data-name]')) {
+            candidates.push(...DomUtils._labelAttrCandidates(el));
+        }
+
+        // Tooltip nodes are sometimes siblings of the chip container.
+        const parent = container.parentElement;
+        if (parent) {
+            for (const el of parent.children) {
+                candidates.push(...DomUtils._labelAttrCandidates(el));
+            }
+        }
+
+        const fromAttrs = DomUtils._bestLabelCandidate(candidates);
+        if (fromAttrs) {
+            return fromAttrs;
+        }
+
+        const av = chip.querySelector('.av');
+        return clean(av && av.textContent) || clean(chip.textContent);
     },
 
     getLabelStrings: function(message) {
-        return [...message.querySelectorAll(Selectors.LABELS)]
+        const chips = [...message.querySelectorAll(Selectors.LABELS)];
+        const fromChips = chips
             .map(chip => DomUtils.getLabelName(chip))
+            .filter(Boolean);
+        if (fromChips.length) {
+            return fromChips;
+        }
+
+        // No `.at` chips resolved — try each label container directly.
+        return [...message.querySelectorAll(Selectors.LABEL_CONTAINERS)]
+            .map(container => DomUtils.getLabelName(container))
             .filter(Boolean);
     },
 

@@ -174,6 +174,20 @@ class Bundler {
 
         const messageNodes = [...tableBody.querySelectorAll(TableBodySelectors.MESSAGE_NODES)];
 
+        const starredSample = messageNodes
+            .filter(message => this._isStarred(message))
+            .slice(0, 3)
+            .map(message => ({
+                keepStarredUnbundled: this.keepStarredUnbundled,
+                skipSingleItemBundles: this.skipSingleItemBundles,
+                labels: DomUtils.getLabelStrings(message),
+                relevant: this.selectiveBundling.findRelevantLabels(message),
+                forceUnbundled: !!this._shouldKeepUnbundled(message),
+            }));
+        if (starredSample.length) {
+            console.log(`inboxy-debug: starred sample ${JSON.stringify(starredSample)}`);
+        }
+
         const bundlesByLabel = this._groupByLabel(messageNodes);
 
         if (this.skipSingleItemBundles) {

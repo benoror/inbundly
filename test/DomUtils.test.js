@@ -102,6 +102,28 @@ test('getLabelStrings - falls back to a titled descendant when .at title is empt
     expect(DomUtils.getLabelStrings(message)).toEqual(['IH/Spoînt/BrokerLit']);
 });
 
+test('getLabelName - prefers a full-path sibling title over short .av text', () => {
+    const message = document.createElement('tr');
+    const cell = document.createElement('td');
+    const tooltip = document.createElement('div');
+    tooltip.title = 'IH/Kamek.ai';
+    const container = document.createElement('div');
+    container.className = 'ar as';
+    const chip = document.createElement('div');
+    chip.className = 'at';
+    const av = document.createElement('div');
+    av.className = 'av';
+    av.textContent = 'Kamek.ai';
+    chip.appendChild(av);
+    container.appendChild(chip);
+    cell.appendChild(tooltip);
+    cell.appendChild(container);
+    message.appendChild(cell);
+
+    expect(DomUtils.getLabelName(chip)).toBe('IH/Kamek.ai');
+    expect(DomUtils.getLabelStrings(message)).toEqual(['IH/Kamek.ai']);
+});
+
 test('getLabelColors - still finds a chip when only .av carries the name', () => {
     const message = messageWithLabel('Work', {
         background: 'rgb(251, 233, 231)',
