@@ -245,6 +245,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
         const bundlingOptions = optionsFromChanges(changes, BUNDLING_OPTION_KEYS);
         selectiveBundling.applyOptions(bundlingOptions);
         bundler.applyOptions(bundlingOptions);
+        starHandler.applyOptions(bundlingOptions);
         dateGrouper.applyOptions(bundlingOptions);
         needsRefresh = true;
     }
