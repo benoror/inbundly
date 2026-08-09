@@ -33,8 +33,35 @@ const DomUtils = {
         return checkboxNode.getAttribute('aria-checked') === 'true';
     },
 
+    /**
+     * Read the human label name from a Gmail label chip (`.ar.as .at`).
+     * Newer Gmail builds often leave `.at[title]` empty and put the name on a
+     * descendant, aria-label, or the visible `.av` text instead.
+     */
+    getLabelName: function(chip) {
+        if (!chip) {
+            return '';
+        }
+
+        const clean = value => (value || '').trim();
+        const container = chip.closest(Selectors.LABEL_CONTAINERS);
+        const titledDescendant = chip.querySelector('[title]');
+        const av = chip.querySelector('.av');
+
+        return clean(chip.getAttribute('title'))
+            || clean(chip.getAttribute('aria-label'))
+            || clean(chip.getAttribute('data-tooltip'))
+            || clean(chip.getAttribute('data-name'))
+            || clean(container && container.getAttribute('title'))
+            || clean(titledDescendant && titledDescendant.getAttribute('title'))
+            || clean(av && av.textContent)
+            || clean(chip.textContent);
+    },
+
     getLabelStrings: function(message) {
-        return [...message.querySelectorAll(Selectors.LABELS)].map(l => l.title);
+        return [...message.querySelectorAll(Selectors.LABELS)]
+            .map(chip => DomUtils.getLabelName(chip))
+            .filter(Boolean);
     },
 
     /**
@@ -57,7 +84,7 @@ const DomUtils = {
      */
     getLabelColors: function(message, labelTitle) {
         const chip = [...message.querySelectorAll(Selectors.LABELS)]
-            .find(l => l.title === labelTitle);
+            .find(l => DomUtils.getLabelName(l) === labelTitle);
         if (!chip) {
             return null;
         }

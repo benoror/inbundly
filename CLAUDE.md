@@ -138,6 +138,9 @@ Flow for landing a feature branch and cutting a release:
   tab permanently unbundled.
 - Gmail ships no stable API; the extension depends on DOM selectors in
   `src/util/Constants.js`. Gmail markup changes are the usual cause of breakage.
+  Label chips are `.ar.as .at`; `DomUtils.getLabelName` must not assume
+  `.at[title]` is populated — newer Gmail often leaves it empty and puts the
+  name on a descendant, `aria-label`, or `.av` text.
 - **Options storage.** Every Options-page setting and custom bundles live in
   `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
   are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
