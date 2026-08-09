@@ -10,6 +10,16 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-08-09
+
+### Fixed
+- **Stored options could lose a race on first paint.** The first bundle pass
+  sometimes ran before `chrome.storage.sync.get` finished, so defaults like
+  `keepStarredUnbundled: true` stuck even after the Options toggle was saved off.
+  Bootstrapping now waits for options and custom bundles before `tryStart()`.
+
+[3.1.1]: https://github.com/benoror/inbundly/releases/tag/v3.1.1
+
 ## [3.1.0] - 2026-08-09
 
 ### Added
