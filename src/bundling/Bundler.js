@@ -60,16 +60,24 @@ class Bundler {
         this.matchStylusCatppuccin = false;
         this.skipSingleItemBundles = true;
         this.keepStarredUnbundled = true;
-        chrome.storage.sync.get(
-            {
-                groupMessagesByDate: true,
-                colorBundlesByLabel: true,
-                bundleColorStyle: 'background',
-                matchStylusCatppuccin: false,
-                skipSingleItemBundles: true,
-                keepStarredUnbundled: true,
-            },
-            options => this.applyOptions(options));
+        // Wait for this before the first bundle pass — otherwise the defaults
+        // above win a race against chrome.storage.sync and starred messages
+        // stay unbundled even when keepStarredUnbundled is stored as false.
+        this.optionsReady = new Promise(resolve => {
+            chrome.storage.sync.get(
+                {
+                    groupMessagesByDate: true,
+                    colorBundlesByLabel: true,
+                    bundleColorStyle: 'background',
+                    matchStylusCatppuccin: false,
+                    skipSingleItemBundles: true,
+                    keepStarredUnbundled: true,
+                },
+                options => {
+                    this.applyOptions(options);
+                    resolve();
+                });
+        });
     }
 
     /**

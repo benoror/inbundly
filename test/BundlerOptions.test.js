@@ -46,3 +46,25 @@ test('starred messages render unbundled when the option is enabled', () => {
     expect(bundler._calculateMessageAndBundleRows([message], bundles)[0].type)
         .toBe(Element.UNBUNDLED_MESSAGE);
 });
+
+test('optionsReady resolves only after stored keepStarredUnbundled is applied', async () => {
+    let deliver;
+    global.chrome = {
+        storage: {
+            sync: {
+                get(_defaults, cb) {
+                    deliver = () => cb({ keepStarredUnbundled: false });
+                },
+            },
+        },
+    };
+
+    const bundler = new Bundler({}, {}, {}, { findRelevantLabels: () => [] });
+    expect(bundler.keepStarredUnbundled).toBe(true);
+
+    const ready = bundler.optionsReady;
+    deliver();
+    await ready;
+
+    expect(bundler.keepStarredUnbundled).toBe(false);
+});

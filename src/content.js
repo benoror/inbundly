@@ -270,7 +270,19 @@ function handleContentLoaded() {
     logDebugMessage('Handle content loaded event');
     logDebugMessage(
         `Url: ${window.location.href}, page supports bundling: ${supportsBundling(window.location.href)}`);
-    tryStart(0);
+    // Constructors default options synchronously and overlay storage async.
+    // Wait so the first bundle pass sees stored values (e.g. keepStarredUnbundled
+    // false) instead of racing with chrome.storage.sync.get.
+    Promise.all([
+        bundler.optionsReady,
+        selectiveBundling.optionsReady,
+        starHandler.optionsReady,
+        dateGrouper.optionsReady,
+        customBundles.ready,
+    ]).then(() => {
+        logDebugMessage('Stored options ready; starting');
+        tryStart(0);
+    });
 }
 
 /**
