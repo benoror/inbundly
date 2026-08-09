@@ -30,7 +30,8 @@ your inbox.
   browser updates Gmail tabs on the others without reloading the extension
 * Single-item bundles are skipped by default, shown as regular messages
 * Archive all bundled messages on the current page quickly
-* Star a message to pin it outside of its bundle
+* Star a message to pin it outside of its bundle (on by default and configurable
+  under Options → Bundle setup)
 * Intuitive date headings
 * Supports light and dark themes
 * Optionally color bundles to match their Gmail label color — either a subtle
@@ -39,8 +40,8 @@ your inbox.
 * The pinned-messages toggle and per-bundle archive-all button are optional
   (hidden by default; enable them under Options → Features)
 * Optional Stylus userstyle color-matching: when enabled, bundle colors are
-  snapped to a detected Catppuccin theme's palette (Options → Bundle colors →
-  Stylus; off by default)
+  snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
+  default)
 
 For more info on the original project, visit https://www.inboxymail.com.
 

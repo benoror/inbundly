@@ -24,6 +24,7 @@ const OPTION_KEYS = [
     'labels',
     'groupMessagesByDate',
     'combineLabels',
+    'keepStarredUnbundled',
     'priorityBundles',
     'skipSingleItemBundles',
     'colorBundlesByLabel',
@@ -39,6 +40,8 @@ function saveOptions() {
     const labels = labelList.value.split(/[\n]+/).map(s => s.trim()).filter(s => !!s);
     const groupMessagesByDate = document.getElementById('group-by-date-checkbox').checked;
     const combineLabels = document.getElementById('combine-labels-checkbox').checked;
+    const keepStarredUnbundled =
+        document.getElementById('keep-starred-unbundled-checkbox').checked;
     const priorityList = document.getElementById('priority-bundles-list');
     const priorityBundles = priorityList.value.split(/[\n]+/).map(s => s.trim()).filter(s => !!s);
     const skipSingleItemBundles = document.getElementById('skip-single-item-bundles-checkbox').checked;
@@ -53,6 +56,7 @@ function saveOptions() {
         labels: labels,
         groupMessagesByDate: !!groupMessagesByDate,
         combineLabels: !!combineLabels,
+        keepStarredUnbundled: !!keepStarredUnbundled,
         priorityBundles: priorityBundles,
         skipSingleItemBundles: !!skipSingleItemBundles,
         colorBundlesByLabel: !!colorBundlesByLabel,
@@ -78,6 +82,7 @@ function restoreOptionsForm() {
         labels: [],
         groupMessagesByDate: true,
         combineLabels: true,
+        keepStarredUnbundled: true,
         priorityBundles: [],
         skipSingleItemBundles: true,
         colorBundlesByLabel: true,
@@ -97,6 +102,8 @@ function restoreOptionsForm() {
 
         document.getElementById('group-by-date-checkbox').checked = items.groupMessagesByDate;
         document.getElementById('combine-labels-checkbox').checked = items.combineLabels;
+        document.getElementById('keep-starred-unbundled-checkbox').checked =
+            items.keepStarredUnbundled;
         const priorityList = document.getElementById('priority-bundles-list');
         priorityList.value = items.priorityBundles.join('\n');
         priorityList.placeholder = PRIORITY_PLACEHOLDER;

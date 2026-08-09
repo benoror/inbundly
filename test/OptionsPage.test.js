@@ -92,6 +92,7 @@ test('the options page loads and restores stored values without throwing', () =>
     expect(internals).toBeDefined();
     expect(document.getElementById('priority-bundles-list').value)
         .toBe('Bank\nWork + Urgent');
+    expect(document.getElementById('keep-starred-unbundled-checkbox').checked).toBe(true);
 });
 
 test('the extension id is displayed, since sync depends on it matching', () => {
@@ -100,12 +101,28 @@ test('the extension id is displayed, since sync depends on it matching', () => {
 
 test('saving writes every known option key', () => {
     document.getElementById('priority-bundles-list').value = 'School/*';
+    document.getElementById('keep-starred-unbundled-checkbox').checked = false;
     document.getElementById('save-button').click();
 
     for (const key of internals.OPTION_KEYS) {
         expect(store).toHaveProperty(key);
     }
     expect(store.priorityBundles).toEqual(['School/*']);
+    expect(store.keepStarredUnbundled).toBe(false);
+});
+
+test('the options page groups settings and puts advanced options near the end', () => {
+    const categories = [...document.querySelectorAll('.option-category > h2')]
+        .map(heading => heading.textContent.trim());
+
+    expect(categories).toEqual([
+        'Bundle setup',
+        'Appearance',
+        'Features',
+        'Advanced',
+        'Custom bundles',
+        'Sync & backup',
+    ]);
 });
 
 test('import keeps known keys and drops anything else', () => {
