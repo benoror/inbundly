@@ -113,7 +113,7 @@ test('saving writes every known option key', () => {
 
 test('the options page groups settings and puts advanced options near the end', () => {
     const categories = [...document.querySelectorAll('.option-category > h2')]
-        .map(heading => heading.textContent.trim());
+        .map(heading => heading.firstChild.textContent.trim());
 
     expect(categories).toEqual([
         'Bundle setup',
