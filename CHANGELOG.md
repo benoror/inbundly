@@ -10,6 +10,17 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [3.1.2] - 2026-08-09
+
+### Fixed
+- **Bundling ignored labels when Gmail left chip `title` empty.** Newer Gmail
+  builds leave `.at[title]` blank on message-list label chips, so
+  `getLabelStrings` returned empty strings and priority rules never matched.
+  Label names are now resolved from `aria-label`, nested `title`, or `.av` text
+  as fallbacks (same path used for bundle coloring and hiding Inbox chips).
+
+[3.1.2]: https://github.com/benoror/inbundly/releases/tag/v3.1.2
+
 ## [3.1.1] - 2026-08-09
 
 ### Fixed
