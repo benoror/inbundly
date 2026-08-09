@@ -225,6 +225,28 @@ h3.subsection-header {
  * Options tab
  */ 
 
+.option-category {
+    border-top: 1px solid #e5eeee;
+    margin-bottom: 2.5rem;
+    padding-top: 0.5rem;
+}
+
+.option-category > h2 {
+    color: #007C8E;
+    margin-top: 1rem;
+}
+
+.option-category-advanced {
+    background-color: #fafafa;
+    border: 1px solid #e5eeee;
+    border-radius: 6px;
+    padding: 0.5rem 1rem 1.25rem;
+}
+
+.option-row {
+    margin: 0.75rem 0;
+}
+
 .help-container {
     display: inline-block;
     position: relative;

@@ -59,6 +59,7 @@ class Bundler {
         this.bundleColorStyle = 'background';
         this.matchStylusCatppuccin = false;
         this.skipSingleItemBundles = true;
+        this.keepStarredUnbundled = true;
         chrome.storage.sync.get(
             {
                 groupMessagesByDate: true,
@@ -66,6 +67,7 @@ class Bundler {
                 bundleColorStyle: 'background',
                 matchStylusCatppuccin: false,
                 skipSingleItemBundles: true,
+                keepStarredUnbundled: true,
             },
             options => this.applyOptions(options));
     }
@@ -91,6 +93,9 @@ class Bundler {
         }
         if ('skipSingleItemBundles' in options) {
             this.skipSingleItemBundles = !!options.skipSingleItemBundles;
+        }
+        if ('keepStarredUnbundled' in options) {
+            this.keepStarredUnbundled = !!options.keepStarredUnbundled;
         }
 
         const html = document.querySelector('html');
@@ -206,7 +211,7 @@ class Bundler {
         messageNodes.forEach(message => {
             const messageLabels = this.selectiveBundling.findRelevantLabels(message);
 
-            if (!this._isStarred(message)) {
+            if (!this._shouldKeepUnbundled(message)) {
                 messageLabels.forEach(l => {
                     if (!bundlesByLabel[l]) {
                         const bundle = new Bundle(l);
@@ -254,7 +259,7 @@ class Bundler {
             // Labels whose bundle was pruned (e.g. single-item) fall through to unbundled.
             const bundlableLabels = messageLabels.filter(l => bundlesByLabel[l]);
 
-            if (bundlableLabels.length === 0 || this._isStarred(message)) {
+            if (bundlableLabels.length === 0 || this._shouldKeepUnbundled(message)) {
                 rows.push({
                     element: message,
                     type: Element.UNBUNDLED_MESSAGE,
@@ -438,6 +443,10 @@ class Bundler {
 
     _isStarred(message) {
         return message.querySelector(`.${GmailClasses.STARRED}`);
+    }
+
+    _shouldKeepUnbundled(message) {
+        return this.keepStarredUnbundled && this._isStarred(message);
     }
 
     _applyStyles(messageNodes) {

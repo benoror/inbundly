@@ -30,15 +30,29 @@ class StarHandler {
         this.bundledMail = bundledMail;
         this.selectiveBundling = selectiveBundling;
         this.prevTop = null;
+        this.keepStarredUnbundled = true;
 
         this.handleStarring = this.handleStarring.bind(this);
+
+        chrome.storage.sync.get(
+            { keepStarredUnbundled: true },
+            options => this.applyOptions(options));
+    }
+
+    applyOptions(options = {}) {
+        if ('keepStarredUnbundled' in options) {
+            this.keepStarredUnbundled = !!options.keepStarredUnbundled;
+            if (!this.keepStarredUnbundled) {
+                this.prevTop = null;
+            }
+        }
     }
 
     /**
      * Handle starring or unstarring.
      */
     handleStarring(e) {
-        if (!supportsBundling(window.location.href)) {
+        if (!this.keepStarredUnbundled || !supportsBundling(window.location.href)) {
             return;
         }
 

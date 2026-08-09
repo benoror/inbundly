@@ -192,8 +192,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             <section>
                 <h2 id="pinning-messages">Pinning messages</h2>
                 <p>
-                    You can pin important bundled messages by starring them. Pinned messages will appear
-                    in their own row outside of their bundle.
+                    You can pin important bundled messages by starring them. By default, pinned messages
+                    appear in their own row outside of their bundle. You can turn this behavior off under
+                    <a href="#">Options &rarr; Bundle setup</a> if you prefer starred messages to remain
+                    bundled.
                 </p>
                 <p>
                     The pinned-messages toggle is optional and hidden by default &mdash; turn it on under
@@ -261,141 +263,149 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 into the same Chrome or Firefox account, via
                 <code>chrome.storage.sync</code>.
             </p>
-            <h2>
-                Labels
-                <div class="help-container">
-                    <img src="assets/help.svg" class="help-icon">
-                    <div class="tooltip">
-                        Add the name of each bundle on a new line. For nested labels, use forward-slashes between the nesting hierarchy levels. Add a trailing &ldquo;/*&rdquo; to a label to also include its sub-labels &mdash; e.g. &ldquo;Newsletters/*&rdquo; matches Newsletters and everything nested under it. Matching is case-insensitive.
+            <section class="option-category">
+                <h2>Bundle setup</h2>
+
+                <h3 class="subsection-header">
+                    Labels
+                    <span class="help-container">
+                        <img src="assets/help.svg" class="help-icon">
+                        <span class="tooltip">
+                            Add the name of each bundle on a new line. For nested labels, use forward-slashes between the nesting hierarchy levels. Add a trailing &ldquo;/*&rdquo; to a label to also include its sub-labels &mdash; e.g. &ldquo;Newsletters/*&rdquo; matches Newsletters and everything nested under it. Matching is case-insensitive.
+                        </span>
+                    </span>
+                </h3>
+
+                <div class="list-type-options">
+                    <div class="list-type">
+                        <input type="radio" name="listType" value="exclude" id="exclude-radio">
+                        <label for="exclude-radio">Bundle all labels except those in the following list:</label>
+                    </div>
+                    <div class="list-type">
+                        <input type="radio" name="listType" value="include" id="include-radio">
+                        <label for="include-radio">Only bundle labels in the following list:</label>
                     </div>
                 </div>
-            </h2>
-            
-            <div class="list-type-options">
-                <div class="list-type">
-                    <input type="radio" name="listType" value="exclude" id="exclude-radio">
-                    <label for="exclude-radio">Bundle all labels except those in the following list:</label>
+
+                <textarea id="label-list" rows="16"></textarea>
+
+                <h3 class="subsection-header">Date grouping</h3>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="group-by-date-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Group messages by date</span>
                 </div>
-                <div class="list-type">
-                    <input type="radio" name="listType" value="include" id="include-radio">
-                    <label for="include-radio">Only bundle labels in the following list:</label>
+
+                <h3 class="subsection-header">Starred messages</h3>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="keep-starred-unbundled-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Keep starred messages outside bundles (Inbox-style pinning)</span>
                 </div>
-            </div>
+            </section>
 
-            <textarea id="label-list" rows="16"></textarea>
+            <section class="option-category">
+                <h2>Appearance</h2>
 
-            <h2>
-                Group by date
-            </h2>
+                <h3 class="subsection-header">Bundle colors</h3>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="color-bundles-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Color bundles to match their Gmail label color</span>
+                </div>
 
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="group-by-date-checkbox">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Group messages by date</span>
-            </div>
-
-            <h2>
-                Combine labels
-            </h2>
-
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="combine-labels-checkbox">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Bundle each distinct set of labels together (e.g. threads labeled A&nbsp;+&nbsp;B form their own bundle)</span>
-            </div>
-
-            <h2>
-                Priority bundles
-                <div class="help-container">
-                    <img src="assets/help.svg" class="help-icon">
-                    <div class="tooltip">
-                        One rule per line. A rule captures matching threads into a single bundle, overriding combined-label grouping. Join labels with &ldquo;+&rdquo; to require several at once, and add a trailing &ldquo;/*&rdquo; to also include a label's sub-labels. Rules are checked top to bottom; the first match wins.
+                <div class="list-type-options">
+                    <div class="list-type">
+                        <input type="radio" name="bundleColorStyle" value="background" id="color-style-background">
+                        <label for="color-style-background">Fill the bundle background with the label color</label>
+                    </div>
+                    <div class="list-type">
+                        <input type="radio" name="bundleColorStyle" value="accent" id="color-style-accent">
+                        <label for="color-style-accent">Only color the left accent bar and text</label>
                     </div>
                 </div>
-            </h2>
-            <p class="subsection-note">
-                Force specific labels (or label sets) to always bundle together, regardless of the
-                other labels a thread carries. Add a trailing <code>/*</code> to also include a
-                label's sub-labels, or join labels with <code>+</code> to capture threads that carry
-                all of them. Rules are checked top to bottom; the first match wins.
-            </p>
+            </section>
 
-            <textarea id="priority-bundles-list" rows="6"></textarea>
+            <section class="option-category">
+                <h2>Features</h2>
 
-            <h2>
-                Single-item bundles
-            </h2>
-
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="skip-single-item-bundles-checkbox">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Skip bundling labels that only have one thread &mdash; show them as regular messages</span>
-            </div>
-
-            <h2>
-                Bundle colors
-            </h2>
-
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="color-bundles-checkbox">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Color bundles to match their Gmail label color</span>
-            </div>
-
-            <div class="list-type-options">
-                <div class="list-type">
-                    <input type="radio" name="bundleColorStyle" value="background" id="color-style-background">
-                    <label for="color-style-background">Fill the bundle background with the label color</label>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="show-pinned-toggle-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Show the pinned-messages toggle in the search bar</span>
                 </div>
-                <div class="list-type">
-                    <input type="radio" name="bundleColorStyle" value="accent" id="color-style-accent">
-                    <label for="color-style-accent">Only color the left accent bar and text</label>
+
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="show-bundle-archive-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Show the archive-all button on bundles and date sections</span>
                 </div>
-            </div>
+            </section>
 
-            <h3 class="subsection-header">Stylus (userstyles)</h3>
-            <p class="subsection-note">
-                If you theme Gmail with a <a href="https://add0n.com/stylus.html" target="_blank">Stylus</a>
-                userstyle, inboxy can match bundle colors to the theme's palette instead of Gmail's
-                default label colors.
-            </p>
+            <section class="option-category option-category-advanced">
+                <h2>Advanced</h2>
 
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="catppuccin-matching-checkbox">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Enable <a href="https://userstyles.catppuccin.com/getting-started/usage/" target="_blank">Catppuccin</a> color-matching</span>
-            </div>
+                <h3 class="subsection-header">Combine labels</h3>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="combine-labels-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Bundle each distinct set of labels together (e.g. threads labeled A&nbsp;+&nbsp;B form their own bundle)</span>
+                </div>
 
-            <h2>
-                Features
-            </h2>
+                <h3 class="subsection-header">
+                    Priority bundles
+                    <span class="help-container">
+                        <img src="assets/help.svg" class="help-icon">
+                        <span class="tooltip">
+                            One rule per line. A rule captures matching threads into a single bundle, overriding combined-label grouping. Join labels with &ldquo;+&rdquo; to require several at once, and add a trailing &ldquo;/*&rdquo; to also include a label's sub-labels. Rules are checked top to bottom; the first match wins.
+                        </span>
+                    </span>
+                </h3>
+                <p class="subsection-note">
+                    Force specific labels (or label sets) to always bundle together, regardless of the
+                    other labels a thread carries. Add a trailing <code>/*</code> to also include a
+                    label's sub-labels, or join labels with <code>+</code> to capture threads that carry
+                    all of them. Rules are checked top to bottom; the first match wins.
+                </p>
+                <textarea id="priority-bundles-list" rows="6"></textarea>
 
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="show-pinned-toggle-checkbox">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Show the pinned-messages toggle in the search bar</span>
-            </div>
+                <h3 class="subsection-header">Single-item bundles</h3>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="skip-single-item-bundles-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Skip bundling labels that only have one thread &mdash; show them as regular messages</span>
+                </div>
 
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="show-bundle-archive-checkbox">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Show the archive-all button on bundles and date sections</span>
-            </div>
+                <h3 class="subsection-header">Stylus theme matching</h3>
+                <p class="subsection-note">
+                    If you theme Gmail with a <a href="https://add0n.com/stylus.html" target="_blank">Stylus</a>
+                    userstyle, inboxy can match bundle colors to the theme's palette instead of Gmail's
+                    default label colors.
+                </p>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="catppuccin-matching-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Enable <a href="https://userstyles.catppuccin.com/getting-started/usage/" target="_blank">Catppuccin</a> color-matching</span>
+                </div>
+            </section>
 
+            <section class="option-category">
             <h2>
                 Custom bundles
                 <div class="help-container">
@@ -411,7 +421,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 No custom bundles yet. In Gmail, select some messages and click
                 &ldquo;Bundle selected&rdquo; to make one.
             </p>
+            </section>
 
+            <section class="option-category">
             <h2>
                 Sync &amp; backup
                 <div class="help-container">
@@ -433,6 +445,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <input type="file" id="import-file" accept="application/json,.json" hidden>
             </div>
             <p id="backup-status" class="backup-status"></p>
+            </section>
 
             <button id="save-button" class="save-button">
                 <span class="save-text">Save</span>
