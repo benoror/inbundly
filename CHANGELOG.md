@@ -10,6 +10,21 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-08-09
+
+### Added
+- **Keep starred messages outside bundles** — new Options → Bundle setup toggle
+  (`keepStarredUnbundled`, on by default). Matches the previous Inbox-style pinning
+  behavior; turn it off to leave starred messages in their bundles. Live sync applies
+  the change, and star-click scroll compensation only runs when the option is enabled.
+
+### Changed
+- **Options page reorganization.** Settings are grouped into Bundle setup, Appearance,
+  Features, Advanced, Custom bundles, and Sync & backup, with denser controls moved
+  under Advanced.
+
+[3.1.0]: https://github.com/benoror/inbundly/releases/tag/v3.1.0
+
 ## [3.0.0] - 2026-08-08
 
 ### Fixed

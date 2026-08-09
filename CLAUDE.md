@@ -144,7 +144,11 @@ Flow for landing a feature branch and cutting a release:
 - **Live sync.** `content.js` listens to `chrome.storage.onChanged` for the
   sync area. UI-only keys (`showPinnedToggle`, `showBundleArchive`) toggle CSS
   classes on `<html>`; bundling keys call `applyOptions` on `SelectiveBundling`,
-  `Bundler`, and `DateGrouper`, then refresh Gmail so the list rebundles.
+  `Bundler`, `StarHandler`, and `DateGrouper`, then refresh Gmail so the list
+  rebundles. `keepStarredUnbundled` (default `true`) is a bundling key: when on,
+  starred messages stay outside bundles (Inbox-style pinning); when off,
+  `StarHandler` skips scroll compensation because starring no longer changes
+  layout.
   Custom-bundle membership uses the same listener via
   `CustomBundles.applyStoredValue`. The options page also re-reads the form
   when sync values change remotely.
