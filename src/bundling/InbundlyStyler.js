@@ -1,0 +1,93 @@
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
+// Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import { 
+    GmailClasses,
+    Selectors,
+} from '../util/Constants';
+
+/**
+ * Applies inbundly styling.
+ */
+class InbundlyStyler {
+    constructor(bundledMail) {
+        this.bundledMail = bundledMail;
+    }
+
+    /**
+     * Apply "selected" styling (i.e. checked) to all bundles that have any messages that
+     * are selected.
+     */
+    markSelectedBundles() {
+        this.bundledMail.getAllBundles().forEach(this._markSelectedBundle);
+    }
+
+    /**
+     * Apply "selected" styling (i.e. checked) to all bundles with the given labels, that have
+     * any messages that are selected. A label can bundle in more than one section,
+     * so mark every matching bundle.
+     */
+    markSelectedBundlesFor(labels) {
+        labels.forEach(l => {
+            this.bundledMail.findBundlesByLabel(l).forEach(this._markSelectedBundle);
+        });
+    }
+
+    /**
+     * Apply "selected" styling to the bundle.
+     */
+    _markSelectedBundle(bundle) {
+        const hasSelectedMessages = bundle.getMessages()
+            .some(m => m.classList.contains(GmailClasses.SELECTED));
+
+        if (hasSelectedMessages) {
+            bundle.getBundleRow().classList.add(GmailClasses.SELECTED);
+        }
+        else {
+            bundle.getBundleRow().classList.remove(GmailClasses.SELECTED);
+        }
+    }
+
+    /**
+     * For each bundle, disable bulk-archiving if any message outside of its bundle is selected.
+     */
+    disableBulkArchiveIfNecessary() {
+        const selectedMessages = [].slice.call(
+            document.querySelectorAll(Selectors.SELECTED));
+        this.bundledMail.getAllBundles().forEach(bundle =>
+            this._updateBulkArchiveButton(bundle, selectedMessages));
+    }
+
+    /**
+     * Enable/disable the bulk archive button for the given bundle.
+     */
+    _updateBulkArchiveButton(bundle, selectedMessages) {
+        const bundledMessageIds = new Set(bundle.getMessages().map(m => m.id));
+        const allSelectedMessagesInBundle = !selectedMessages.some(
+            m => !bundledMessageIds.has(m.id));
+
+        const bulkArchiveButton = bundle.getBundleRow().querySelector('.archive-bundle');
+        if (allSelectedMessagesInBundle) {
+            bulkArchiveButton.classList.remove('disabled');
+        }
+        else {
+            bulkArchiveButton.classList.add('disabled');
+        }
+    }
+}
+
+export default InbundlyStyler;

@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -33,7 +34,7 @@ import StarHandler from './handlers/StarHandler';
 import ThemeChangeHandler from './handlers/ThemeChangeHandler';
 
 import { 
-    InboxyClasses,
+    InbundlyClasses,
     Selectors,
 } from './util/Constants';
 import { createCoalescedRetry } from './util/CoalescedRetry';
@@ -51,14 +52,14 @@ import {
 const DEBUG = true;
 const logDebugMessage = message => {
     if (DEBUG) {
-        console.log(`inboxy-debug: ${message}`);
+        console.log(`inbundly-debug: ${message}`);
     }
 };
 
 const html = document.querySelector('html');
 if (html) {
     logDebugMessage('Applying styles');
-    html.classList.add(InboxyClasses.INBOXY);
+    html.classList.add(InbundlyClasses.INBUNDLY);
 
     // The pinned-messages toggle and bulk-archive button are hidden by default;
     // opt in to them from the options page. Values sync across devices.
@@ -76,10 +77,10 @@ function applyUiOptions({ showPinnedToggle, showBundleArchive } = {}) {
         return;
     }
     if (showPinnedToggle !== undefined) {
-        htmlEl.classList.toggle(InboxyClasses.HIDE_PINNED_TOGGLE, !showPinnedToggle);
+        htmlEl.classList.toggle(InbundlyClasses.HIDE_PINNED_TOGGLE, !showPinnedToggle);
     }
     if (showBundleArchive !== undefined) {
-        htmlEl.classList.toggle(InboxyClasses.HIDE_BUNDLE_ARCHIVE, !showBundleArchive);
+        htmlEl.classList.toggle(InbundlyClasses.HIDE_BUNDLE_ARCHIVE, !showBundleArchive);
     }
 }
 
@@ -212,10 +213,10 @@ document.addEventListener('mousedown', e => {
     {
         handleFreshPage(e);
     }
-    else if (e.target.matches(`.${InboxyClasses.VIEW_ALL_LINK}`) ||
-        e.target.matches(`.${InboxyClasses.VIEW_ALL_LINK} *`) || 
-        e.target.matches(`.${InboxyClasses.BUNDLED_MESSAGE}`) ||
-        e.target.matches(`.${InboxyClasses.BUNDLED_MESSAGE} *`)) 
+    else if (e.target.matches(`.${InbundlyClasses.VIEW_ALL_LINK}`) ||
+        e.target.matches(`.${InbundlyClasses.VIEW_ALL_LINK} *`) || 
+        e.target.matches(`.${InbundlyClasses.BUNDLED_MESSAGE}`) ||
+        e.target.matches(`.${InbundlyClasses.BUNDLED_MESSAGE} *`)) 
     {
         handleBundleInteraction(e);
     }
@@ -342,7 +343,7 @@ function startObservers() {
 
 /**
  * Trigger Gmail's own inbox refresh, which rebuilds the message list and causes
- * inboxy to re-bundle. Used after custom-bundle membership or bundling-option
+ * inbundly to re-bundle. Used after custom-bundle membership or bundling-option
  * changes (including those synced from another device).
  */
 function refreshInbox() {

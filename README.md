@@ -1,16 +1,18 @@
 <p align="center">
-  <img width="650" src="https://github.com/teresa-ou/inboxy/blob/master/images/inboxy-illustration.png" alt="Illustration of inboxy">
+  <img width="650" src="images/inbundly-banner.png" alt="Inbundly — Google Inbox-style bundles for Gmail">
 </p>
 
-# inboxy: Google Inbox-style bundles for Gmail
+# Inbundly: Google Inbox-style bundles for Gmail
 
-> **Fork notice:** This is [benoror/inbundly](https://github.com/benoror/inbundly), a maintained fork of
-> [teresa-ou/inboxy](https://github.com/teresa-ou/inboxy) with additional options for combined-label
-> bundles, bundle coloring, and Stylus theme-matching. It is not published to the Chrome or Firefox
-> stores — load it as an unpacked extension from `dist/`.
-
-inboxy is a browser extension that bundles together your email messages and makes it easier to manage
+**Inbundly** brings back the best part of Google Inbox — **bundles** — to Gmail, and keeps
+going: it groups your email into tidy, collapsible bundles and adds more ways to organize
 your inbox.
+
+> **Fork notice:** Inbundly is [benoror/inbundly](https://github.com/benoror/inbundly), a
+> maintained, rebranded fork of [teresa-ou/inboxy](https://github.com/teresa-ou/inboxy)
+> (originally by Teresa Ou), with additional options for combined-label bundles, bundle
+> coloring, custom bundles, and Stylus theme-matching. Licensed GPL-3.0 (see
+> [`NOTICE.md`](NOTICE.md) for the statement of changes).
 
 ## Features
 
@@ -43,11 +45,11 @@ your inbox.
   snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
   default)
 
-For more info on the original project, visit https://www.inboxymail.com.
+Learn more at [inbundly.com](https://inbundly.com).
 
 ## Setup
 
-inboxy uses webpack to bundle js files:
+Inbundly uses webpack to bundle js files:
 
 ```bash
 # Install dependencies
@@ -87,10 +89,8 @@ Feel free to [send feedback](https://github.com/benoror/inbundly/issues) by fili
 
 ## Acknowledgements
 
-* [material.io](https://material.io/resources/icons/): Icons in [dist/assets/](https://github.com/teresa-ou/inboxy/tree/master/dist/assets/), [dist/options/assets/](https://github.com/teresa-ou/inboxy/tree/master/dist/options/assets/), and [dist/popup/assets/](https://github.com/teresa-ou/inboxy/tree/master/dist/popup/assets/) are modified versions of icons from material.io. The original material.io icons are licensed under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).
-* [Nova](https://www.streamlineicons.com/nova/index.html): The inboxy logo is modified from a Nova icon.
+* [material.io](https://material.io/resources/icons/): Icons in [dist/assets/](https://github.com/benoror/inbundly/tree/master/dist/assets/), [dist/options/assets/](https://github.com/benoror/inbundly/tree/master/dist/options/assets/), and [dist/popup/assets/](https://github.com/benoror/inbundly/tree/master/dist/popup/assets/) are modified versions of icons from material.io. The original material.io icons are licensed under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).
 
 ## License
 
-[GPL-3.0](https://github.com/benoror/inbundly/blob/master/COPYING), Copyright (C) 2020 [Teresa Ou](https://github.com/teresa-ou).
-Fork maintained by [benoror](https://github.com/benoror).
+[GPL-3.0](https://github.com/benoror/inbundly/blob/master/COPYING). Copyright (C) 2020 [Teresa Ou](https://github.com/teresa-ou); modifications Copyright (C) 2026 [Ben Orozco](https://github.com/benoror). See [`NOTICE.md`](NOTICE.md).

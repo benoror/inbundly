@@ -11,7 +11,7 @@ Guidance for Claude Code when working in this repository.
 
 ## What this is
 
-`inboxy` is a Manifest V3 browser extension (Chrome + Firefox) that recreates Google
+**Inbundly** is a Manifest V3 browser extension (Chrome + Firefox) that recreates Google
 Inbox-style bundles in Gmail. It's a fork of
 [teresa-ou/inboxy](https://github.com/teresa-ou/inboxy) — the upstream project is no
 longer actively maintained. Licensed GPL-3.0.
@@ -23,14 +23,14 @@ Gmail's DOM and restructuring the message list into collapsible bundles by label
 
 - `src/` — all editable JavaScript source (ES modules). Entry point: `src/content.js`.
   - `bundling/` — core logic that groups messages into bundles and toggles them
-    (`Bundler`, `BundleToggler`, `DateGrouper`, `SelectiveBundling`, `InboxyStyler`).
+    (`Bundler`, `BundleToggler`, `DateGrouper`, `SelectiveBundling`, `InbundlyStyler`).
   - `handlers/` — `MutationObserver`-based watchers that react to Gmail navigation,
     rerenders, starring, and theme changes.
   - `components/` — DOM builders for injected UI (bundle rows, dividers, toggles, the
     bulk-archive button, the floating "Bundle selected" custom-bundle control).
   - `containers/` — in-memory models of the bundled mail state (`BundledMail`,
     `Bundle`, and `CustomBundles` — the persisted, thread-id-keyed custom bundles).
-  - `util/` — `Constants.js` (Gmail DOM selectors + inboxy CSS classes) and DOM helpers.
+  - `util/` — `Constants.js` (Gmail DOM selectors + Inbundly CSS classes) and DOM helpers.
 - `dist/` — the loadable unpacked extension. Contains committed static assets
   (`manifest.json`, `style.css`, `background.js`, `popup/`, `options/`, `icons/`,
   `assets/`) plus the webpack-built `content.js`.
@@ -56,7 +56,7 @@ npm test          # Jest tests
 2. **Load unpacked** → select the `dist/` folder.
 3. Open `mail.google.com`.
 
-After a rebuild: click **reload ↻** on the inboxy card in `chrome://extensions`, then
+After a rebuild: click **reload ↻** on the Inbundly card in `chrome://extensions`, then
 refresh Gmail.
 
 ### Extension identity (do not change casually)
@@ -114,7 +114,7 @@ Flow for landing a feature branch and cutting a release:
 2. **Release commit on `master`** (after merge): bump the version in both
    `dist/manifest.json` and `package.json`, add the `CHANGELOG.md` section, commit as
    `Release vX.Y.Z`.
-3. **Tag & push:** `git tag -a vX.Y.Z -m "inboxy vX.Y.Z (benoror fork)" && git push origin vX.Y.Z`.
+3. **Tag & push:** `git tag -a vX.Y.Z -m "Inbundly vX.Y.Z (benoror fork)" && git push origin vX.Y.Z`.
 4. **GitHub Release:** `gh release create vX.Y.Z --repo benoror/inbundly --latest --notes-file <notes>`
    (notes = that version's changelog section).
 
@@ -124,7 +124,7 @@ Flow for landing a feature branch and cutting a release:
 
 ## Notes
 
-- `src/content.js` has a `DEBUG` flag that logs `inboxy-debug:` messages to the console.
+- `src/content.js` has a `DEBUG` flag that logs `inbundly-debug:` messages to the console.
 - **Bootstrapping.** `content.js` waits for stored options / custom bundles
   (`optionsReady` / `ready` promises on `Bundler`, `SelectiveBundling`,
   `StarHandler`, `DateGrouper`, `CustomBundles`) before the first
@@ -150,12 +150,12 @@ Flow for landing a feature branch and cutting a release:
   last `.Cp` that actually holds a `.F tbody`, since Default renders a placeholder
   `.Cp` first). Never re-introduce "pick the one message list" logic (the old
   `.item(1)` / `.item(length-1)` picks) — bundle every section in a loop.
-  `Bundler` stamps each section's `tbody` with `data-inboxy-section`
+  `Bundler` stamps each section's `tbody` with `data-inbundly-section`
   (`SECTION_ATTR`); `BundledMail` keys bundles by page → tab → **section** →
   label (the same label can bundle independently in two sections), and the open
   bundle is a `{ sectionId, label }` ref, not a bare label. `BundleToggler`
   scopes the open-bundle highlight (`.bundle-area`) to the toggled bundle's
-  section via `bundleRow.closest('.F tbody')`. In multi-section views inboxy
+  section via `bundleRow.closest('.F tbody')`. In multi-section views Inbundly
   suppresses its own `date-row` dividers — Gmail's section headings are the
   de-facto grouping — so date dividers only render in the single-list Default
   inbox (and still honor `groupMessagesByDate` there). `DateGrouper` is unrelated:

@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,11 +17,11 @@
 
 import { 
     GmailClasses,
-    InboxyClasses,
+    InbundlyClasses,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
 import { supportsBundling } from '../util/MessagePageUtils';
-import InboxyStyler from '../bundling/InboxyStyler';
+import InbundlyStyler from '../bundling/InbundlyStyler';
 
 const MESSAGE_LIST_CONFIG = { 
     attributes: true,
@@ -32,7 +33,7 @@ const MESSAGE_LIST_CONFIG = {
 /**
  * Observers to handle when messages' checkboxes are clicked.
  *
- * Reapplies inboxy styling when Gmail applies its original styles when a message is selected.
+ * Reapplies inbundly styling when Gmail applies its original styles when a message is selected.
  */
 class MessageSelectHandler {
 
@@ -40,7 +41,7 @@ class MessageSelectHandler {
         this.bundledMail = bundledMail;
         this.selectiveBundling = selectiveBundling;
         this.messageObservers = [];
-        this.inboxyStyler = new InboxyStyler(bundledMail);
+        this.inbundlyStyler = new InbundlyStyler(bundledMail);
 
         this._handleMessageChange = this._handleMessageChange.bind(this);
     }
@@ -79,26 +80,26 @@ class MessageSelectHandler {
 
             const message = mutation.target;
 
-            // Re-add inboxy styling that get removed when gmail applies checked/unchecked styling
-            if (mutation.oldValue.includes(InboxyClasses.BUNDLED_MESSAGE) &&
-                !message.classList.contains(InboxyClasses.BUNDLED_MESSAGE)) 
+            // Re-add inbundly styling that get removed when gmail applies checked/unchecked styling
+            if (mutation.oldValue.includes(InbundlyClasses.BUNDLED_MESSAGE) &&
+                !message.classList.contains(InbundlyClasses.BUNDLED_MESSAGE)) 
             {
                 // Bundled message
-                message.classList.add(InboxyClasses.BUNDLED_MESSAGE);
-                if (mutation.oldValue.includes(InboxyClasses.VISIBLE)) {
-                    message.classList.add(InboxyClasses.VISIBLE);
+                message.classList.add(InbundlyClasses.BUNDLED_MESSAGE);
+                if (mutation.oldValue.includes(InbundlyClasses.VISIBLE)) {
+                    message.classList.add(InbundlyClasses.VISIBLE);
                 }
-                if (mutation.oldValue.includes(InboxyClasses.LAST)) {
-                    message.classList.add(InboxyClasses.LAST);
+                if (mutation.oldValue.includes(InbundlyClasses.LAST)) {
+                    message.classList.add(InbundlyClasses.LAST);
                 }
             }
             
             if (mutation.oldValue.includes(GmailClasses.SELECTED) !== 
                 message.classList.contains(GmailClasses.SELECTED)) 
             {
-                this.inboxyStyler.markSelectedBundlesFor(
+                this.inbundlyStyler.markSelectedBundlesFor(
                     this.selectiveBundling.findRelevantLabels(message));
-                this.inboxyStyler.disableBulkArchiveIfNecessary();
+                this.inbundlyStyler.disableBulkArchiveIfNecessary();
             }
         });    
     }

@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -47,7 +48,7 @@ const GmailClasses = {
     UNREAD_SENDER: 'zF',
 };
 
-const InboxyClasses = {
+const InbundlyClasses = {
     BUNDLE_ROW: 'bundle-row',
     BUNDLED_MESSAGE: 'bundled-message',
     DARK_THEME: 'dark-theme',
@@ -55,7 +56,7 @@ const InboxyClasses = {
     HIDE_PINNED_TOGGLE: 'hide-pinned-toggle',
     MESSAGES_DARK_THEME: 'messages-dark-theme',
     MESSAGES_DEFAULT_THEME: 'messages-default-theme',
-    INBOXY: 'inboxy',
+    INBUNDLY: 'inbundly',
     LABEL_COLORED: 'label-colored',
     LABEL_COLOR_ACCENT: 'label-color-accent',
     LAST: 'last',
@@ -70,7 +71,7 @@ const MAIN = `[role="main"]`;
 // shows a single visible panel; the sectioned types (Important/Unread/Starred
 // first, Priority Inbox, Multiple Inboxes) show several visible panels at once,
 // each with its own message list. `CURRENT_TABPANEL` therefore yields ALL the
-// panels inboxy must bundle, not just one — do not assume a single match.
+// panels inbundly must bundle, not just one — do not assume a single match.
 const CURRENT_TABPANEL = `${MAIN} .ae4:not([style*="none"])`;
 const MESSAGE_LIST_CONTAINER = '.Cp';
 const POSSIBLE_MESSAGE_LISTS = `${CURRENT_TABPANEL} ${MESSAGE_LIST_CONTAINER}`;
@@ -78,13 +79,13 @@ const LABELS = `.ar.as .at`;
 
 // Data attribute stamped on each section's table body so a message row can be
 // mapped back to the section it belongs to (used to scope bundle toggling).
-const SECTION_ATTR = 'data-inboxy-section';
+const SECTION_ATTR = 'data-inbundly-section';
 const Selectors = {
     CHECKBOXES: `${CURRENT_TABPANEL} tr td .oZ-jc.T-Jo.J-J5-Ji`,
     CURRENT_TAB: `${MAIN} [role="tab"][aria-selected="true"]`,
     CURRENT_TABPANEL: CURRENT_TABPANEL,
     INBOX_LABEL: `${LABELS}[title="Inbox"]`,
-    INBOXY: `.${InboxyClasses.INBOXY}`,
+    INBUNDLY: `.${InbundlyClasses.INBUNDLY}`,
     LABEL_CONTAINERS: '.ar.as',
     LABELS: LABELS,
     IMPORTANCE_MARKER: `.${GmailClasses.ROW} .${GmailClasses.IMPORTANCE_MARKER}`,
@@ -105,7 +106,7 @@ const Selectors = {
     REFRESH: '.T-I.J-J5-Ji[act="20"]',
     SAMPLE_MESSAGE: `${POSSIBLE_MESSAGE_LISTS} tr.${GmailClasses.ROW}.${GmailClasses.READ}:not(.bundled-message):not(.btb)`,
     SEARCH_FORM: '#gb form',
-    SELECTED: `${CURRENT_TABPANEL} tr.${GmailClasses.SELECTED}:not(.${InboxyClasses.BUNDLE_ROW})`,
+    SELECTED: `${CURRENT_TABPANEL} tr.${GmailClasses.SELECTED}:not(.${InbundlyClasses.BUNDLE_ROW})`,
     SENDERS: '.yX.xY .yW .bA4 span[email]',
     SCROLLABLE_CONTAINER: '.Tm.aeJ',
     SIDEPANE_TEXT: '.TO .nU',
@@ -143,7 +144,7 @@ export {
     LABEL_SET_SEPARATOR,
     SECTION_ATTR,
     GmailClasses,
-    InboxyClasses,
+    InbundlyClasses,
     Selectors, 
     TableBodySelectors,
     Urls,

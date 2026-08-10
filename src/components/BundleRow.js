@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@ import { formatLabelSetTitle } from '../util/LabelSet';
 import { isCustomBundleKey, customBundleName } from '../util/CustomBundleKey';
 import {
     GmailClasses,
-    InboxyClasses,
+    InbundlyClasses,
     Selectors,
     LABEL_SET_SEPARATOR,
 } from '../util/Constants';
@@ -65,7 +66,7 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     const latestIsSnoozedClass = snoozedText ? GmailClasses.SNOOZED : '';
 
     const html = `
-        <tr class="${GmailClasses.ROW} ${InboxyClasses.BUNDLE_ROW} ${unreadClass}">
+        <tr class="${GmailClasses.ROW} ${InbundlyClasses.BUNDLE_ROW} ${unreadClass}">
             <td class="${GmailClasses.CELL} PF"></td>
             <td class="${GmailClasses.CELL} oZ-x3"></td>
             <td class="${GmailClasses.CELL} apU"></td>
@@ -126,7 +127,7 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
         isCustom ? `<td class="${GmailClasses.CELL}"></td>` : viewAllButtonHtml));
 
     el.addEventListener('click', e => {
-        if (!e.target.matches(`.${InboxyClasses.VIEW_ALL_LINK}`) &&
+        if (!e.target.matches(`.${InbundlyClasses.VIEW_ALL_LINK}`) &&
             !e.target.matches('.view-all'))
         {
             toggleBundle(label);
@@ -138,18 +139,18 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     el.style.order = order;
 
     if (labelColors) {
-        el.classList.add(InboxyClasses.LABEL_COLORED);
-        el.style.setProperty('--inboxy-label-bg', labelColors.background);
+        el.classList.add(InbundlyClasses.LABEL_COLORED);
+        el.style.setProperty('--inbundly-label-bg', labelColors.background);
         if (labelColors.color) {
-            el.style.setProperty('--inboxy-label-fg', labelColors.color);
+            el.style.setProperty('--inbundly-label-fg', labelColors.color);
         }
         if (labelColors.accent) {
-            el.style.setProperty('--inboxy-label-accent', labelColors.accent);
+            el.style.setProperty('--inbundly-label-accent', labelColors.accent);
         }
         // Gray/neutral theme-matched bundles blend more strongly so their fill
         // stands out from the theme background instead of matching it.
         if (labelColors.neutral) {
-            el.style.setProperty('--inboxy-label-mix', '42%');
+            el.style.setProperty('--inbundly-label-mix', '42%');
         }
     }
 

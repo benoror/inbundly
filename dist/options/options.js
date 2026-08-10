@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -245,7 +246,7 @@ function importSettings(file) {
         }
 
         if (!settings) {
-            setBackupStatus('No inboxy settings found in that file.', true);
+            setBackupStatus('No Inbundly settings found in that file.', true);
             return;
         }
 
@@ -374,7 +375,7 @@ function selectTab(tabIndex, subtitle) {
         tabLinks[i].style.fontWeight = i === tabIndex ? '700' : '';
     }
 
-    document.querySelector('title').innerText = `inboxy - ${subtitle}`;
+    document.querySelector('title').innerText = `Inbundly - `;
 }
 
 document.querySelectorAll('.nav-links li').forEach((e, i) => {

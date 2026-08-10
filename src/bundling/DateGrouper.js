@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,7 +20,7 @@ import DateDivider from '../components/DateDivider';
 import PinnedMessageListWatcher from '../handlers/PinnedMessageListWatcher';
 
 import { 
-    InboxyClasses,
+    InbundlyClasses,
     Selectors, 
     TableBodySelectors,
     Element,
@@ -78,7 +79,7 @@ class DateGrouper {
     _refreshDateDividers(messageList) {
         const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
 
-        document.querySelector('html').classList.add(InboxyClasses.INBOXY);
+        document.querySelector('html').classList.add(InbundlyClasses.INBUNDLY);
         tableBody.classList.add('flex-table-body');
 
         // Remove all pre-existing date rows

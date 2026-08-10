@@ -10,6 +10,36 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-08-10
+
+**Rebrand: inboxy → Inbundly.** Same bundling engine (all v3.x features intact), new
+identity — plus a public site and store-ready packaging. Remains a GPL-3.0 fork of
+`teresa-ou/inboxy` with upstream attribution retained (see `NOTICE.md`).
+
+### Added
+- New **Inbundly** brand: logo/wordmark, a theme-flipping extension icon set (dark tile on
+  light toolbars, light tile on dark, via `theme_icons`), and a Catppuccin-modernized palette.
+- Redesigned **options** and **popup** pages with light + dark theming, self-contained
+  (no remote web fonts), and a branded favicon on the options tab.
+- **Marketing site** under `docs/` (GitHub Pages, `inbundly.com`): landing page + a
+  **Privacy Policy** page (required for Chrome Web Store).
+- `NOTICE.md` documenting modifications and dates per GPL-3.0 §5a; contributor copyright
+  `Copyright (C) 2026 Ben Orozco` added alongside the retained `Copyright (C) 2020 Teresa Ou`.
+
+### Changed
+- Extension **name** → `Inbundly – Inbox Bundles for Gmail`; `homepage_url` → `inbundly.com`.
+- Internal CSS/JS identifiers renamed `inboxy`→`inbundly` in lockstep (root `html.inbundly`
+  class, `--inbundly-*` custom properties, `InbundlyClasses`, `InbundlyStyler`,
+  `data-inbundly-section`).
+- `package.json`: `name` → `inbundly`, `license` → `GPL-3.0-only`, real `description`.
+
+### Note
+- **Breaking for external userstyles:** any Stylus/userstyle targeting the old `.inboxy`
+  root class or `--inboxy-*` variables must switch to `.inbundly` / `--inbundly-*`.
+- Saved data is preserved — the `customBundles` storage key is unchanged.
+
+[4.0.0]: https://github.com/benoror/inbundly/releases/tag/v4.0.0
+
 ## [3.2.0] - 2026-08-10
 
 ### Added

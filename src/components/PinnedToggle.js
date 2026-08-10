@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
 
 import { 
     Urls,
-    InboxyClasses,
+    InbundlyClasses,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
 import {
@@ -95,16 +96,16 @@ class PinnedToggle {
             this.toggleElement.style = {};
             this.anchorElement.href = `${this.baseUrl}#inbox`;
             this.toggleElement.classList.add('show-pinned');
-            document.querySelector('html').classList.add(InboxyClasses.SHOW_PINNED_TOGGLE);
+            document.querySelector('html').classList.add(InbundlyClasses.SHOW_PINNED_TOGGLE);
         }
         else if (supportsBundling(url)) {
             this.toggleElement.style = {};
             this.anchorElement.href = `${this.baseUrl}#${Urls.STARRED_PAGE_HASH}`;
             this.toggleElement.classList.remove('show-pinned');
-            document.querySelector('html').classList.add(InboxyClasses.SHOW_PINNED_TOGGLE);
+            document.querySelector('html').classList.add(InbundlyClasses.SHOW_PINNED_TOGGLE);
         } 
         else {
-            document.querySelector('html').classList.remove(InboxyClasses.SHOW_PINNED_TOGGLE);
+            document.querySelector('html').classList.remove(InbundlyClasses.SHOW_PINNED_TOGGLE);
             this.toggleElement.style.display = 'none';
         }
     }
