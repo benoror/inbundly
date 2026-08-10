@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -53,7 +54,7 @@ const DomUtils = {
 
     /**
      * The section id (as a string) that a message row belongs to, read from the
-     * attribute inboxy stamps on each section's table body, or null if the row
+     * attribute inbundly stamps on each section's table body, or null if the row
      * isn't inside a bundled section.
      */
     getSectionId: function(node) {
@@ -168,7 +169,7 @@ const DomUtils = {
 
     /**
      * Read Gmail's stable thread id for a message row, or null if absent
-     * (e.g. inboxy's own injected bundle rows carry no thread id). This id is
+     * (e.g. inbundly's own injected bundle rows carry no thread id). This id is
      * durable across reloads, so it's used to persist custom bundle membership.
      */
     getThreadId: function(message) {

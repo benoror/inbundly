@@ -1,6 +1,7 @@
 /**
- * inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+ * Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
  * Copyright (C) 2020  Teresa Ou
+ * Copyright (C) 2026  Ben Orozco
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
  
-html.inboxy .flex-table-body {
+html.inbundly .flex-table-body {
     display: flex;
     flex-direction: column;
     position: relative;
@@ -28,20 +29,20 @@ html.inboxy .flex-table-body {
  */
 
 /* Make unread messages grey for light theme, when Simplify is not used */
-html.inboxy:not(.simplify):not(.simpl) tr:not(.bundle-row).zE:not(.x7),
-html.inboxy:not(.simplify):not(.simpl) .bundle-row.zE:not(.visible):not(.x7) {
+html.inbundly:not(.simplify):not(.simpl) tr:not(.bundle-row).zE:not(.x7),
+html.inbundly:not(.simplify):not(.simpl) .bundle-row.zE:not(.visible):not(.x7) {
     background-color: rgba(0, 0, 0, 0.09);
 }
 
 /* Make unread messages light blue for default theme, when Simplify is not used */
-html.inboxy.messages-default-theme:not(.simplify):not(.simpl) tr:not(.bundle-row).zE:not(.x7),
-html.inboxy.messages-default-theme:not(.simplify):not(.simpl) .bundle-row.zE:not(.visible):not(.x7) {
+html.inbundly.messages-default-theme:not(.simplify):not(.simpl) tr:not(.bundle-row).zE:not(.x7),
+html.inbundly.messages-default-theme:not(.simplify):not(.simpl) .bundle-row.zE:not(.visible):not(.x7) {
     background-color: #f2f6fc;
 }
 
 /* Make unread messages black for dark theme, when Simplify is not used */
-html.inboxy.messages-dark-theme:not(.simplify):not(.simpl) tr:not(.bundle-row).zE:not(.x7),
-html.inboxy.messages-dark-theme:not(.simplify):not(.simpl) .bundle-row.zE:not(.visible):not(.x7) {
+html.inbundly.messages-dark-theme:not(.simplify):not(.simpl) tr:not(.bundle-row).zE:not(.x7),
+html.inbundly.messages-dark-theme:not(.simplify):not(.simpl) .bundle-row.zE:not(.visible):not(.x7) {
     background-color: rgba(0, 0, 0, 0.502);
 }
 
@@ -50,13 +51,13 @@ html.inboxy.messages-dark-theme:not(.simplify):not(.simpl) .bundle-row.zE:not(.v
  * Simplify v2
  * Use a lighter color for focused message (to contrast against open bundle color)
  */
-html.inboxy.simplify:not(.messages-dark-theme) tr.zA.btb {
+html.inbundly.simplify:not(.messages-dark-theme) tr.zA.btb {
     background-color: rgba(242, 245, 245, 0.8) !important;
 }
 /* In dark theme, the chosen color is visually compatible, so no changes needed */
 
 /* Override rounded corners in Simplify v2 */
-html.inboxy.simplify .zA {
+html.inbundly.simplify .zA {
     border-radius: 0 !important;
 }
 
@@ -64,28 +65,28 @@ html.inboxy.simplify .zA {
  * Bundle row
  */
 
-html.inboxy .bundle-row.zE .xY.yX,
-html.inboxy .bundle-row .bundle-date.unread {
+html.inbundly .bundle-row.zE .xY.yX,
+html.inbundly .bundle-row .bundle-date.unread {
     font-weight: bold;
 }
 
-html.inboxy .bundle-row .bundle-date.cL {
+html.inbundly .bundle-row .bundle-date.cL {
     margin-left: 0;
     margin-right: 16px;
 }
 
 /* Allow column to shrink so that archive-bundle is next to the bundle-date */
-html.inboxy .bundle-row .bundle-date-cell {
+html.inbundly .bundle-row .bundle-date-cell {
     flex-basis: auto;
 }
 
-html.inboxy .bundle-row .unread-sender {
+html.inbundly .bundle-row .unread-sender {
     font-weight: bold;
 }
 
 /* Include zA/yO/zE/!important so that styles are compatible with Simplify */
-html.inboxy .bundle-row.zA.yO.visible,
-html.inboxy .bundle-row.zA.zE.visible {
+html.inbundly .bundle-row.zA.yO.visible,
+html.inbundly .bundle-row.zA.zE.visible {
     box-shadow: none !important;
     font-weight: bold;
     background-color: rgba(255, 255, 255, 0.35) !important;
@@ -94,13 +95,13 @@ html.inboxy .bundle-row.zA.zE.visible {
     margin-top: 8px;
 }
 
-html.inboxy.messages-default-theme .bundle-row.yO.visible,
-html.inboxy.messages-default-theme .bundle-row.zE.visible {
+html.inbundly.messages-default-theme .bundle-row.yO.visible,
+html.inbundly.messages-default-theme .bundle-row.zE.visible {
     background-color: #ecf0f9 !important;
 }
 
-html.inboxy.messages-dark-theme .bundle-row.yO.visible,
-html.inboxy.messages-dark-theme .bundle-row.zE.visible {
+html.inbundly.messages-dark-theme .bundle-row.yO.visible,
+html.inbundly.messages-dark-theme .bundle-row.zE.visible {
     background-color: rgba(0, 0, 0, 0.25) !important;
     color: #ffffff !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
@@ -110,7 +111,7 @@ html.inboxy.messages-dark-theme .bundle-row.zE.visible {
  * Label-colored bundles (opt-in "Bundle colors" option).
  *
  * Colors come from the Gmail label's own chip, captured inline on the row as
- * --inboxy-label-bg / --inboxy-label-fg / --inboxy-label-accent, so bundles
+ * --inbundly-label-bg / --inbundly-label-fg / --inbundly-label-accent, so bundles
  * stay consistent with the current Gmail theme.
  *
  * Both styles color the left accent bar + text with the contrast-picked accent
@@ -125,115 +126,115 @@ html.inboxy.messages-dark-theme .bundle-row.zE.visible {
  */
 
 /* Base to blend the label color toward, per theme (light by default). */
-html.inboxy {
-    --inboxy-fill-base: #ffffff;
+html.inbundly {
+    --inbundly-fill-base: #ffffff;
 }
-html.inboxy.messages-dark-theme {
-    --inboxy-fill-base: #202124;
+html.inbundly.messages-dark-theme {
+    --inbundly-fill-base: #202124;
 }
-html.inboxy .bundle-row.label-colored,
-html.inboxy .bundle-area.label-colored {
-    --inboxy-label-tint: color-mix(in srgb, var(--inboxy-label-bg) var(--inboxy-label-mix, 20%), var(--inboxy-fill-base));
+html.inbundly .bundle-row.label-colored,
+html.inbundly .bundle-area.label-colored {
+    --inbundly-label-tint: color-mix(in srgb, var(--inbundly-label-bg) var(--inbundly-label-mix, 20%), var(--inbundly-fill-base));
 }
 
 /* -- Left accent bar (both styles; accent color survives pale/white labels) -- */
-html.inboxy .bundle-row.label-colored:not(.visible) {
-    box-shadow: inset 5px 0 0 0 var(--inboxy-label-accent, var(--inboxy-label-fg, var(--inboxy-label-bg)));
+html.inbundly .bundle-row.label-colored:not(.visible) {
+    box-shadow: inset 5px 0 0 0 var(--inbundly-label-accent, var(--inbundly-label-fg, var(--inbundly-label-bg)));
 }
-html.inboxy .bundle-row.label-colored.zA.yO.visible,
-html.inboxy .bundle-row.label-colored.zA.zE.visible {
-    box-shadow: inset 5px 0 0 0 var(--inboxy-label-accent, var(--inboxy-label-fg, var(--inboxy-label-bg))) !important;
+html.inbundly .bundle-row.label-colored.zA.yO.visible,
+html.inbundly .bundle-row.label-colored.zA.zE.visible {
+    box-shadow: inset 5px 0 0 0 var(--inbundly-label-accent, var(--inbundly-label-fg, var(--inbundly-label-bg))) !important;
     text-shadow: none;
 }
-html.inboxy .bundle-area.label-colored {
-    box-shadow: inset 5px 0 0 0 var(--inboxy-label-accent, var(--inboxy-label-fg, var(--inboxy-label-bg)));
+html.inbundly .bundle-area.label-colored {
+    box-shadow: inset 5px 0 0 0 var(--inbundly-label-accent, var(--inbundly-label-fg, var(--inbundly-label-bg)));
 }
 
 /* -- Text: color the bundle title, count, senders and date (both styles) -- */
-html.inboxy .bundle-row.label-colored .bundle-and-count,
-html.inboxy .bundle-row.label-colored .bundle-senders,
-html.inboxy .bundle-row.label-colored .bundle-date {
-    color: var(--inboxy-label-accent, var(--inboxy-label-fg)) !important;
+html.inbundly .bundle-row.label-colored .bundle-and-count,
+html.inbundly .bundle-row.label-colored .bundle-senders,
+html.inbundly .bundle-row.label-colored .bundle-date {
+    color: var(--inbundly-label-accent, var(--inbundly-label-fg)) !important;
 }
 
 /* -- Fill style only: a subtle label-color tint behind the bundle -- */
 /* The .zA guard and theme/Simplify qualifiers outrank the themed row rules. */
-html.inboxy:not(.label-color-accent):not(.simplify):not(.simpl) .bundle-row.label-colored.zA:not(.visible):not(.x7),
-html.inboxy.messages-default-theme:not(.label-color-accent):not(.simplify):not(.simpl) .bundle-row.label-colored.zA:not(.visible):not(.x7),
-html.inboxy.messages-dark-theme:not(.label-color-accent):not(.simplify):not(.simpl) .bundle-row.label-colored.zA:not(.visible):not(.x7) {
-    background-color: var(--inboxy-label-tint) !important;
+html.inbundly:not(.label-color-accent):not(.simplify):not(.simpl) .bundle-row.label-colored.zA:not(.visible):not(.x7),
+html.inbundly.messages-default-theme:not(.label-color-accent):not(.simplify):not(.simpl) .bundle-row.label-colored.zA:not(.visible):not(.x7),
+html.inbundly.messages-dark-theme:not(.label-color-accent):not(.simplify):not(.simpl) .bundle-row.label-colored.zA:not(.visible):not(.x7) {
+    background-color: var(--inbundly-label-tint) !important;
 }
-html.inboxy:not(.label-color-accent) .bundle-row.label-colored.zA.yO.visible,
-html.inboxy:not(.label-color-accent) .bundle-row.label-colored.zA.zE.visible,
-html.inboxy.messages-default-theme:not(.label-color-accent) .bundle-row.label-colored.yO.visible,
-html.inboxy.messages-default-theme:not(.label-color-accent) .bundle-row.label-colored.zE.visible,
-html.inboxy.messages-dark-theme:not(.label-color-accent) .bundle-row.label-colored.yO.visible,
-html.inboxy.messages-dark-theme:not(.label-color-accent) .bundle-row.label-colored.zE.visible {
-    background-color: var(--inboxy-label-tint) !important;
+html.inbundly:not(.label-color-accent) .bundle-row.label-colored.zA.yO.visible,
+html.inbundly:not(.label-color-accent) .bundle-row.label-colored.zA.zE.visible,
+html.inbundly.messages-default-theme:not(.label-color-accent) .bundle-row.label-colored.yO.visible,
+html.inbundly.messages-default-theme:not(.label-color-accent) .bundle-row.label-colored.zE.visible,
+html.inbundly.messages-dark-theme:not(.label-color-accent) .bundle-row.label-colored.yO.visible,
+html.inbundly.messages-dark-theme:not(.label-color-accent) .bundle-row.label-colored.zE.visible {
+    background-color: var(--inbundly-label-tint) !important;
 }
-html.inboxy:not(.label-color-accent) .bundle-area.label-colored,
-html.inboxy.messages-default-theme:not(.label-color-accent) .bundle-area.label-colored,
-html.inboxy.messages-dark-theme:not(.label-color-accent) .bundle-area.label-colored {
-    background: var(--inboxy-label-tint);
+html.inbundly:not(.label-color-accent) .bundle-area.label-colored,
+html.inbundly.messages-default-theme:not(.label-color-accent) .bundle-area.label-colored,
+html.inbundly.messages-dark-theme:not(.label-color-accent) .bundle-area.label-colored {
+    background: var(--inbundly-label-tint);
 }
 
-html.inboxy .bundle-row.visible {
+html.inbundly .bundle-row.visible {
     flex-wrap: nowrap;
 }
 
-html.inboxy .bundle-row.visible .xY.yX {
+html.inbundly .bundle-row.visible .xY.yX {
     font-size: 1.025rem;
     margin-left: 56px;
     /* Truncate for reading pane view. See #36. */
     max-width: calc(100% - 220px);
 }
 
-html.inboxy .bundle-row.visible .bundle-and-count {
+html.inbundly .bundle-row.visible .bundle-and-count {
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 /* Handle long label names */
-html.inboxy .bundle-row:not(.visible) .bundle-and-count {
+html.inbundly .bundle-row:not(.visible) .bundle-and-count {
     white-space: normal;
 }
-html.inboxy .bundle-row:not(.visible) .xY {
+html.inbundly .bundle-row:not(.visible) .xY {
     align-items: flex-start;
     height: unset;
 }
 /* Allow more width before wrapping (#11), but not too much so that #36 happens */
-html.inboxy .bundle-row:not(.visible) .xY.yX {
+html.inbundly .bundle-row:not(.visible) .xY.yX {
     padding-right: 20px;
     flex-basis: 180px;
     max-width: 180px;
 }
-html.inboxy .Zs .bundle-row:not(.visible) .xY.yX {
+html.inbundly .Zs .bundle-row:not(.visible) .xY.yX {
     padding-right: 0;
 }
-html.inboxy .Zs .bundle-row:not(.visible) .xY.yX {
+html.inbundly .Zs .bundle-row:not(.visible) .xY.yX {
     flex-basis: unset;
 }
 
-html.inboxy .bundle-row.visible .bundle-date-cell,
+html.inbundly .bundle-row.visible .bundle-date-cell,
 /* .bundle-senders parent */
-html.inboxy .bundle-row.visible .a4W { 
+html.inbundly .bundle-row.visible .a4W { 
     display: none;
 }
 
-html.inboxy .bundle-senders {
+html.inbundly .bundle-senders {
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-html.inboxy .bundle-row.visible td:nth-child(1),
-html.inboxy .bundle-row.visible td:nth-child(2),
-html.inboxy .bundle-row.visible td:nth-child(3),
-html.inboxy .bundle-row.visible td:nth-child(4) {
+html.inbundly .bundle-row.visible td:nth-child(1),
+html.inbundly .bundle-row.visible td:nth-child(2),
+html.inbundly .bundle-row.visible td:nth-child(3),
+html.inbundly .bundle-row.visible td:nth-child(4) {
     width: 0;
     padding: 0;
 }
 
-html.inboxy .bundle-row td.apU {
+html.inbundly .bundle-row td.apU {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/bundle.svg');
     background-size: 20px;
     background-repeat: no-repeat;
@@ -242,25 +243,25 @@ html.inboxy .bundle-row td.apU {
     width: 20px;
 }
 
-html.inboxy .bundle-row:hover td.apU {
+html.inbundly .bundle-row:hover td.apU {
     opacity: 0.54;
 }
 
-html.inboxy.messages-dark-theme .bundle-row td.apU {
+html.inbundly.messages-dark-theme .bundle-row td.apU {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/light-bundle.svg');
     opacity: 0.55;
 }
 
-html.inboxy.messages-dark-theme .bundle-row:hover td.apU {
+html.inbundly.messages-dark-theme .bundle-row:hover td.apU {
     opacity: 0.7;
 }
 
 @-moz-document url-prefix() {
-    html.inboxy .bundle-row td.apU {
+    html.inbundly .bundle-row td.apU {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/bundle.svg');
     }
 
-    html.inboxy.messages-dark-theme .bundle-row td.apU {
+    html.inbundly.messages-dark-theme .bundle-row td.apU {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/light-bundle.svg');
     }
 }
@@ -269,11 +270,11 @@ html.inboxy.messages-dark-theme .bundle-row:hover td.apU {
  * Message count, in bundle row 
  */
 
-html.inboxy .bundle-count {
+html.inbundly .bundle-count {
     font-weight: normal;
 }
 
-html.inboxy .bundle-row.visible .bundle-count {
+html.inbundly .bundle-row.visible .bundle-count {
     display: none;
 }
 
@@ -281,7 +282,7 @@ html.inboxy .bundle-row.visible .bundle-count {
  * Archive-all button, in bundle row
  */
 
-html.inboxy .bundle-row .flex-grow {
+html.inbundly .bundle-row .flex-grow {
     display: flex;
     flex-grow: 1;
 }
@@ -291,14 +292,14 @@ html.inboxy .bundle-row .flex-grow {
  * the pinned-messages toggle and the bulk-archive button (on both bundle rows
  * and date dividers). !important overrides the hover/visible reveal rules.
  */
-html.inboxy.hide-pinned-toggle .pinned-toggle {
+html.inbundly.hide-pinned-toggle .pinned-toggle {
     display: none !important;
 }
-html.inboxy.hide-bundle-archive .archive-bundle {
+html.inbundly.hide-bundle-archive .archive-bundle {
     display: none !important;
 }
 
-html.inboxy .bundle-row .archive-bundle {
+html.inbundly .bundle-row .archive-bundle {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/check-all.svg');
     background-size: 24px;
     display: none;
@@ -306,56 +307,56 @@ html.inboxy .bundle-row .archive-bundle {
     width: 24px;
 }
 
-html.inboxy .bundle-row:not(.visible) .archive-bundle {
+html.inbundly .bundle-row:not(.visible) .archive-bundle {
     margin-right: 16px;
 }
 
 /** Adjust size of circle on hover */
-html.inboxy .bundle-row .archive-bundle:before {
+html.inbundly .bundle-row .archive-bundle:before {
     left: -8px;
     right: -8px;
 }
-html.inboxy.compact .bundle-row .archive-bundle:before {
+html.inbundly.compact .bundle-row .archive-bundle:before {
     left: -2px;
     right: -2px;
 }
 
 /** Show on hover */
-html.inboxy .bundle-row:hover .archive-bundle {
+html.inbundly .bundle-row:hover .archive-bundle {
     display: block;
 }
 
-html.inboxy.messages-dark-theme .bundle-row.visible .archive-bundle,
-html.inboxy.messages-dark-theme .bundle-row:not(.visible) .archive-bundle {
+html.inbundly.messages-dark-theme .bundle-row.visible .archive-bundle,
+html.inbundly.messages-dark-theme .bundle-row:not(.visible) .archive-bundle {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/light-check-all.svg');
     opacity: 0.7;
 }
 
-html.inboxy.dark-theme .bundle-row.visible .archive-bundle:before {
+html.inbundly.dark-theme .bundle-row.visible .archive-bundle:before {
     background-color: rgb(255, 255, 255, 0.2);
 }
 
 @-moz-document url-prefix() {
-    html.inboxy .bundle-row .archive-bundle {
+    html.inbundly .bundle-row .archive-bundle {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/check-all.svg');
     }
 
-    html.inboxy.dark-theme .bundle-row.visible .archive-bundle,
-    html.inboxy.messages-dark-theme .bundle-row:not(.visible) .archive-bundle {
+    html.inbundly.dark-theme .bundle-row.visible .archive-bundle,
+    html.inbundly.messages-dark-theme .bundle-row:not(.visible) .archive-bundle {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/light-check-all.svg');
     }
 }
 
-html.inboxy .bundle-row.visible .archive-bundle {
+html.inbundly .bundle-row.visible .archive-bundle {
     display: block;
 }
 
-html.inboxy .bundle-row .archive-bundle.disabled {
+html.inbundly .bundle-row .archive-bundle.disabled {
     cursor: default;
     opacity: .15;
 }
 
-html.inboxy .bundle-row .archive-bundle.disabled::before {
+html.inbundly .bundle-row .archive-bundle.disabled::before {
     display: none;
 }
 
@@ -363,11 +364,11 @@ html.inboxy .bundle-row .archive-bundle.disabled::before {
  * Bundled messages
  */
 
-html.inboxy .bundled-message {
+html.inbundly .bundled-message {
     display: none;
 }
 
-html.inboxy .bundled-message.visible {
+html.inbundly .bundled-message.visible {
     display: flex;
     margin-left: 40px;
     margin-right: 40px;
@@ -379,7 +380,7 @@ html.inboxy .bundled-message.visible {
  * Sides and bottom of open bundle area 
  */
 
-html.inboxy .bundle-area {
+html.inbundly .bundle-area {
     background-color: rgba(255, 255, 255, 0.35);
     cursor: pointer;
     display: none;
@@ -389,18 +390,18 @@ html.inboxy .bundle-area {
     z-index: -2;
 }
 
-html.inboxy.messages-default-theme .bundle-area {
+html.inbundly.messages-default-theme .bundle-area {
     background: #ecf0f9;
 }
 
-html.inboxy.messages-dark-theme .bundle-area {
+html.inbundly.messages-dark-theme .bundle-area {
     background: rgba(0, 0, 0, 0.25);
 }
 
 /** 
  * Bottom of open bundle area
  */
-html.inboxy .bundled-message.visible.last {
+html.inbundly .bundled-message.visible.last {
     margin-bottom: 16px;
 }
 
@@ -408,7 +409,7 @@ html.inboxy .bundled-message.visible.last {
  * Date divider
  */
 
-html.inboxy .date-row {
+html.inbundly .date-row {
     display: flex;
     justify-content: space-between;
     padding: 24px 0 16px 28px;
@@ -416,79 +417,79 @@ html.inboxy .date-row {
     color: #202124;
 }
 
-html.inboxy.messages-dark-theme .date-row {
+html.inbundly.messages-dark-theme .date-row {
     color: #ffffff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
 }
 
-html.inboxy .date-row .archive-bundle {
+html.inbundly .date-row .archive-bundle {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/check-all.svg');
     background-size: 20px;
     margin-right: 24px;
 }
 
-html.inboxy.messages-dark-theme .date-row .archive-bundle {
+html.inbundly.messages-dark-theme .date-row .archive-bundle {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/light-check-all.svg');
     opacity: 0.7;
 }
 
-html.inboxy.messages-dark-theme .date-row .archive-bundle:before {
+html.inbundly.messages-dark-theme .date-row .archive-bundle:before {
     background-color: rgb(255, 255, 255, 0.2);
 }
 
 @-moz-document url-prefix() {
-    html.inboxy .date-row .archive-bundle {
+    html.inbundly .date-row .archive-bundle {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/check-all.svg');
     }
 
-    html.inboxy.messages-dark-theme .date-row .archive-bundle {
+    html.inbundly.messages-dark-theme .date-row .archive-bundle {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/light-check-all.svg');
     }
 }
 
 /* Add a visual divider when using Simplify v2 */
-html.inboxy:not(.messages-dark-theme):not(.dark-theme).simplify .date-row {
+html.inbundly:not(.messages-dark-theme):not(.dark-theme).simplify .date-row {
     border-bottom: 1px solid rgba(242, 245, 245, 0.8);
 }
-html.inboxy.messages-dark-theme.dark-theme.simplify .date-row {
+html.inbundly.messages-dark-theme.dark-theme.simplify .date-row {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /**
  * Hide Simplify v2's date rows.
- * Need to use inboxy's date rows because of flex reordering.
+ * Need to use inbundly's date rows because of flex reordering.
  */
-html.inboxy.simplify.dateGroup tr[date] {
+html.inbundly.simplify.dateGroup tr[date] {
     margin-top: 0 !important;
 }
-html.inboxy.simplify.dateGroup tr[date]:before {
+html.inbundly.simplify.dateGroup tr[date]:before {
     display: none !important;
 }
 
 /** 
  * Archive button 
  */
-html.inboxy .brq,
-html.inboxy .ar8 {
+html.inbundly .brq,
+html.inbundly .ar8 {
     background-color: transparent;
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/check.svg');
     mask-image: none;
     -webkit-mask-image: none;
 }
 
-html.inboxy.messages-dark-theme .brq,
-html.inboxy.dark-theme .ar8 {
+html.inbundly.messages-dark-theme .brq,
+html.inbundly.dark-theme .ar8 {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/light-check.svg');
 }
 
 @-moz-document url-prefix() {
-    html.inboxy .brq,
-    html.inboxy .ar8 {
+    html.inbundly .brq,
+    html.inbundly .ar8 {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/check.svg');
     }
 
-    html.inboxy.messages-dark-theme .brq,
-    html.inboxy.dark-theme .ar8 {
+    html.inbundly.messages-dark-theme .brq,
+    html.inbundly.dark-theme .ar8 {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/light-check.svg');
     }
 }
@@ -497,7 +498,7 @@ html.inboxy.dark-theme .ar8 {
  * View all link 
  */
 
-html.inboxy .view-all-link {
+html.inbundly .view-all-link {
     border-radius: 4px;
     color: inherit;
     display: none;
@@ -506,29 +507,29 @@ html.inboxy .view-all-link {
     text-decoration: none;
 }
 
-html.inboxy .bundle-row.visible .view-all-link {
+html.inbundly .bundle-row.visible .view-all-link {
     display: block;
 }
 
-html.inboxy .view-all-link:hover {
+html.inbundly .view-all-link:hover {
     background-color: rgba(32, 33, 36, 0.059);
 }
 
-html.inboxy .view-all-link:hover .view-all {
+html.inbundly .view-all-link:hover .view-all {
     opacity: 1;
 }
 
-html.inboxy .view-all {
+html.inbundly .view-all {
     font-weight: 500;
     opacity: 0.54;
 }
 
-html.inboxy.dark-theme .view-all {
+html.inbundly.dark-theme .view-all {
     opacity: 0.7;
     text-shadow: none;
 }
 
-html.inboxy.dark-theme .view-all-link:hover {
+html.inbundly.dark-theme .view-all-link:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -536,7 +537,7 @@ html.inboxy.dark-theme .view-all-link:hover {
  * Pinned toggle.
  */
  
-html.inboxy .pinned-toggle {
+html.inbundly .pinned-toggle {
     position: relative;
     width: 44px;
     height: 20px;
@@ -544,7 +545,7 @@ html.inboxy .pinned-toggle {
     flex: 0 0 auto;
 }
 
-html.inboxy .pinned-toggle .slider {
+html.inbundly .pinned-toggle .slider {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -556,11 +557,11 @@ html.inboxy .pinned-toggle .slider {
     background-color: #f1f3f4;
 }
 
-html.inboxy.dark-theme .pinned-toggle .slider {
+html.inbundly.dark-theme .pinned-toggle .slider {
     background-color: rgba(241,243,244,0.24);
 }
 
-html.inboxy .pinned-toggle .slider-button {
+html.inbundly .pinned-toggle .slider-button {
     position: absolute;
     content: "";
     height: 28px;
@@ -576,34 +577,34 @@ html.inboxy .pinned-toggle .slider-button {
 }
 
 @-moz-document url-prefix() {
-    html.inboxy .pinned-toggle .slider-button {
+    html.inbundly .pinned-toggle .slider-button {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/star-outline.svg');
     }
 }
 
-html.inboxy .pinned-toggle:not(.show-pinned) .slider-button {
+html.inbundly .pinned-toggle:not(.show-pinned) .slider-button {
     opacity: 0.87;
 }
 
-html.inboxy .pinned-toggle:not(.show-pinned) .slider-button:hover {
+html.inbundly .pinned-toggle:not(.show-pinned) .slider-button:hover {
     opacity: 1;
 }
 
-html.inboxy .pinned-toggle .slider-button:hover {
+html.inbundly .pinned-toggle .slider-button:hover {
     box-shadow: 0 1px 3px 0 rgba(60,64,67,0.302), 0 1px 3px 2px rgba(60,64,67,0.149);
 }
 
-html.inboxy .pinned-toggle.show-pinned .slider {
+html.inbundly .pinned-toggle.show-pinned .slider {
     background-color: #ffd037;
 }
 
-html.inboxy .pinned-toggle.show-pinned .slider-button {
+html.inbundly .pinned-toggle.show-pinned .slider-button {
     background-image: url('chrome-extension://__MSG_@@extension_id__/assets/star-filled.svg');
     transform: translateX(24px);
 }
 
 @-moz-document url-prefix() {
-    html.inboxy .pinned-toggle.show-pinned .slider-button {
+    html.inbundly .pinned-toggle.show-pinned .slider-button {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/star-filled.svg');
     }
 }
@@ -612,12 +613,12 @@ html.inboxy .pinned-toggle.show-pinned .slider-button {
  * Layout 
  */
  
- html.inboxy #gb form,
- html.inboxy .pinned-toggle {
+ html.inbundly #gb form,
+ html.inbundly .pinned-toggle {
     display: inline-block;
  }
 
- html.inboxy .pinned-toggle {
+ html.inbundly .pinned-toggle {
     float: right;
     margin-top: 15px;
     margin-bottom: 15px;
@@ -629,11 +630,11 @@ html.inboxy .pinned-toggle.show-pinned .slider-button {
  * 
  * Layout compatibility
  */
-html.inboxy:not(.simplify):not(.simpl) #gb form {
+html.inbundly:not(.simplify):not(.simpl) #gb form {
     width: 100%;
 }
 @media(max-width: 1250px) {
-    html.inboxy:not(.simplify):not(.simpl) #gb form {
+    html.inbundly:not(.simplify):not(.simpl) #gb form {
         width: calc(100% - 100px);
     }
 }
@@ -642,7 +643,7 @@ html.inboxy:not(.simplify):not(.simpl) #gb form {
  * pinned-toggle <--> Simplify compatibility.
  * Only apply these styles on pages that show the toggle.
  */
-html.inboxy.show-pinned-toggle.simpl:not(.hideSearch) .pinned-toggle {
+html.inbundly.show-pinned-toggle.simpl:not(.hideSearch) .pinned-toggle {
     margin-right: 14px;
 }
 
@@ -650,21 +651,21 @@ html.inboxy.show-pinned-toggle.simpl:not(.hideSearch) .pinned-toggle {
  * Show pinned-toggle when search is shown but not focused.
  * Adjust width of the search form.
  */
-html.inboxy.show-pinned-toggle.simpl:not(.hideSearch):not(.searchFocused) #gb form {
+html.inbundly.show-pinned-toggle.simpl:not(.hideSearch):not(.searchFocused) #gb form {
     width: calc(20% - 62px);
 }
-html.inboxy.show-pinned-toggle.simpl:not(.hideSearch):not(.searchFocused).appSwitcher #gb form {
+html.inbundly.show-pinned-toggle.simpl:not(.hideSearch):not(.searchFocused).appSwitcher #gb form {
     width: calc(20% - 112px);
 }
-html.inboxy.show-pinned-toggle.simpl.searchFocused .pinned-toggle {
+html.inbundly.show-pinned-toggle.simpl.searchFocused .pinned-toggle {
     display: none;
 }
 
 /** Hidden search */
-html.inboxy.show-pinned-toggle.simpl.hideSearch .aeH {
+html.inbundly.show-pinned-toggle.simpl.hideSearch .aeH {
     width: calc(100vw - 234px);
 }
-html.inboxy.show-pinned-toggle.simpl.hideSearch.appSwitcher #gb form {
+html.inbundly.show-pinned-toggle.simpl.hideSearch.appSwitcher #gb form {
     display: block;
     visibility: hidden;
 }
@@ -672,7 +673,7 @@ html.inboxy.show-pinned-toggle.simpl.hideSearch.appSwitcher #gb form {
  * Floating control for bundling the currently selected messages into an ad-hoc
  * custom bundle. Hidden until at least one message is selected.
  */
-.inboxy-bundle-selected {
+.inbundly-bundle-selected {
     display: none;
     position: fixed;
     right: 24px;
@@ -689,21 +690,21 @@ html.inboxy.show-pinned-toggle.simpl.hideSearch.appSwitcher #gb form {
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
 }
-.inboxy-bundle-selected.visible {
+.inbundly-bundle-selected.visible {
     display: inline-flex;
 }
-.inboxy-bundle-selected:hover {
+.inbundly-bundle-selected:hover {
     background-color: #2b7de9;
     box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.2);
 }
-.inboxy-bundle-selected-icon {
+.inbundly-bundle-selected-icon {
     font-size: 16px;
     line-height: 1;
 }
-html.inboxy.messages-dark-theme .inboxy-bundle-selected {
+html.inbundly.messages-dark-theme .inbundly-bundle-selected {
     background-color: #8ab4f8;
     color: #202124;
 }
-html.inboxy.messages-dark-theme .inboxy-bundle-selected:hover {
+html.inbundly.messages-dark-theme .inbundly-bundle-selected:hover {
     background-color: #9cc0fa;
 }

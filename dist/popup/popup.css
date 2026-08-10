@@ -1,6 +1,7 @@
 /**
- * inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+ * Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
  * Copyright (C) 2020  Teresa Ou
+ * Copyright (C) 2026  Ben Orozco
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,20 +16,47 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
- 
+
+/* Inbundly design tokens — Catppuccin-modernized palette (light default, dark override). */
+:root {
+    color-scheme: light dark;
+    --font: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --bg: #F4EDE3;
+    --surface: #EBE3D4;
+    --ink: #2B2B36;
+    --muted: #6E695C;
+    --border: #D9D0BF;
+    --hover: #E7DFCF;
+    --link: #2C7391;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #1E1E26;
+        --surface: #262630;
+        --ink: #F4EDE3;
+        --muted: #A29B8C;
+        --border: #3A3A46;
+        --hover: #32323E;
+        --link: #8FD0EC;
+    }
+}
+
 body {
-    color: #345255;
-    font-family: 'Open Sans', sans-serif;
+    color: var(--ink);
+    background-color: var(--bg);
+    font-family: var(--font);
     font-size: 15px;
     margin: 0;
     width: 250px;
 }
 
 .logo-container {
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border);
     padding-left: 1.25rem;
     padding-top: 11px;
     padding-bottom: 7px;
+    color: var(--ink);
 }
 
 .link {
@@ -37,10 +65,11 @@ body {
     display: flex;
     margin: 0;
     padding: 0.5rem 1rem;
+    color: var(--ink);
 }
 
 .link:hover {
-    background-color: #f4f4f4;
+    background-color: var(--hover);
 }
 
 .link img {
@@ -56,6 +85,6 @@ body {
 }
 
 a {
-    color: #345255;
+    color: var(--ink);
     text-decoration: none;
 }

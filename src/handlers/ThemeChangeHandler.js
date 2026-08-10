@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,12 +16,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { 
-    InboxyClasses,
+    InbundlyClasses,
     Selectors,
 } from '../util/Constants';
 
 /**
- * Handles changes in Gmail themes and updates inboxy theme styling accordingly.
+ * Handles changes in Gmail themes and updates inbundly theme styling accordingly.
  */
 class ThemeChangeHandler {
     constructor() {
@@ -50,16 +51,16 @@ class ThemeChangeHandler {
     }
 
     /**
-     * Apply the appropriate light/dark theme styling, so that inboxy theming matches Gmail.
+     * Apply the appropriate light/dark theme styling, so that inbundly theming matches Gmail.
      */
     _applyTheme() {
         const node = document.querySelector('html');
         const sidepaneText = document.querySelector(Selectors.SIDEPANE_TEXT);
         if (this._isLight(getComputedStyle(sidepaneText).color)) {
-            node.classList.add(InboxyClasses.DARK_THEME);
+            node.classList.add(InbundlyClasses.DARK_THEME);
         }
         else {
-            node.classList.remove(InboxyClasses.DARK_THEME);
+            node.classList.remove(InbundlyClasses.DARK_THEME);
         }
 
         const pane = document.querySelector(Selectors.MESSAGE_PANE);
@@ -69,16 +70,16 @@ class ThemeChangeHandler {
         const paneColor = getComputedStyle(pane).backgroundColor;
 
         if (!this._isLight(paneColor)) {
-            node.classList.add(InboxyClasses.MESSAGES_DARK_THEME);
+            node.classList.add(InbundlyClasses.MESSAGES_DARK_THEME);
         }
         else {
-            node.classList.remove(InboxyClasses.MESSAGES_DARK_THEME);
+            node.classList.remove(InbundlyClasses.MESSAGES_DARK_THEME);
         }
         if (this._isWhite(paneColor)) {
-            node.classList.add(InboxyClasses.MESSAGES_DEFAULT_THEME);
+            node.classList.add(InbundlyClasses.MESSAGES_DEFAULT_THEME);
         }
         else {
-            node.classList.remove(InboxyClasses.MESSAGES_DEFAULT_THEME);
+            node.classList.remove(InbundlyClasses.MESSAGES_DEFAULT_THEME);
         }
 
         const message = document.querySelector(Selectors.SAMPLE_MESSAGE);

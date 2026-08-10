@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@ import DateDivider from '../components/DateDivider';
 import QuickSelectHandler from '../handlers/QuickSelectHandler';
 import MessageSelectHandler from '../handlers/MessageSelectHandler';
 
-import InboxyStyler from './InboxyStyler';
+import InbundlyStyler from './InbundlyStyler';
 
 import { 
     getCurrentPageNumber, 
@@ -30,7 +31,7 @@ import {
 } from '../util/MessagePageUtils';
 import { 
     GmailClasses,
-    InboxyClasses,
+    InbundlyClasses,
     Selectors,
     TableBodySelectors,
     ORDER_INCREMENT,
@@ -52,7 +53,7 @@ class Bundler {
         this.messageListWatcher = messageListWatcher;
         this.selectiveBundling = selectiveBundling;
         this.messageSelectHandler = new MessageSelectHandler(bundledMail, selectiveBundling);
-        this.inboxyStyler = new InboxyStyler(bundledMail);
+        this.inbundlyStyler = new InbundlyStyler(bundledMail);
         this.quickSelectHandler = new QuickSelectHandler();
         // Defaults mirror OPTION_DEFAULTS / the options page; sync overlay follows.
         this.groupMessagesByDate = true;
@@ -110,7 +111,7 @@ class Bundler {
         const html = document.querySelector('html');
         if (html) {
             html.classList.toggle(
-                InboxyClasses.LABEL_COLOR_ACCENT,
+                InbundlyClasses.LABEL_COLOR_ACCENT,
                 this.colorBundlesByLabel && this.bundleColorStyle === 'accent');
         }
     }
@@ -136,7 +137,7 @@ class Bundler {
         this.messageSelectHandler.stopWatching();
 
         // More than one section means Gmail is already splitting the view by
-        // importance/starred/query (each panel a heading of its own), so inboxy
+        // importance/starred/query (each panel a heading of its own), so inbundly
         // must not add its own date-row dividers on top — the section headings
         // are the de-facto grouping. Date dividers stay only in the single-list
         // Default inbox, and only when the user hasn't turned them off.
@@ -193,7 +194,7 @@ class Bundler {
     _bundleMessages(messageList, sectionId, groupByDate) {
         const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
 
-        document.querySelector('html').classList.add(InboxyClasses.INBOXY);
+        document.querySelector('html').classList.add(InbundlyClasses.INBUNDLY);
         tableBody.classList.add('flex-table-body');
         // Stamp the section so a message row can be mapped back to its section.
         tableBody.setAttribute(SECTION_ATTR, sectionId);
@@ -213,7 +214,7 @@ class Bundler {
                 forceUnbundled: !!this._shouldKeepUnbundled(message),
             }));
         if (starredSample.length) {
-            console.log(`inboxy-debug: starred sample ${JSON.stringify(starredSample)}`);
+            console.log(`inbundly-debug: starred sample ${JSON.stringify(starredSample)}`);
         }
 
         const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
@@ -423,7 +424,7 @@ class Bundler {
             labelColors);
         tableBody.appendChild(bundleRow);
 
-        messages.forEach(m => m.classList.add(InboxyClasses.BUNDLED_MESSAGE));
+        messages.forEach(m => m.classList.add(InbundlyClasses.BUNDLED_MESSAGE));
 
         return bundleRow;
     }
@@ -438,7 +439,7 @@ class Bundler {
         const html = document.querySelector('html');
         if (!this.matchStylusCatppuccin) {
             this.themeFlavor = null;
-            html.style.removeProperty('--inboxy-fill-base');
+            html.style.removeProperty('--inbundly-fill-base');
             return;
         }
 
@@ -448,14 +449,14 @@ class Bundler {
         // Choose light vs dark flavor from Gmail's own theme, which drives the
         // visible appearance (more reliable than prefers-color-scheme, which can
         // disagree when Gmail is set light on a dark OS or vice versa).
-        const isDark = html.classList.contains(InboxyClasses.MESSAGES_DARK_THEME);
+        const isDark = html.classList.contains(InbundlyClasses.MESSAGES_DARK_THEME);
         this.themeFlavor = detectThemeFlavor(themeCss, isDark);
 
         if (this.themeFlavor) {
-            html.style.setProperty('--inboxy-fill-base', flavorBase(this.themeFlavor));
+            html.style.setProperty('--inbundly-fill-base', flavorBase(this.themeFlavor));
         }
         else {
-            html.style.removeProperty('--inboxy-fill-base');
+            html.style.removeProperty('--inbundly-fill-base');
         }
     }
 
@@ -484,7 +485,7 @@ class Bundler {
                 }
                 else {
                     const isDarkTheme = document.querySelector('html')
-                        .classList.contains(InboxyClasses.MESSAGES_DARK_THEME);
+                        .classList.contains(InbundlyClasses.MESSAGES_DARK_THEME);
                     colors.accent = DomUtils.pickAccentColor(colors, isDarkTheme);
                 }
                 return colors;
@@ -506,8 +507,8 @@ class Bundler {
     }
 
     _applyStyles(messageNodes) {
-        this.inboxyStyler.markSelectedBundles();
-        this.inboxyStyler.disableBulkArchiveIfNecessary();
+        this.inbundlyStyler.markSelectedBundles();
+        this.inbundlyStyler.disableBulkArchiveIfNecessary();
     }
 
     _attachHandlers(messageNodes, messageList) {

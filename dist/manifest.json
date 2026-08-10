@@ -1,8 +1,8 @@
 {
-    "name": "inboxy: Inbox Bundles for Gmail",
-    "version": "3.2.0",
-    "description": "Adds Google Inbox bundles to Gmail",
-    "homepage_url": "https://www.inboxymail.com",
+    "name": "Inbundly – Inbox Bundles for Gmail",
+    "version": "4.0.0",
+    "description": "Bring Google Inbox-style bundles to Gmail: auto-group emails by label into tidy, collapsible bundles. Organize your inbox, fast.",
+    "homepage_url": "https://inbundly.com",
     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2jlaamK+d9zqGFZuIAGJN5aqCGRwQM1bywRY999dONiuZJSot/nIPw7ygYBj0cFw9793xP9ahebi6VkjsE9Vvlqd+YmBW2VX0UlLbuiLBa1jkwCFNMRlA/HXWE97y2f9Fihy4ZUnoorjzr+GWRtvvAxJ6enex1Xz7IFobryYZ0Q6IV6bLm1qYfeQLRoBOvGOxFGmcJ4cA7C23uQ8wTqFFPnYkVYjclsZjqEUKUk4QhJw2bPJo4rE71WXxDs4bmhSSqJRosdXk9iJaxECCtTKeaFVcozUdLJpnzQ/R6+oYx/O0kFJWBIK1EyQ60uLNz+WF1vaBbcvfjkBvWeZIGq+EwIDAQAB",
     "browser_specific_settings": {
         "gecko": {
@@ -30,18 +30,25 @@
     ],
     "action": {
         "default_icon": {
-            "16": "icons/inboxy.png",
-            "24": "icons/inboxy@1.5x.png",
-            "32": "icons/inboxy@2x.png"
+            "16": "icons/inbundly-dark-16.png",
+            "24": "icons/inbundly-dark-24.png",
+            "32": "icons/inbundly-dark-32.png",
+            "48": "icons/inbundly-dark-48.png"
         },
+        "theme_icons": [
+            { "light": "icons/inbundly-dark-16.png", "dark": "icons/inbundly-light-16.png", "size": 16 },
+            { "light": "icons/inbundly-dark-24.png", "dark": "icons/inbundly-light-24.png", "size": 24 },
+            { "light": "icons/inbundly-dark-32.png", "dark": "icons/inbundly-light-32.png", "size": 32 },
+            { "light": "icons/inbundly-dark-48.png", "dark": "icons/inbundly-light-48.png", "size": 48 }
+        ],
         "default_popup": "popup/popup.html",
         "show_matches": ["*://mail.google.com/mail/*"]
     },
     "icons": {
-        "16": "icons/inboxy.png",
-        "32": "icons/inboxy@2x.png",
-        "48": "icons/inboxy@3x.png",
-        "128": "icons/inboxy@8x.png"
+        "16": "icons/inbundly-dark-16.png",
+        "32": "icons/inbundly-dark-32.png",
+        "48": "icons/inbundly-dark-48.png",
+        "128": "icons/inbundly-dark-128.png"
     },
     "web_accessible_resources": [
         {

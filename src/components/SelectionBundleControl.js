@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import DomUtils from '../util/DomUtils';
-import { InboxyClasses, Selectors } from '../util/Constants';
+import { InbundlyClasses, Selectors } from '../util/Constants';
 import { supportsBundling } from '../util/MessagePageUtils';
 
 /**
@@ -28,7 +29,7 @@ import { supportsBundling } from '../util/MessagePageUtils';
  * custom bundle, named by the user). Writes go to CustomBundles, whose stored
  * change drives the re-render (and rides Chrome sync to other devices).
  *
- * The control is entirely inboxy-owned and positioned over the page, so it does
+ * The control is entirely inbundly-owned and positioned over the page, so it does
  * not depend on Gmail's toolbar markup. Selection is recomputed on any click or
  * key event, which covers checkbox clicks, select-all, and keyboard selection.
  */
@@ -38,11 +39,11 @@ class SelectionBundleControl {
         this._scheduled = false;
 
         this.button = DomUtils.htmlToElement(
-            `<button type="button" class="inboxy-bundle-selected">
-                <span class="inboxy-bundle-selected-icon">&#9783;</span>
-                <span class="inboxy-bundle-selected-label"></span>
+            `<button type="button" class="inbundly-bundle-selected">
+                <span class="inbundly-bundle-selected-icon">&#9783;</span>
+                <span class="inbundly-bundle-selected-label"></span>
             </button>`);
-        this.label = this.button.querySelector('.inboxy-bundle-selected-label');
+        this.label = this.button.querySelector('.inbundly-bundle-selected-label');
         this.button.addEventListener('click', e => {
             e.stopPropagation();
             this._onClick();
@@ -54,7 +55,7 @@ class SelectionBundleControl {
     }
 
     /**
-     * Attach the control to the page. Safe to call once inboxy is active.
+     * Attach the control to the page. Safe to call once inbundly is active.
      */
     attach() {
         if (!this.button.isConnected) {
@@ -95,7 +96,7 @@ class SelectionBundleControl {
             ? this._selectedThreadIds()
             : [];
         const count = threadIds.length;
-        this.button.classList.toggle(InboxyClasses.VISIBLE, count > 0);
+        this.button.classList.toggle(InbundlyClasses.VISIBLE, count > 0);
         if (count === 0) {
             return;
         }

@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
 
 import { getCurrentPageNumber } from '../util/MessagePageUtils';
 import { 
-    InboxyClasses, 
+    InbundlyClasses, 
     Selectors, 
     ORDER_INCREMENT,
 } from '../util/Constants';
@@ -55,10 +56,10 @@ class BundleToggler {
         const messages = bundle.getMessages();
         messages.forEach((el, i) => {
             el.style.order = bundle.getOrder() + i + 1;
-            el.classList.add(InboxyClasses.VISIBLE);
+            el.classList.add(InbundlyClasses.VISIBLE);
 
             if (i === messages.length - 1) {
-                el.classList.add(InboxyClasses.LAST);
+                el.classList.add(InbundlyClasses.LAST);
             }
 
             // Hide redundant labels
@@ -70,7 +71,7 @@ class BundleToggler {
         });
 
         const bundleRow = bundle.getBundleRow();
-        bundleRow.classList.add(InboxyClasses.VISIBLE);
+        bundleRow.classList.add(InbundlyClasses.VISIBLE);
         // Remove top margin when bundle row follows a date divider
         if (bundleRow.previousSibling && 
             bundleRow.previousSibling.classList.contains('date-row') &&
@@ -90,11 +91,11 @@ class BundleToggler {
         this.bundledMail.closeBundle();
 
         // Remove styles that were added when the bundle was opened
-        document.querySelectorAll(`.${InboxyClasses.BUNDLED_MESSAGE}.${InboxyClasses.VISIBLE}`)
+        document.querySelectorAll(`.${InbundlyClasses.BUNDLED_MESSAGE}.${InbundlyClasses.VISIBLE}`)
             .forEach(el => {
                 el.style.order = '';
-                el.classList.remove(InboxyClasses.VISIBLE);
-                el.classList.remove(InboxyClasses.LAST);
+                el.classList.remove(InbundlyClasses.VISIBLE);
+                el.classList.remove(InbundlyClasses.LAST);
 
                 // Unhide labels
                 el.querySelectorAll(Selectors.LABEL_CONTAINERS).forEach(lc => {
@@ -104,9 +105,9 @@ class BundleToggler {
                 });
             });
 
-        document.querySelectorAll(`.${InboxyClasses.BUNDLE_ROW}.${InboxyClasses.VISIBLE}`)
+        document.querySelectorAll(`.${InbundlyClasses.BUNDLE_ROW}.${InbundlyClasses.VISIBLE}`)
             .forEach(el => {
-                el.classList.remove(InboxyClasses.VISIBLE);
+                el.classList.remove(InbundlyClasses.VISIBLE);
                 el.style.marginTop = '';
             });        
 
@@ -137,20 +138,20 @@ class BundleToggler {
      * When the bundle isn't label-colored, clear any color left from a previous open.
      */
     _applyLabelColor(bundleArea, bundleRow) {
-        if (bundleRow.classList.contains(InboxyClasses.LABEL_COLORED)) {
-            bundleArea.classList.add(InboxyClasses.LABEL_COLORED);
+        if (bundleRow.classList.contains(InbundlyClasses.LABEL_COLORED)) {
+            bundleArea.classList.add(InbundlyClasses.LABEL_COLORED);
             bundleArea.style.setProperty(
-                '--inboxy-label-bg', bundleRow.style.getPropertyValue('--inboxy-label-bg'));
+                '--inbundly-label-bg', bundleRow.style.getPropertyValue('--inbundly-label-bg'));
             bundleArea.style.setProperty(
-                '--inboxy-label-fg', bundleRow.style.getPropertyValue('--inboxy-label-fg'));
+                '--inbundly-label-fg', bundleRow.style.getPropertyValue('--inbundly-label-fg'));
             bundleArea.style.setProperty(
-                '--inboxy-label-accent', bundleRow.style.getPropertyValue('--inboxy-label-accent'));
+                '--inbundly-label-accent', bundleRow.style.getPropertyValue('--inbundly-label-accent'));
         }
         else {
-            bundleArea.classList.remove(InboxyClasses.LABEL_COLORED);
-            bundleArea.style.removeProperty('--inboxy-label-bg');
-            bundleArea.style.removeProperty('--inboxy-label-fg');
-            bundleArea.style.removeProperty('--inboxy-label-accent');
+            bundleArea.classList.remove(InbundlyClasses.LABEL_COLORED);
+            bundleArea.style.removeProperty('--inbundly-label-bg');
+            bundleArea.style.removeProperty('--inbundly-label-fg');
+            bundleArea.style.removeProperty('--inbundly-label-accent');
         }
     }
 
