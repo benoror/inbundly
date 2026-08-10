@@ -84,7 +84,7 @@ the options page in jsdom instead, which is why it exists: nothing else executes
 ## Releasing
 
 This fork runs its **own release line**, independent of upstream teresa-ou/inboxy — we do
-**not** propose changes upstream. PRs, tags, and releases all live on `benoror/inboxy`.
+**not** propose changes upstream. PRs, tags, and releases all live on `benoror/inbundly`.
 
 Conventions:
 
@@ -104,18 +104,18 @@ Conventions:
 
 Flow for landing a feature branch and cutting a release:
 
-1. **PR into the fork.** Open the PR against `benoror/inboxy`'s `master` explicitly —
-   `gh` defaults to the upstream parent, so always pass `--repo benoror/inboxy`:
+1. **PR into the fork.** Open the PR against `benoror/inbundly`'s `master` explicitly —
+   `gh` defaults to the upstream parent, so always pass `--repo benoror/inbundly`:
    ```bash
-   gh pr create --repo benoror/inboxy --base master --head <feature-branch>
+   gh pr create --repo benoror/inbundly --base master --head <feature-branch>
    ```
-   Prefer a **merge commit** (`gh pr merge <n> --repo benoror/inboxy --merge`) to preserve
+   Prefer a **merge commit** (`gh pr merge <n> --repo benoror/inbundly --merge`) to preserve
    the branch's atomic-commit history.
 2. **Release commit on `master`** (after merge): bump the version in both
    `dist/manifest.json` and `package.json`, add the `CHANGELOG.md` section, commit as
    `Release vX.Y.Z`.
 3. **Tag & push:** `git tag -a vX.Y.Z -m "inboxy vX.Y.Z (benoror fork)" && git push origin vX.Y.Z`.
-4. **GitHub Release:** `gh release create vX.Y.Z --repo benoror/inboxy --latest --notes-file <notes>`
+4. **GitHub Release:** `gh release create vX.Y.Z --repo benoror/inbundly --latest --notes-file <notes>`
    (notes = that version's changelog section).
 
 > Running `npm test` from inside a `.claude/worktrees/…` path reports "0 tests": `master`'s

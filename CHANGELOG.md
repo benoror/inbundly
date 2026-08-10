@@ -2,7 +2,7 @@
 
 All notable changes to this fork of inboxy are documented here.
 
-This is the [benoror](https://github.com/benoror/inboxy) fork of the (unmaintained)
+This is the [benoror](https://github.com/benoror/inbundly) fork of the (unmaintained)
 [teresa-ou/inboxy](https://github.com/teresa-ou/inboxy). It tracks its own release line,
 independent of upstream's versioning. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to
@@ -123,7 +123,7 @@ independent of upstream's versioning. The format is based on
     name prefixed with `0x1E` so it flows through the label-keyed pipeline without
     colliding with a real label or a combined-label (`0x1F`) key.
 
-[2.1.0]: https://github.com/benoror/inboxy/releases/tag/v2.1.0
+[2.1.0]: https://github.com/benoror/inbundly/releases/tag/v2.1.0
 
 ## [2.0.0] - 2026-07-27
 
@@ -163,4 +163,4 @@ closer to the original Google Inbox experience, plus the tooling and tests to ma
 - Crash when a message row has no date cell.
 - Raw NUL byte in the combined-label separator.
 
-[2.0.0]: https://github.com/benoror/inboxy/releases/tag/v2.0.0
+[2.0.0]: https://github.com/benoror/inbundly/releases/tag/v2.0.0

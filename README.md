@@ -4,7 +4,7 @@
 
 # inboxy: Google Inbox-style bundles for Gmail
 
-> **Fork notice:** This is [benoror/inboxy](https://github.com/benoror/inboxy), a maintained fork of
+> **Fork notice:** This is [benoror/inbundly](https://github.com/benoror/inbundly), a maintained fork of
 > [teresa-ou/inboxy](https://github.com/teresa-ou/inboxy) with additional options for combined-label
 > bundles, bundle coloring, and Stylus theme-matching. It is not published to the Chrome or Firefox
 > stores — load it as an unpacked extension from `dist/`.
@@ -83,7 +83,7 @@ instant.
 
 ## Feedback
 
-Feel free to [send feedback](https://github.com/benoror/inboxy/issues) by filing an issue.
+Feel free to [send feedback](https://github.com/benoror/inbundly/issues) by filing an issue.
 
 ## Acknowledgements
 
@@ -92,5 +92,5 @@ Feel free to [send feedback](https://github.com/benoror/inboxy/issues) by filing
 
 ## License
 
-[GPL-3.0](https://github.com/benoror/inboxy/blob/master/COPYING), Copyright (C) 2020 [Teresa Ou](https://github.com/teresa-ou).
+[GPL-3.0](https://github.com/benoror/inbundly/blob/master/COPYING), Copyright (C) 2020 [Teresa Ou](https://github.com/teresa-ou).
 Fork maintained by [benoror](https://github.com/benoror).
