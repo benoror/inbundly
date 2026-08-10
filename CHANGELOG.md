@@ -10,6 +10,8 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-08-10
+
 ### Added
 - **Bundling across all Gmail inbox types.** inboxy previously only bundled the
   Default inbox; the sectioned inbox types — **Important first**, **Unread
@@ -22,6 +24,8 @@ independent of upstream's versioning. The format is based on
   its own date-row dividers — Gmail's section headings already group the list, so
   the dividers only apply to the single-list Default inbox (and still honor the
   "Group messages by date" option there).
+
+[3.2.0]: https://github.com/benoror/inbundly/releases/tag/v3.2.0
 
 ## [3.1.2] - 2026-08-09
 
