@@ -32,21 +32,17 @@ class InboxyStyler {
      * are selected.
      */
     markSelectedBundles() {
-        Object.values(this.bundledMail.getAllBundles()).forEach(this._markSelectedBundle);
+        this.bundledMail.getAllBundles().forEach(this._markSelectedBundle);
     }
 
     /**
      * Apply "selected" styling (i.e. checked) to all bundles with the given labels, that have
-     * any messages that are selected.
+     * any messages that are selected. A label can bundle in more than one section,
+     * so mark every matching bundle.
      */
     markSelectedBundlesFor(labels) {
         labels.forEach(l => {
-            const bundle = this.bundledMail.getBundle(l);
-            if (!bundle) {
-                return;
-            }
-
-            this._markSelectedBundle(bundle);
+            this.bundledMail.findBundlesByLabel(l).forEach(this._markSelectedBundle);
         });
     }
 
@@ -71,7 +67,7 @@ class InboxyStyler {
     disableBulkArchiveIfNecessary() {
         const selectedMessages = [].slice.call(
             document.querySelectorAll(Selectors.SELECTED));
-        Object.values(this.bundledMail.getAllBundles()).forEach(bundle => 
+        this.bundledMail.getAllBundles().forEach(bundle =>
             this._updateBulkArchiveButton(bundle, selectedMessages));
     }
 

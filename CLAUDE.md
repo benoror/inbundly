@@ -141,6 +141,25 @@ Flow for landing a feature branch and cutting a release:
   Label chips are `.ar.as .at`; `DomUtils.getLabelName` must not assume
   `.at[title]` is populated — newer Gmail often leaves it empty and puts the
   name on a descendant, `aria-label`, or `.av` text.
+- **Sections (inbox types).** Every visible tab panel (`.ae4`, i.e.
+  `role="tabpanel"`) is one inbox "section". The **Default** inbox type shows a
+  single visible panel; the sectioned types — **Important/Unread/Starred first**,
+  **Priority Inbox**, **Multiple Inboxes** — show several visible panels at once,
+  each with its own message list, heading, and paging. `DomUtils.getSectionMessageLists()`
+  is the single source of truth: it returns one `.Cp` list per visible panel (the
+  last `.Cp` that actually holds a `.F tbody`, since Default renders a placeholder
+  `.Cp` first). Never re-introduce "pick the one message list" logic (the old
+  `.item(1)` / `.item(length-1)` picks) — bundle every section in a loop.
+  `Bundler` stamps each section's `tbody` with `data-inboxy-section`
+  (`SECTION_ATTR`); `BundledMail` keys bundles by page → tab → **section** →
+  label (the same label can bundle independently in two sections), and the open
+  bundle is a `{ sectionId, label }` ref, not a bare label. `BundleToggler`
+  scopes the open-bundle highlight (`.bundle-area`) to the toggled bundle's
+  section via `bundleRow.closest('.F tbody')`. In multi-section views inboxy
+  suppresses its own `date-row` dividers — Gmail's section headings are the
+  de-facto grouping — so date dividers only render in the single-list Default
+  inbox (and still honor `groupMessagesByDate` there). `DateGrouper` is unrelated:
+  it only runs on the standalone starred **search** page, which is a single list.
 - **Options storage.** Every Options-page setting and custom bundles live in
   `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
   are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,

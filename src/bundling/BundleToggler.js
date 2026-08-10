@@ -33,21 +33,23 @@ class BundleToggler {
         this.closeAllBundles = this.closeAllBundles.bind(this);
     }
 
-    toggleBundle(label) {
-        const openedBundleLabel = this.bundledMail.getLabelOfOpenedBundle();
+    toggleBundle(sectionId, label) {
+        const opened = this.bundledMail.getOpenedBundleRef();
 
-        if (openedBundleLabel) {
+        if (opened) {
             this.closeAllBundles();
         }
 
-        if (openedBundleLabel !== label) {
-            this.openBundle(label);
+        const sameBundle =
+            opened && opened.sectionId === sectionId && opened.label === label;
+        if (!sameBundle) {
+            this.openBundle(sectionId, label);
         }
     }
 
-    openBundle(label) {
-        this.bundledMail.openBundle(label);
-        const bundle = this.bundledMail.getBundle(label);
+    openBundle(sectionId, label) {
+        this.bundledMail.openBundle(sectionId, label);
+        const bundle = this.bundledMail.getBundleInSection(sectionId, label);
 
         // Set order for bundled messages and make them visible
         const messages = bundle.getMessages();
@@ -81,8 +83,7 @@ class BundleToggler {
     }
 
     closeAllBundles() {
-        const openedBundleLabel = this.bundledMail.getLabelOfOpenedBundle();
-        if (!openedBundleLabel) {
+        if (!this.bundledMail.getOpenedBundleRef()) {
             return;
         }
 
@@ -114,7 +115,11 @@ class BundleToggler {
     }
 
     _showBundleArea(bundle) {
-        const bundleArea = document.querySelector(`${Selectors.CURRENT_TABPANEL} .bundle-area`);
+        // Each section has its own .bundle-area (appended to its table body).
+        // Scope to the opened bundle's section so the highlight frames the right
+        // list when several sections are visible at once.
+        const tableBody = bundle.getBundleRow().closest(Selectors.TABLE_BODY);
+        const bundleArea = tableBody.querySelector('.bundle-area');
         bundleArea.style.display = 'block';
 
         const top = BundleToggler._calculateBundleAreaTop(bundle.getBundleRow());

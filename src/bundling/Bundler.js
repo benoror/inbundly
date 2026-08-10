@@ -36,6 +36,7 @@ import {
     ORDER_INCREMENT,
     Element,
     LABEL_SET_SEPARATOR,
+    SECTION_ATTR,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
 import { isCustomBundleKey } from '../util/CustomBundleKey';
@@ -122,30 +123,49 @@ class Bundler {
      */
     bundleMessages(reopenRecentBundle) {
         const bundledMail = this.bundledMail;
-        const possibleMessageLists = document.querySelectorAll(Selectors.POSSIBLE_MESSAGE_LISTS);
-        const messageList = possibleMessageLists.length 
-            ? possibleMessageLists.item(possibleMessageLists.length - 1) 
-            : null;
+        const messageLists = DomUtils.getSectionMessageLists();
 
-        if (!messageList) {
+        if (!messageLists.length) {
             return {
                 foundMessageList: false,
             };
         }
-        
-        let debugInfo = { foundMessageList: true };
 
         this.messageListWatcher.disconnect();
+        // A full pass rebuilds every section's message observers from scratch.
+        this.messageSelectHandler.stopWatching();
 
-        // Only redraw if message list isn't still bundled
-        if (!messageList.children[0].classList.contains('is-bundled')) {
-            debugInfo = this._bundleMessages(messageList);
+        // More than one section means Gmail is already splitting the view by
+        // importance/starred/query (each panel a heading of its own), so inboxy
+        // must not add its own date-row dividers on top — the section headings
+        // are the de-facto grouping. Date dividers stay only in the single-list
+        // Default inbox, and only when the user hasn't turned them off.
+        const multiSection = messageLists.length > 1;
+        const groupByDate = this.groupMessagesByDate && !multiSection;
+
+        let redrew = false;
+        let numMessages = 0;
+        let numBundles = 0;
+        messageLists.forEach((messageList, sectionIndex) => {
+            const sectionId = String(sectionIndex);
+            // Only redraw if this section's list isn't still bundled.
+            if (messageList.children[0].classList.contains('is-bundled')) {
+                return;
+            }
+            const info = this._bundleMessages(messageList, sectionId, groupByDate);
             messageList.children[0].classList.add('is-bundled');
-        }
+            redrew = true;
+            numMessages += info.numMessages;
+            numBundles += info.numBundles;
+        });
+
+        // Drop state for sections that no longer exist (inbox layout shrank).
+        bundledMail.pruneSectionsFrom(messageLists.length);
 
         // Either reopen the bundle that was open, or close all bundles
-        if (reopenRecentBundle && bundledMail.getBundle(bundledMail.getLabelOfOpenedBundle())) {
-            this.bundleToggler.openBundle(bundledMail.getLabelOfOpenedBundle());
+        if (reopenRecentBundle && bundledMail.getOpenedBundle()) {
+            const { sectionId, label } = bundledMail.getOpenedBundleRef();
+            this.bundleToggler.openBundle(sectionId, label);
         }
         else {
             bundledMail.closeBundle();
@@ -153,7 +173,13 @@ class Bundler {
 
         this.messageListWatcher.observe();
 
-        return debugInfo;
+        return {
+            foundMessageList: true,
+            numSections: messageLists.length,
+            numMessages,
+            numBundles,
+            redrew,
+        };
     }
 
     /**
@@ -164,11 +190,13 @@ class Bundler {
      *
      * Returns an object with info for debug printing.
      */
-    _bundleMessages(messageList) {
+    _bundleMessages(messageList, sectionId, groupByDate) {
         const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
 
         document.querySelector('html').classList.add(InboxyClasses.INBOXY);
         tableBody.classList.add('flex-table-body');
+        // Stamp the section so a message row can be mapped back to its section.
+        tableBody.setAttribute(SECTION_ATTR, sectionId);
 
         this._detectTheme();
 
@@ -188,7 +216,7 @@ class Bundler {
             console.log(`inboxy-debug: starred sample ${JSON.stringify(starredSample)}`);
         }
 
-        const bundlesByLabel = this._groupByLabel(messageNodes);
+        const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
 
         if (this.skipSingleItemBundles) {
             for (const label in bundlesByLabel) {
@@ -201,9 +229,10 @@ class Bundler {
             }
         }
 
-        const sortedTableRows = this._calculateSortedTableRows(messageNodes, bundlesByLabel);
-        
-        const bundleRowsByLabel = this._drawTableRows(sortedTableRows, tableBody);
+        const sortedTableRows =
+            this._calculateSortedTableRows(messageNodes, bundlesByLabel, groupByDate);
+
+        const bundleRowsByLabel = this._drawTableRows(sortedTableRows, tableBody, sectionId);
         this._drawBundleBox(tableBody);
 
         Object.entries(bundleRowsByLabel).forEach(([label, bundleRow]) => {
@@ -212,7 +241,7 @@ class Bundler {
             bundle.setOrder(parseInt(bundleRow.style.order));
         });
 
-        this.bundledMail.setBundles(bundlesByLabel, getCurrentPageNumber());
+        this.bundledMail.setBundles(bundlesByLabel, getCurrentPageNumber(), sectionId);
 
         this._applyStyles(messageNodes);
         this._attachHandlers(messageNodes, messageList);
@@ -227,7 +256,7 @@ class Bundler {
      * Group messages by their labels.
      * Returns a map of labels to bundles.
      */
-    _groupByLabel(messageNodes) {
+    _groupByLabel(messageNodes, sectionId) {
         const bundlesByLabel = {};
 
         messageNodes.forEach(message => {
@@ -236,7 +265,7 @@ class Bundler {
             if (!this._shouldKeepUnbundled(message)) {
                 messageLabels.forEach(l => {
                     if (!bundlesByLabel[l]) {
-                        const bundle = new Bundle(l);
+                        const bundle = new Bundle(l, sectionId);
                         bundlesByLabel[l] = bundle;
                     }
 
@@ -255,11 +284,11 @@ class Bundler {
      * Each item is an object with 'element' and 'type' fields. They can be
      * a message row, date divider, or bundle row.
      */
-    _calculateSortedTableRows(messageNodes, bundlesByLabel) {
-        
+    _calculateSortedTableRows(messageNodes, bundlesByLabel, groupByDate) {
+
         const rows = this._calculateMessageAndBundleRows(messageNodes, bundlesByLabel);
 
-        if (!this.groupMessagesByDate) {
+        if (!groupByDate) {
             return rows;
         }
 
@@ -327,7 +356,7 @@ class Bundler {
      * 
      * Returns a map of newly created bundle rows by label.
      */
-    _drawTableRows(tableRows, tableBody) {
+    _drawTableRows(tableRows, tableBody, sectionId) {
         const baseUrl = getCurrentBaseUrl();
         const bundleRowsByLabel = {};
         tableRows.forEach((e, i) => {
@@ -339,7 +368,8 @@ class Bundler {
                     break;
                 case Element.BUNDLE:
                     const bundle = e.element;
-                    const bundleRow = this._drawBundleRow(bundle, order, tableBody, baseUrl);
+                    const bundleRow =
+                        this._drawBundleRow(bundle, order, tableBody, baseUrl, sectionId);
                     bundleRowsByLabel[bundle.getLabel()] = bundleRow;
                     break;
                 case Element.UNBUNDLED_MESSAGE:
@@ -372,19 +402,23 @@ class Bundler {
     /**
      * Create a bundle row element and append it to the tableBody.
      */
-    _drawBundleRow(bundle, order, tableBody, baseUrl) {
+    _drawBundleRow(bundle, order, tableBody, baseUrl, sectionId) {
         const messages = bundle.getMessages();
         const hasUnreadMessages = messages.some(this._isUnreadMessage);
         const labelColors = this.colorBundlesByLabel
             ? this._findLabelColors(bundle.getLabel(), messages)
             : null;
 
+        // The row only knows its own label; bind the section so toggling opens
+        // the right section's bundle when the same label exists in several.
+        const toggleBundle = label => this.bundleToggler.toggleBundle(sectionId, label);
+
         const bundleRow = BundleRow.create(
             bundle.getLabel(),
             order,
             messages,
             hasUnreadMessages,
-            this.bundleToggler.toggleBundle,
+            toggleBundle,
             baseUrl,
             labelColors);
         tableBody.appendChild(bundleRow);
