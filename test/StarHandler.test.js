@@ -1,5 +1,6 @@
-// inboxy: Chrome extension for Google Inbox-style bundles in Gmail.
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
 // Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
 
 import StarHandler from '../src/handlers/StarHandler';
 
