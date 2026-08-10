@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { Selectors } from '../util/Constants';
+import DomUtils from '../util/DomUtils';
 
 const OBSERVER_CONFIG = { attributes: false, childList: true, subtree: false };
 
@@ -31,14 +31,10 @@ class MessageListWatcher {
     }
 
     observe() {
-        const possibleMessageLists = document.querySelectorAll(Selectors.POSSIBLE_MESSAGE_LISTS);;
-        const messageListContainer = possibleMessageLists.length 
-            ? possibleMessageLists.item(1) 
-            : null;
-            
-        if (messageListContainer) {
-            this.observer.observe(messageListContainer, OBSERVER_CONFIG);
-        }
+        // Watch every section's list — one MutationObserver can watch many
+        // targets, so redraws in any section trigger a rebundle.
+        DomUtils.getSectionMessageLists().forEach(
+            list => this.observer.observe(list, OBSERVER_CONFIG));
     }
 
     disconnect() {

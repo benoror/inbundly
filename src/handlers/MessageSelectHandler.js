@@ -46,14 +46,17 @@ class MessageSelectHandler {
     }
 
     /**
-     * Start observing the given messages.
+     * Start observing the given messages, adding to any already being watched.
+     * A bundle pass calls this once per section, so observers accumulate across
+     * sections; stopWatching() clears them at the start of the next full pass.
      */
     startWatching(messageElements) {
-        this.messageObservers = messageElements.map(el => {
+        const observers = messageElements.map(el => {
             const observer = new MutationObserver(this._handleMessageChange);
             observer.observe(el, MESSAGE_LIST_CONFIG);
             return observer;
         });
+        this.messageObservers = this.messageObservers.concat(observers);
     }
 
     /**

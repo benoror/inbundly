@@ -10,6 +10,19 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Bundling across all Gmail inbox types.** inboxy previously only bundled the
+  Default inbox; the sectioned inbox types — **Important first**, **Unread
+  first**, **Starred first**, **Priority Inbox**, and **Multiple Inboxes** —
+  render several stacked message lists at once, and only one of them got
+  bundled. Every visible section is now discovered and bundled independently:
+  bundle state, toggling, the open-bundle highlight, and the message observers
+  are all scoped per section, so the same label can bundle separately in two
+  sections without colliding. In these multi-section views inboxy no longer adds
+  its own date-row dividers — Gmail's section headings already group the list, so
+  the dividers only apply to the single-list Default inbox (and still honor the
+  "Group messages by date" option there).
+
 ## [3.1.2] - 2026-08-09
 
 ### Fixed

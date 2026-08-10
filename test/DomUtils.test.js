@@ -201,3 +201,90 @@ test('getLabelColors - matches the correct label among several', () => {
         color: null,
     });
 });
+
+/**
+ * Build a `[role="main"]` fixture with the given panels. Each panel is described
+ * by { hidden, lists }, where `lists` is an array of booleans — one `.Cp` per
+ * entry, `true` meaning it holds a real `.F tbody` message table.
+ */
+function buildMain(panels) {
+    const main = document.createElement('div');
+    main.setAttribute('role', 'main');
+    panels.forEach(({ hidden = false, lists }) => {
+        const panel = document.createElement('div');
+        panel.className = 'ae4';
+        if (hidden) {
+            panel.style.display = 'none';
+        }
+        lists.forEach(hasTable => {
+            const cp = document.createElement('div');
+            cp.className = 'Cp';
+            if (hasTable) {
+                const table = document.createElement('table');
+                table.className = 'F';
+                table.appendChild(document.createElement('tbody'));
+                cp.appendChild(table);
+            }
+            panel.appendChild(cp);
+        });
+        main.appendChild(panel);
+    });
+    document.body.appendChild(main);
+    return main;
+}
+
+afterEach(() => {
+    document.body.innerHTML = '';
+});
+
+test('getSectionMessageLists - single visible panel yields its one real list', () => {
+    // Default inbox: one visible panel with a placeholder .Cp then the real one.
+    buildMain([{ lists: [false, true] }]);
+    const lists = DomUtils.getSectionMessageLists();
+    expect(lists.length).toBe(1);
+    expect(lists[0].querySelector('.F tbody')).not.toBeNull();
+});
+
+test('getSectionMessageLists - one list per visible section', () => {
+    // Priority Inbox / "X first": several visible panels, one list each.
+    buildMain([
+        { lists: [true] },
+        { lists: [true] },
+        { lists: [true] },
+    ]);
+    expect(DomUtils.getSectionMessageLists().length).toBe(3);
+});
+
+test('getSectionMessageLists - skips hidden panels', () => {
+    buildMain([
+        { lists: [true] },
+        { hidden: true, lists: [true] },
+        { lists: [true] },
+    ]);
+    expect(DomUtils.getSectionMessageLists().length).toBe(2);
+});
+
+test('getSectionMessageLists - ignores panels with no message table', () => {
+    buildMain([
+        { lists: [true] },
+        { lists: [false] },
+    ]);
+    expect(DomUtils.getSectionMessageLists().length).toBe(1);
+});
+
+test('getSectionId - reads the stamped section from a row ancestor', () => {
+    const tbody = document.createElement('tbody');
+    const table = document.createElement('table');
+    table.className = 'F';
+    table.appendChild(tbody);
+    tbody.setAttribute('data-inboxy-section', '2');
+    const row = document.createElement('tr');
+    tbody.appendChild(row);
+
+    expect(DomUtils.getSectionId(row)).toBe('2');
+});
+
+test('getSectionId - null when the row is not inside a bundled section', () => {
+    const row = document.createElement('tr');
+    expect(DomUtils.getSectionId(row)).toBeNull();
+});

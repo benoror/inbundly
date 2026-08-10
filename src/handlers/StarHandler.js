@@ -79,14 +79,17 @@ class StarHandler {
         let elementTop;
         // Message top
         if (isUnstarring) {
-            this.bundledMail.openBundle(labels[0]);
+            const sectionId = DomUtils.getSectionId(messageRow);
+            this.bundledMail.openBundle(sectionId, labels[0]);
             elementTop = _getTop(messageRow);
-        } 
+        }
         // Bundle row top
         else if (isStarring) {
-            const label = this.bundledMail.getLabelOfOpenedBundle();
-            const bundleRow = this.bundledMail.getBundle(label).getBundleRow();
-            elementTop = _getTop(bundleRow);
+            const bundle = this.bundledMail.getOpenedBundle();
+            if (!bundle) {
+                return;
+            }
+            elementTop = _getTop(bundle.getBundleRow());
         }
 
         const scrollableContainer = document.querySelector(Selectors.SCROLLABLE_CONTAINER);
@@ -102,12 +105,12 @@ class StarHandler {
      * where the bundle row was.
      */
     scrollIfNecessary() {
-        const label = this.bundledMail.getLabelOfOpenedBundle();
-        if (!this.prevTop || !label) {
+        const bundle = this.bundledMail.getOpenedBundle();
+        if (!this.prevTop || !bundle) {
             return;
         }
 
-        const bundleRow = this.bundledMail.getBundle(label).getBundleRow();
+        const bundleRow = bundle.getBundleRow();
 
         const elementTop = _getTop(bundleRow);
         const scrollableContainer = document.querySelector(Selectors.SCROLLABLE_CONTAINER);

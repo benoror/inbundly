@@ -14,14 +14,51 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { 
-    GmailClasses, 
+import {
+    GmailClasses,
     Selectors,
+    SECTION_ATTR,
 } from './Constants';
 
 const DomUtils = {
     findMessageRow: function(messageRowDescendant) {
         return messageRowDescendant.closest('tr');
+    },
+
+    /**
+     * Return the message-list containers for every section of the current view,
+     * in top-to-bottom order. The Default inbox type has one section; the
+     * sectioned types (Important/Unread/Starred first, Priority Inbox, Multiple
+     * Inboxes) have several visible panels, each contributing one list.
+     *
+     * Within a panel the real list is the last `.Cp` that actually holds a
+     * message table — Default renders a placeholder `.Cp` before it, which is
+     * why the historical single-list code picked the last/second container.
+     */
+    getSectionMessageLists: function() {
+        const panels = [...document.querySelectorAll(Selectors.CURRENT_TABPANEL)];
+        const lists = [];
+        panels.forEach(panel => {
+            const containers =
+                [...panel.querySelectorAll(Selectors.MESSAGE_LIST_CONTAINER)];
+            for (let i = containers.length - 1; i >= 0; i--) {
+                if (containers[i].querySelector(Selectors.TABLE_BODY)) {
+                    lists.push(containers[i]);
+                    break;
+                }
+            }
+        });
+        return lists;
+    },
+
+    /**
+     * The section id (as a string) that a message row belongs to, read from the
+     * attribute inboxy stamps on each section's table body, or null if the row
+     * isn't inside a bundled section.
+     */
+    getSectionId: function(node) {
+        const tableBody = node.closest(Selectors.TABLE_BODY);
+        return tableBody ? tableBody.getAttribute(SECTION_ATTR) : null;
     },
 
     extractDate: function(message) {

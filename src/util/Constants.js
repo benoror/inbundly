@@ -66,9 +66,19 @@ const InboxyClasses = {
 
 const PAGE = '.BltHke.nH.oy8Mbf';
 const MAIN = `[role="main"]`;
+// Each visible tab panel (.ae4) is one inbox "section". The Default inbox type
+// shows a single visible panel; the sectioned types (Important/Unread/Starred
+// first, Priority Inbox, Multiple Inboxes) show several visible panels at once,
+// each with its own message list. `CURRENT_TABPANEL` therefore yields ALL the
+// panels inboxy must bundle, not just one — do not assume a single match.
 const CURRENT_TABPANEL = `${MAIN} .ae4:not([style*="none"])`;
-const POSSIBLE_MESSAGE_LISTS = `${CURRENT_TABPANEL} .Cp`; 
+const MESSAGE_LIST_CONTAINER = '.Cp';
+const POSSIBLE_MESSAGE_LISTS = `${CURRENT_TABPANEL} ${MESSAGE_LIST_CONTAINER}`;
 const LABELS = `.ar.as .at`;
+
+// Data attribute stamped on each section's table body so a message row can be
+// mapped back to the section it belongs to (used to scope bundle toggling).
+const SECTION_ATTR = 'data-inboxy-section';
 const Selectors = {
     CHECKBOXES: `${CURRENT_TABPANEL} tr td .oZ-jc.T-Jo.J-J5-Ji`,
     CURRENT_TAB: `${MAIN} [role="tab"][aria-selected="true"]`,
@@ -81,6 +91,7 @@ const Selectors = {
     INBOX_TAB: '.TO[data-tooltip="Inbox"]',
     MAIN: MAIN,
     MESSAGE_CHECKBOX: '.oZ-jc.T-Jo.J-J5-Ji',
+    MESSAGE_LIST_CONTAINER: MESSAGE_LIST_CONTAINER,
     MESSAGE_DATE: '.xW span',
     MESSAGE_DATE_SPAN: `.xW span span`,
     MESSAGE_PANE: '.bkK > .nH',
@@ -130,7 +141,8 @@ export {
     ORDER_INCREMENT,
     NO_TAB,
     LABEL_SET_SEPARATOR,
-    GmailClasses, 
+    SECTION_ATTR,
+    GmailClasses,
     InboxyClasses,
     Selectors, 
     TableBodySelectors,

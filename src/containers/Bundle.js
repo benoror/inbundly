@@ -18,11 +18,19 @@
  * A bundle of messages that belong to a particular label.
  */
 class Bundle {
-    constructor(label) {
+    constructor(label, sectionId = '0') {
         this._label = label;
+        this._sectionId = sectionId;
         this._bundleRow = null;
         this._order = null;
         this._messages = [];
+    }
+
+    /**
+     * The id of the inbox section this bundle belongs to.
+     */
+    getSectionId() {
+        return this._sectionId;
     }
 
     setBundleRow(bundleRow) {
