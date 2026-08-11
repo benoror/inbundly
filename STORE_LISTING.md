@@ -15,6 +15,12 @@ Bring Google Inbox-style bundles to Gmail: auto-group emails by label into tidy,
 ## Category
 Productivity
 
+## Support & links
+- Support email: `support@inbundly.com`
+- Support / homepage URL: `https://inbundly.com`
+- Support (issues): `https://github.com/benoror/inbundly/issues`
+- Privacy policy: `https://inbundly.com/privacy.html`
+
 ## Detailed description
 ```
 Inbundly brings back the best part of Google Inbox — bundles — to Gmail.

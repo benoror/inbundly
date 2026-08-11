@@ -85,7 +85,8 @@ instant.
 
 ## Feedback
 
-Feel free to [send feedback](https://github.com/benoror/inbundly/issues) by filing an issue.
+Feel free to [send feedback](https://github.com/benoror/inbundly/issues) by filing an issue,
+or email [support@inbundly.com](mailto:support@inbundly.com).
 
 ## Support the project
 
