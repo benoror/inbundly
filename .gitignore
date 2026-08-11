@@ -4,3 +4,4 @@ dist/content.js
 packages/
 .package-stage/
 *.zip
+store-assets/screenshot*

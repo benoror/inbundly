@@ -21,3 +21,7 @@ package-chrome:
     node scripts/package.mjs chrome
 package-firefox:
     node scripts/package.mjs firefox
+
+# Regenerate brand store graphics (icon + promo tiles) → store-assets/
+store-assets:
+    node scripts/store-assets.mjs
