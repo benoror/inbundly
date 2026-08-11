@@ -9,7 +9,8 @@
     "watch": "webpack --watch",
     "package": "node scripts/package.mjs",
     "package:chrome": "node scripts/package.mjs chrome",
-    "package:firefox": "node scripts/package.mjs firefox"
+    "package:firefox": "node scripts/package.mjs firefox",
+    "store-assets": "node scripts/store-assets.mjs"
   },
   "repository": {
     "type": "git"
