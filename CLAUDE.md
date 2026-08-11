@@ -117,6 +117,15 @@ Flow for landing a feature branch and cutting a release:
 3. **Tag & push:** `git tag -a vX.Y.Z -m "Inbundly vX.Y.Z (benoror fork)" && git push origin vX.Y.Z`.
 4. **GitHub Release:** `gh release create vX.Y.Z --repo benoror/inbundly --latest --notes-file <notes>`
    (notes = that version's changelog section).
+5. **Store packages (attach to every release):** `npm run package` builds
+   `packages/inbundly-<version>-{chrome,firefox}.zip` (via `scripts/package.mjs`), then
+   `gh release upload vX.Y.Z --repo benoror/inbundly packages/inbundly-<version>-*.zip`.
+
+   The packager transforms `dist/manifest.json` per store — the committed manifest keeps
+   `key` (unpacked-dev ID pinning), but **Chrome Web Store rejects `key`** (it assigns the
+   ID) and **Firefox AMO (MV3) requires a `background.scripts` fallback** next to
+   `service_worker`. Never upload a raw `dist/` zip — it fails both validators. `packages/`
+   and `*.zip` are gitignored.
 
 > Running `npm test` from inside a `.claude/worktrees/…` path reports "0 tests": `master`'s
 > Jest config ignores `/.claude/`, which matches the worktree's own path. Run tests from the
