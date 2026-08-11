@@ -47,6 +47,12 @@ your inbox.
 
 Learn more at [inbundly.com](https://inbundly.com).
 
+## Screenshots
+
+| Light | Dark |
+|:---:|:---:|
+| ![Inbundly bundling Gmail in light mode](docs/assets/screenshot-light.png) | ![Inbundly bundling Gmail in dark mode](docs/assets/screenshot-dark.png) |
+
 ## Setup
 
 Inbundly uses webpack to bundle js files:
