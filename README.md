@@ -87,6 +87,14 @@ instant.
 
 Feel free to [send feedback](https://github.com/benoror/inbundly/issues) by filing an issue.
 
+## Support the project
+
+Inbundly is free and open source. If it helps tidy your inbox, consider
+[sponsoring its development](https://github.com/sponsors/benoror) ♥ — it keeps the
+project maintained and the lights on.
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-♥-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/benoror)
+
 ## Acknowledgements
 
 * [material.io](https://material.io/resources/icons/): Icons in [dist/assets/](https://github.com/benoror/inbundly/tree/master/dist/assets/), [dist/options/assets/](https://github.com/benoror/inbundly/tree/master/dist/options/assets/), and [dist/popup/assets/](https://github.com/benoror/inbundly/tree/master/dist/popup/assets/) are modified versions of icons from material.io. The original material.io icons are licensed under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).
