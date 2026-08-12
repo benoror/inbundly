@@ -8,6 +8,19 @@
 going: it groups your email into tidy, collapsible bundles and adds more ways to organize
 your inbox.
 
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Chrome Web Store" src="https://img.shields.io/chrome-web-store/v/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white"></a>
+  <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Users" src="https://img.shields.io/chrome-web-store/users/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=users"></a>
+  <a href="https://github.com/benoror/inbundly/blob/master/COPYING"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/License-GPL--3.0-blue"></a>
+  <a href="https://github.com/sponsors/benoror"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white"></a>
+</p>
+
+## Install
+
+- **Chrome / Edge / Brave:** [**Add to Chrome**](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) from the Chrome Web Store.
+- **Firefox:** coming soon (in review on [addons.mozilla.org](https://addons.mozilla.org/firefox/addon/inbundly/)).
+- **From source:** see [Setup](#setup) to build and load `dist/` as an unpacked extension.
+
 > **Fork notice:** Inbundly is [benoror/inbundly](https://github.com/benoror/inbundly), a
 > maintained, rebranded fork of [teresa-ou/inboxy](https://github.com/teresa-ou/inboxy)
 > (originally by Teresa Ou), with additional options for combined-label bundles, bundle
