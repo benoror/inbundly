@@ -14,7 +14,11 @@ Guidance for Claude Code when working in this repository.
 **Inbundly** is a Manifest V3 browser extension (Chrome + Firefox) that recreates Google
 Inbox-style bundles in Gmail. It's a fork of
 [teresa-ou/inboxy](https://github.com/teresa-ou/inboxy) — the upstream project is no
-longer actively maintained. Licensed GPL-3.0.
+longer actively maintained. Licensed GPL-3.0. Site: [inbundly.com](https://inbundly.com).
+
+**Published:** [Chrome Web Store](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga)
+(item ID `pbfjicjmcpogjlbpljebhhgkgfhbdcga`; the pinned dev-unpacked ID stays
+`cpggdbckpaoikhddngoeepdedfkleiab`). Firefox AMO (`inbundly@benoror.github.io`) in review.
 
 The extension runs as a content script injected into `mail.google.com`, observing
 Gmail's DOM and restructuring the message list into collapsible bundles by label.
