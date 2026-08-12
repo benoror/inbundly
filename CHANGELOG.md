@@ -10,6 +10,13 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-08-11
+
+### Added
+- **Options → About:** a GitHub Sponsors link and a `support@inbundly.com` contact.
+
+[4.0.1]: https://github.com/benoror/inbundly/releases/tag/v4.0.1
+
 ## [4.0.0] - 2026-08-10
 
 **Rebrand: inboxy → Inbundly.** Same bundling engine (all v3.x features intact), new
