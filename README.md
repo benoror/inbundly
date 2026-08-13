@@ -18,7 +18,7 @@ your inbox.
 ## Install
 
 - **Chrome / Edge / Brave:** [**Add to Chrome**](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) from the Chrome Web Store.
-- **Firefox:** coming soon (in review on [addons.mozilla.org](https://addons.mozilla.org/firefox/addon/inbundly/)).
+- **Firefox:** [**Add to Firefox**](https://addons.mozilla.org/firefox/addon/inbundly/) from Firefox Add-ons.
 - **From source:** see [Setup](#setup) to build and load `dist/` as an unpacked extension.
 
 > **Fork notice:** Inbundly is [benoror/inbundly](https://github.com/benoror/inbundly), a
