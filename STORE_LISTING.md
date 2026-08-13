@@ -4,8 +4,10 @@ Ready-to-paste content for submission. (Not shipped in the extension.)
 
 ## Name (title)
 ```
-Inbundly – Inbox Bundles for Gmail
+Inbundly
 ```
+(From the manifest `name`; drives the vanity URL slug `inbundly`. Keyword phrase
+"Inbox Bundles for Gmail" lives in the summary/description below.)
 
 ## Short description (≤132 chars)
 ```
