@@ -153,7 +153,8 @@ class Bundler {
             if (messageList.children[0].classList.contains('is-bundled')) {
                 return;
             }
-            const info = this._bundleMessages(messageList, sectionId, groupByDate);
+            const info = this._bundleMessages(
+                messageList, sectionId, groupByDate, reopenRecentBundle);
             messageList.children[0].classList.add('is-bundled');
             redrew = true;
             numMessages += info.numMessages;
@@ -165,7 +166,15 @@ class Bundler {
 
         // Either reopen the bundle that was open, or close all bundles
         if (reopenRecentBundle && bundledMail.getOpenedBundle()) {
-            const { sectionId, label } = bundledMail.getOpenedBundleRef();
+            const { sectionId, label, frozenOrder } = bundledMail.getOpenedBundleRef();
+            // Pin the reopened bundle back to the order it had when the user
+            // opened it, so it holds its on-screen position instead of jumping to
+            // the slot its (now newest) message would give it after a rerender.
+            if (frozenOrder != null) {
+                const bundle = bundledMail.getBundleInSection(sectionId, label);
+                bundle.setOrder(frozenOrder);
+                bundle.getBundleRow().style.order = frozenOrder;
+            }
             this.bundleToggler.openBundle(sectionId, label);
         }
         else {
@@ -191,7 +200,7 @@ class Bundler {
      *
      * Returns an object with info for debug printing.
      */
-    _bundleMessages(messageList, sectionId, groupByDate) {
+    _bundleMessages(messageList, sectionId, groupByDate, reopenRecentBundle) {
         const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
 
         document.querySelector('html').classList.add(InbundlyClasses.INBUNDLY);
@@ -220,11 +229,23 @@ class Bundler {
         const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
 
         if (this.skipSingleItemBundles) {
+            // The currently-open bundle stays alive even at one message, so
+            // acting on threads inside it (archive/delete/snooze) doesn't make it
+            // vanish mid-workflow. It collapses to nothing only when emptied, or
+            // once the user closes it. Only applies while reopening this section's
+            // open bundle.
+            const openRef = reopenRecentBundle
+                ? this.bundledMail.getOpenedBundleRef()
+                : null;
             for (const label in bundlesByLabel) {
+                const isOpenBundle = openRef &&
+                    openRef.sectionId === sectionId &&
+                    openRef.label === label;
                 // A custom bundle is explicit user intent, so keep it even with a
                 // single message; only auto-derived (label) bundles are pruned.
                 if (bundlesByLabel[label].getMessages().length === 1 &&
-                    !isCustomBundleKey(label)) {
+                    !isCustomBundleKey(label) &&
+                    !isOpenBundle) {
                     delete bundlesByLabel[label];
                 }
             }
