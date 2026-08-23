@@ -11,6 +11,7 @@ your inbox.
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Chrome Web Store" src="https://img.shields.io/chrome-web-store/v/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white"></a>
   <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Users" src="https://img.shields.io/chrome-web-store/users/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=users"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/inbundly/"><img alt="Firefox Add-on" src="https://img.shields.io/amo/v/inbundly?label=Firefox%20Add-ons&logo=firefoxbrowser&logoColor=white"></a>
   <a href="https://github.com/benoror/inbundly/blob/master/COPYING"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/License-GPL--3.0-blue"></a>
   <a href="https://github.com/sponsors/benoror"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white"></a>
 </p>
