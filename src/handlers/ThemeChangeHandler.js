@@ -55,12 +55,17 @@ class ThemeChangeHandler {
      */
     _applyTheme() {
         const node = document.querySelector('html');
+        // Some Gmail contexts (e.g. a message popout window) have no navigation
+        // sidepane, so this can be missing — getComputedStyle(null) would throw
+        // and take down the whole content script.
         const sidepaneText = document.querySelector(Selectors.SIDEPANE_TEXT);
-        if (this._isLight(getComputedStyle(sidepaneText).color)) {
-            node.classList.add(InbundlyClasses.DARK_THEME);
-        }
-        else {
-            node.classList.remove(InbundlyClasses.DARK_THEME);
+        if (sidepaneText) {
+            if (this._isLight(getComputedStyle(sidepaneText).color)) {
+                node.classList.add(InbundlyClasses.DARK_THEME);
+            }
+            else {
+                node.classList.remove(InbundlyClasses.DARK_THEME);
+            }
         }
 
         const pane = document.querySelector(Selectors.MESSAGE_PANE);
