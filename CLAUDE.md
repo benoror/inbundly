@@ -193,6 +193,22 @@ Flow for landing a feature branch and cutting a release:
   Custom-bundle membership uses the same listener via
   `CustomBundles.applyStoredValue`. The options page also re-reads the form
   when sync values change remotely.
+- **Master switch.** `bundlingEnabled` (default `true`) is a bundling key that
+  gates the whole pipeline. When false, `content.js` short-circuits
+  `bundleOrRetry` (like the `supportsBundling` gate), adds the
+  `bundling-disabled` class on `<html>` to hide injected controls (pinned
+  toggle, "Bundle selected"), and relies on `refreshInbox()` to leave a plain
+  Gmail list. The first bundle pass waits on the stored value
+  (`bundlingEnabledReady`) so a disabled inbox isn't briefly bundled. It's
+  written from three places that all sync: `components/BundlingToggle.js` (a
+  switch in Gmail's search bar next to the pinned toggle), the Options page, and
+  the toolbar popup (`dist/popup/`).
+- **Open-bundle stability.** The currently-open bundle holds its on-screen
+  position while the user acts on its threads: `BundleToggler` captures its flex
+  `order` on open (`BundledMail.freezeOrder`) and `Bundler` re-pins it on each
+  reopen pass until collapse. The open bundle is also exempt from single-item
+  pruning (`Bundler._pruneSingleItemBundles`), so it stays open at one message
+  regardless of `skipSingleItemBundles`.
 - **Custom bundles** (ad-hoc groupings with no Gmail label) are keyed by Gmail's
   stable `data-legacy-thread-id` (read via `DomUtils.getThreadId`) and persisted
   in `chrome.storage.sync` by `containers/CustomBundles.js`. Their bundle key is
