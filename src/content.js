@@ -23,6 +23,7 @@ import SelectiveBundling from './bundling/SelectiveBundling';
 import BundledMail from './containers/BundledMail';
 import CustomBundles, { STORAGE_KEY as CUSTOM_BUNDLES_KEY } from './containers/CustomBundles';
 
+import BundlingToggle from './components/BundlingToggle';
 import PinnedToggle from './components/PinnedToggle';
 import SelectionBundleControl from './components/SelectionBundleControl';
 
@@ -56,6 +57,11 @@ const logDebugMessage = message => {
     }
 };
 
+// Master on/off switch (Options + top-bar toggle + popup all write this).
+// When false inbundly goes dormant: the list is left plain and every injected
+// control is hidden except the master switch itself.
+let bundlingEnabled = true;
+
 const html = document.querySelector('html');
 if (html) {
     logDebugMessage('Applying styles');
@@ -64,8 +70,11 @@ if (html) {
     // The pinned-messages toggle and bulk-archive button are hidden by default;
     // opt in to them from the options page. Values sync across devices.
     chrome.storage.sync.get(
-        { showPinnedToggle: false, showBundleArchive: false },
-        options => applyUiOptions(options));
+        { showPinnedToggle: false, showBundleArchive: false, bundlingEnabled: true },
+        options => {
+            applyUiOptions(options);
+            applyBundlingEnabled(options.bundlingEnabled);
+        });
 }
 
 /**
@@ -81,6 +90,18 @@ function applyUiOptions({ showPinnedToggle, showBundleArchive } = {}) {
     }
     if (showBundleArchive !== undefined) {
         htmlEl.classList.toggle(InbundlyClasses.HIDE_BUNDLE_ARCHIVE, !showBundleArchive);
+    }
+}
+
+/**
+ * Update the master-switch flag and the `bundling-disabled` class that CSS uses
+ * to hide inbundly's injected controls when bundling is off.
+ */
+function applyBundlingEnabled(enabled) {
+    bundlingEnabled = enabled === undefined ? true : !!enabled;
+    const htmlEl = document.querySelector('html');
+    if (htmlEl) {
+        htmlEl.classList.toggle(InbundlyClasses.BUNDLING_DISABLED, !bundlingEnabled);
     }
 }
 
@@ -103,7 +124,7 @@ const handleBundleInteraction = e => interactedWithBundle = true;
  * schedule coalesced retries instead of giving up.
  */
 function bundleOrRetry(reopenRecentBundle) {
-    if (!supportsBundling(window.location.href)) {
+    if (!bundlingEnabled || !supportsBundling(window.location.href)) {
         bundleRetry.reset();
         return { foundMessageList: true, skipped: true };
     }
@@ -161,7 +182,7 @@ const dateGrouper = new DateGrouper();
 
 let pendingReopenRecentBundle = false;
 const bundleRetry = createCoalescedRetry(() => {
-    if (!supportsBundling(window.location.href)) {
+    if (!bundlingEnabled || !supportsBundling(window.location.href)) {
         bundleRetry.reset();
         return;
     }
@@ -240,6 +261,14 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
     if (changesInclude(changes, UI_OPTION_KEYS)) {
         applyUiOptions(optionsFromChanges(changes, UI_OPTION_KEYS));
+    }
+
+    // Update the master-switch flag/class before any refresh so the re-render
+    // triggered below sees the new state (and re-bundles or stays plain).
+    if (changes.bundlingEnabled) {
+        const { newValue } = changes.bundlingEnabled;
+        applyBundlingEnabled(newValue);
+        needsRefresh = true;
     }
 
     if (changesInclude(changes, BUNDLING_OPTION_KEYS)) {
@@ -326,7 +355,7 @@ function ensureObserversStarted() {
         return false;
     }
     logDebugMessage('Start observers');
-    addPinnedToggle();
+    addTopBarControls();
     startObservers();
     observersStarted = true;
     return true;
@@ -357,11 +386,14 @@ function refreshInbox() {
     });
 }
 
-function addPinnedToggle() {
+function addTopBarControls() {
     const searchForm = document.querySelector(Selectors.SEARCH_FORM);
     if (!searchForm || !searchForm.parentNode) {
-        logDebugMessage('Search form not ready; skipping pinned toggle for now');
+        logDebugMessage('Search form not ready; skipping top-bar controls for now');
         return;
     }
+    // The bundling switch sits next to the pinned-messages toggle (both float
+    // right, so the last appended lands leftmost of the pair).
     searchForm.parentNode.appendChild((new PinnedToggle()).create());
+    searchForm.parentNode.appendChild((new BundlingToggle()).create());
 }

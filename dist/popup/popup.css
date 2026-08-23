@@ -59,6 +59,62 @@ body {
     color: var(--ink);
 }
 
+.toggle-container {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.toggle-label {
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    flex: 0 0 auto;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch .slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background-color: var(--border);
+    border-radius: 22px;
+    transition: background-color 0.2s ease;
+}
+
+.switch .slider::before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+.switch input:checked + .slider {
+    background-color: var(--link);
+}
+
+.switch input:checked + .slider::before {
+    transform: translateX(18px);
+}
+
 .link {
     align-items: center;
     cursor: pointer;

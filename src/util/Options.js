@@ -21,6 +21,7 @@
  * (`customBundles`) managed by containers/CustomBundles.js.
  */
 const OPTION_DEFAULTS = {
+    bundlingEnabled: true,
     exclude: true,
     labels: [],
     groupMessagesByDate: true,
@@ -39,6 +40,7 @@ const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);
 
 /** Options that affect how the message list is bundled / styled. */
 const BUNDLING_OPTION_KEYS = [
+    'bundlingEnabled',
     'exclude',
     'labels',
     'combineLabels',

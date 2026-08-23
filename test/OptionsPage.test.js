@@ -117,6 +117,7 @@ test('the options page groups settings and puts advanced options near the end', 
         .map(heading => heading.firstChild.textContent.trim());
 
     expect(categories).toEqual([
+        'Bundling',
         'Bundle setup',
         'Appearance',
         'Features',

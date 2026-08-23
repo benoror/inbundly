@@ -21,3 +21,21 @@ document.querySelectorAll('a').forEach(el => {
         chrome.tabs.create({ url: el.getAttribute('href') });
     });
 });
+
+// Master bundling on/off switch. Reads/writes the same chrome.storage.sync key
+// as the in-Gmail toggle and the options page; the content script reacts live.
+const bundlingCheckbox = document.getElementById('bundling-enabled-checkbox');
+if (bundlingCheckbox) {
+    chrome.storage.sync.get({ bundlingEnabled: true }, ({ bundlingEnabled }) => {
+        bundlingCheckbox.checked = !!bundlingEnabled;
+    });
+    bundlingCheckbox.addEventListener('change', () => {
+        chrome.storage.sync.set({ bundlingEnabled: bundlingCheckbox.checked });
+    });
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'sync' && changes.bundlingEnabled) {
+            const { newValue } = changes.bundlingEnabled;
+            bundlingCheckbox.checked = newValue === undefined ? true : !!newValue;
+        }
+    });
+}

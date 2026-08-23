@@ -21,6 +21,7 @@ const PRIORITY_PLACEHOLDER = 'Add a priority rule on each line, for example:\n\n
 // The Save-button options. Mirrors OPTION_DEFAULTS in src/util/Options.js; this
 // page is plain JS outside the webpack bundle, so the list is duplicated here.
 const OPTION_KEYS = [
+    'bundlingEnabled',
     'exclude',
     'labels',
     'groupMessagesByDate',
@@ -36,6 +37,7 @@ const OPTION_KEYS = [
 ];
 
 function saveOptions() {
+    const bundlingEnabled = document.getElementById('bundling-enabled-checkbox').checked;
     const exclude = document.getElementById('exclude-radio').checked;
     const labelList = document.getElementById('label-list');
     const labels = labelList.value.split(/[\n]+/).map(s => s.trim()).filter(s => !!s);
@@ -53,6 +55,7 @@ function saveOptions() {
     const showBundleArchive = document.getElementById('show-bundle-archive-checkbox').checked;
 
     chrome.storage.sync.set({
+        bundlingEnabled: !!bundlingEnabled,
         exclude: !!exclude,
         labels: labels,
         groupMessagesByDate: !!groupMessagesByDate,
@@ -79,6 +82,7 @@ function saveOptions() {
 
 function restoreOptionsForm() {
     chrome.storage.sync.get({
+        bundlingEnabled: true,
         exclude: true,
         labels: [],
         groupMessagesByDate: true,
@@ -92,6 +96,8 @@ function restoreOptionsForm() {
         showPinnedToggle: false,
         showBundleArchive: false,
     }, function(items) {
+        document.getElementById('bundling-enabled-checkbox').checked = items.bundlingEnabled;
+
         const id = items.exclude ? 'exclude-radio' : 'include-radio';
         document.getElementById(id).checked = true;
 
