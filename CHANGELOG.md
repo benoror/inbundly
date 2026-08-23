@@ -27,6 +27,9 @@ independent of upstream's versioning. The format is based on
 ### Fixed
 - **Selected thread no longer shifts left inside an open bundle.** Checking/selecting a
   bundled message kept its indent instead of snapping to the edge.
+- **No crash in message popout windows.** Theme detection no longer throws when there is
+  no navigation sidepane (e.g. a popped-out message), which had taken down the content
+  script.
 
 ## [4.0.2] - 2026-08-12
 
