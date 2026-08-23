@@ -370,8 +370,11 @@ html.inbundly .bundled-message {
 
 html.inbundly .bundled-message.visible {
     display: flex;
-    margin-left: 40px;
-    margin-right: 40px;
+    /* !important so the open-row indent survives Gmail's own selected-row
+       (.x7) styling, which otherwise overrides the margin and shifts a
+       checked thread to the left. */
+    margin-left: 40px !important;
+    margin-right: 40px !important;
     width: auto;
     z-index: auto;
 }
@@ -609,16 +612,90 @@ html.inbundly .pinned-toggle.show-pinned .slider-button {
     }
 }
 
-/** 
- * Layout 
+/**
+ * Bundling master switch (top bar, next to the pinned toggle).
+ * Reuses the pinned-toggle slider shape; grey when off, accent when on.
  */
- 
+html.inbundly .bundling-toggle {
+    position: relative;
+    width: 44px;
+    height: 20px;
+    margin: 0 9px;
+    flex: 0 0 auto;
+}
+
+html.inbundly .bundling-toggle .slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background-color: #f1f3f4;
+}
+
+html.inbundly.dark-theme .bundling-toggle .slider {
+    background-color: rgba(241, 243, 244, 0.24);
+}
+
+html.inbundly .bundling-toggle .slider-button {
+    position: absolute;
+    content: "";
+    height: 28px;
+    width: 28px;
+    border-radius: 50%;
+    left: -4px;
+    bottom: -4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.302), 0 0px 3px 1px rgba(60, 64, 67, 0.149);
+    background: #ffffff center no-repeat;
+    background-image: url('chrome-extension://__MSG_@@extension_id__/assets/bundle.svg');
+    background-size: 16px;
+    opacity: 0.5;
+}
+
+html.inbundly .bundling-toggle .slider-button:hover {
+    box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.302), 0 1px 3px 2px rgba(60, 64, 67, 0.149);
+}
+
+html.inbundly .bundling-toggle.bundling-on .slider {
+    background-color: #1a73e8;
+}
+
+html.inbundly .bundling-toggle.bundling-on .slider-button {
+    transform: translateX(24px);
+    opacity: 1;
+}
+
+@-moz-document url-prefix() {
+    html.inbundly .bundling-toggle .slider-button {
+        background-image: url('moz-extension://__MSG_@@extension_id__/assets/bundle.svg');
+    }
+}
+
+/*
+ * When bundling is switched off, inbundly goes dormant: hide its injected
+ * controls (the pinned toggle and the floating "Bundle selected" button). The
+ * master switch itself stays visible so the user can turn bundling back on.
+ */
+html.inbundly.bundling-disabled .pinned-toggle,
+html.inbundly.bundling-disabled .inbundly-bundle-selected {
+    display: none !important;
+}
+
+/**
+ * Layout
+ */
+
  html.inbundly #gb form,
- html.inbundly .pinned-toggle {
+ html.inbundly .pinned-toggle,
+ html.inbundly .bundling-toggle {
     display: inline-block;
  }
 
- html.inbundly .pinned-toggle {
+ html.inbundly .pinned-toggle,
+ html.inbundly .bundling-toggle {
     float: right;
     margin-top: 15px;
     margin-bottom: 15px;

@@ -23,6 +23,7 @@ import SelectiveBundling from './bundling/SelectiveBundling';
 import BundledMail from './containers/BundledMail';
 import CustomBundles, { STORAGE_KEY as CUSTOM_BUNDLES_KEY } from './containers/CustomBundles';
 
+import BundlingToggle from './components/BundlingToggle';
 import PinnedToggle from './components/PinnedToggle';
 import SelectionBundleControl from './components/SelectionBundleControl';
 
@@ -49,12 +50,31 @@ import {
     optionsFromChanges,
 } from './util/Options';
 
+// Bundling-rule keys are the bundling options minus the master switch; a change
+// to one of these needs a Gmail refresh to re-derive the list, whereas
+// bundlingEnabled drives its own enable/disable handling.
+const BUNDLING_RULE_KEYS = BUNDLING_OPTION_KEYS.filter(k => k !== 'bundlingEnabled');
+
 const DEBUG = true;
 const logDebugMessage = message => {
     if (DEBUG) {
         console.log(`inbundly-debug: ${message}`);
     }
 };
+
+// Master on/off switch (Options + top-bar toggle + popup all write this).
+// When false inbundly goes dormant: the list is left plain and every injected
+// control is hidden except the master switch itself.
+let bundlingEnabled = true;
+
+// Resolves once the stored bundlingEnabled has been read. The first bundle pass
+// waits on it (see handleContentLoaded) so a disabled inbox isn't bundled by the
+// default `true` before storage answers — mirroring the bundling objects' own
+// optionsReady gating.
+let resolveBundlingEnabledReady;
+const bundlingEnabledReady = new Promise(resolve => {
+    resolveBundlingEnabledReady = resolve;
+});
 
 const html = document.querySelector('html');
 if (html) {
@@ -64,8 +84,16 @@ if (html) {
     // The pinned-messages toggle and bulk-archive button are hidden by default;
     // opt in to them from the options page. Values sync across devices.
     chrome.storage.sync.get(
-        { showPinnedToggle: false, showBundleArchive: false },
-        options => applyUiOptions(options));
+        { showPinnedToggle: false, showBundleArchive: false, bundlingEnabled: true },
+        options => {
+            applyUiOptions(options);
+            applyBundlingEnabled(options.bundlingEnabled);
+            resolveBundlingEnabledReady();
+        });
+}
+else {
+    // No <html> (shouldn't happen in Gmail) — don't leave the gate pending.
+    resolveBundlingEnabledReady();
 }
 
 /**
@@ -81,6 +109,18 @@ function applyUiOptions({ showPinnedToggle, showBundleArchive } = {}) {
     }
     if (showBundleArchive !== undefined) {
         htmlEl.classList.toggle(InbundlyClasses.HIDE_BUNDLE_ARCHIVE, !showBundleArchive);
+    }
+}
+
+/**
+ * Update the master-switch flag and the `bundling-disabled` class that CSS uses
+ * to hide inbundly's injected controls when bundling is off.
+ */
+function applyBundlingEnabled(enabled) {
+    bundlingEnabled = enabled === undefined ? true : !!enabled;
+    const htmlEl = document.querySelector('html');
+    if (htmlEl) {
+        htmlEl.classList.toggle(InbundlyClasses.BUNDLING_DISABLED, !bundlingEnabled);
     }
 }
 
@@ -103,7 +143,7 @@ const handleBundleInteraction = e => interactedWithBundle = true;
  * schedule coalesced retries instead of giving up.
  */
 function bundleOrRetry(reopenRecentBundle) {
-    if (!supportsBundling(window.location.href)) {
+    if (!bundlingEnabled || !supportsBundling(window.location.href)) {
         bundleRetry.reset();
         return { foundMessageList: true, skipped: true };
     }
@@ -161,7 +201,7 @@ const dateGrouper = new DateGrouper();
 
 let pendingReopenRecentBundle = false;
 const bundleRetry = createCoalescedRetry(() => {
-    if (!supportsBundling(window.location.href)) {
+    if (!bundlingEnabled || !supportsBundling(window.location.href)) {
         bundleRetry.reset();
         return;
     }
@@ -242,13 +282,35 @@ chrome.storage.onChanged.addListener((changes, area) => {
         applyUiOptions(optionsFromChanges(changes, UI_OPTION_KEYS));
     }
 
+    // Master switch. Enabling and disabling need opposite mechanisms:
+    //  - Disable: the list is currently bundled, so refreshInbox() makes Gmail
+    //    rebuild it to a plain list (the gate then keeps it plain).
+    //  - Enable: the list is already plain, and refreshInbox() no-ops when the
+    //    DOM already matches Gmail's native state, so it can't re-bundle. Bundle
+    //    the existing DOM directly instead — deferred to a clean task so we don't
+    //    mutate mid storage-event (which fought Gmail's rendering and spun the CPU).
+    if (changes.bundlingEnabled) {
+        applyBundlingEnabled(changes.bundlingEnabled.newValue);
+        if (bundlingEnabled) {
+            logDebugMessage('bundlingEnabled -> true; scheduling direct bundle');
+            setTimeout(() => bundleOrRetry(false), 0);
+        }
+        else {
+            needsRefresh = true;
+        }
+    }
+
     if (changesInclude(changes, BUNDLING_OPTION_KEYS)) {
         const bundlingOptions = optionsFromChanges(changes, BUNDLING_OPTION_KEYS);
         selectiveBundling.applyOptions(bundlingOptions);
         bundler.applyOptions(bundlingOptions);
         starHandler.applyOptions(bundlingOptions);
         dateGrouper.applyOptions(bundlingOptions);
-        needsRefresh = true;
+        // bundlingEnabled is handled above; only real bundling-rule changes need
+        // a Gmail refresh here (avoids a redundant refresh on enable/disable).
+        if (changesInclude(changes, BUNDLING_RULE_KEYS)) {
+            needsRefresh = true;
+        }
     }
 
     if (needsRefresh) {
@@ -275,6 +337,7 @@ function handleContentLoaded() {
     // Wait so the first bundle pass sees stored values (e.g. keepStarredUnbundled
     // false) instead of racing with chrome.storage.sync.get.
     Promise.all([
+        bundlingEnabledReady,
         bundler.optionsReady,
         selectiveBundling.optionsReady,
         starHandler.optionsReady,
@@ -326,7 +389,7 @@ function ensureObserversStarted() {
         return false;
     }
     logDebugMessage('Start observers');
-    addPinnedToggle();
+    addTopBarControls();
     startObservers();
     observersStarted = true;
     return true;
@@ -357,11 +420,14 @@ function refreshInbox() {
     });
 }
 
-function addPinnedToggle() {
+function addTopBarControls() {
     const searchForm = document.querySelector(Selectors.SEARCH_FORM);
     if (!searchForm || !searchForm.parentNode) {
-        logDebugMessage('Search form not ready; skipping pinned toggle for now');
+        logDebugMessage('Search form not ready; skipping top-bar controls for now');
         return;
     }
+    // The bundling switch sits next to the pinned-messages toggle (both float
+    // right, so the last appended lands leftmost of the pair).
     searchForm.parentNode.appendChild((new PinnedToggle()).create());
+    searchForm.parentNode.appendChild((new BundlingToggle()).create());
 }

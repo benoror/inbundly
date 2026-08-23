@@ -10,6 +10,27 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Master bundling on/off switch.** Pause bundling without disabling the extension.
+  A synced `bundlingEnabled` setting is surfaced three ways — a switch in Gmail's search
+  bar (next to the pinned-messages toggle), a switch on the Options page, and a toggle in
+  the toolbar popup — all reflecting each other and syncing across devices. When off,
+  Inbundly goes dormant: the inbox is a plain Gmail list and injected controls (pinned
+  toggle, "Bundle selected") are hidden.
+
+### Changed
+- **The open bundle stays put while you work in it.** Archiving/deleting/snoozing a thread
+  in an open bundle no longer reorders the bundle — it holds its position until you collapse
+  it. It also stays open when only one thread is left, regardless of the "skip single-item
+  bundles" setting, so it no longer vanishes mid-workflow.
+
+### Fixed
+- **Selected thread no longer shifts left inside an open bundle.** Checking/selecting a
+  bundled message kept its indent instead of snapping to the edge.
+- **No crash in message popout windows.** Theme detection no longer throws when there is
+  no navigation sidepane (e.g. a popped-out message), which had taken down the content
+  script.
+
 ## [4.0.2] - 2026-08-12
 
 ### Changed

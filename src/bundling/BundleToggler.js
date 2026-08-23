@@ -45,6 +45,14 @@ class BundleToggler {
             opened && opened.sectionId === sectionId && opened.label === label;
         if (!sameBundle) {
             this.openBundle(sectionId, label);
+            // Pin the bundle where the user opened it, so acting on its threads
+            // (archive/delete/snooze) doesn't reorder it until they collapse it.
+            // Captured only here on a user toggle — reopen passes go straight
+            // through openBundle and preserve this value.
+            const bundle = this.bundledMail.getBundleInSection(sectionId, label);
+            if (bundle) {
+                this.bundledMail.freezeOrder(bundle.getOrder());
+            }
         }
     }
 

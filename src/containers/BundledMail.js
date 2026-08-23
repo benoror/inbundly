@@ -77,17 +77,34 @@ class BundledMail {
     }
 
     /**
-     * The { sectionId, label } reference of the open bundle, or null.
+     * The { sectionId, label, frozenOrder } reference of the open bundle, or null.
+     * `frozenOrder` pins the bundle's flex order while it's open so acting on its
+     * threads doesn't reorder it (see freezeOrder); null until captured.
      */
     getOpenedBundleRef() {
         return this._openedBundle;
     }
 
     /**
-     * Record that the bundle (sectionId, label) is currently open.
+     * Record that the bundle (sectionId, label) is currently open. Opening a
+     * different bundle drops any frozen order from the previous one.
      */
     openBundle(sectionId, label) {
-        this._openedBundle = { sectionId, label };
+        const same = this._openedBundle &&
+            this._openedBundle.sectionId === sectionId &&
+            this._openedBundle.label === label;
+        const frozenOrder = same ? this._openedBundle.frozenOrder : null;
+        this._openedBundle = { sectionId, label, frozenOrder };
+    }
+
+    /**
+     * Pin the open bundle's flex order to `order`, so it keeps its on-screen
+     * position across rerenders (e.g. archiving a thread inside it) until closed.
+     */
+    freezeOrder(order) {
+        if (this._openedBundle) {
+            this._openedBundle.frozenOrder = order;
+        }
     }
 
     /**

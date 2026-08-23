@@ -51,6 +51,7 @@ const GmailClasses = {
 const InbundlyClasses = {
     BUNDLE_ROW: 'bundle-row',
     BUNDLED_MESSAGE: 'bundled-message',
+    BUNDLING_DISABLED: 'bundling-disabled',
     DARK_THEME: 'dark-theme',
     HIDE_BUNDLE_ARCHIVE: 'hide-bundle-archive',
     HIDE_PINNED_TOGGLE: 'hide-pinned-toggle',

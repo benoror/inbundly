@@ -133,8 +133,12 @@ class Bundler {
         }
 
         this.messageListWatcher.disconnect();
-        // A full pass rebuilds every section's message observers from scratch.
-        this.messageSelectHandler.stopWatching();
+        // Keep the selection observer attached across passes. It lives on a stable
+        // role="main" ancestor and is idempotent, so re-attaching every pass (below)
+        // is a no-op unless main was replaced. Disconnecting here instead — and only
+        // re-attaching inside _bundleMessages — would leave it dead after any pass
+        // that skips already-bundled sections (a common Gmail rerender).
+        this.messageSelectHandler.startWatching();
 
         // More than one section means Gmail is already splitting the view by
         // importance/starred/query (each panel a heading of its own), so inbundly
@@ -153,7 +157,8 @@ class Bundler {
             if (messageList.children[0].classList.contains('is-bundled')) {
                 return;
             }
-            const info = this._bundleMessages(messageList, sectionId, groupByDate);
+            const info = this._bundleMessages(
+                messageList, sectionId, groupByDate, reopenRecentBundle);
             messageList.children[0].classList.add('is-bundled');
             redrew = true;
             numMessages += info.numMessages;
@@ -165,7 +170,23 @@ class Bundler {
 
         // Either reopen the bundle that was open, or close all bundles
         if (reopenRecentBundle && bundledMail.getOpenedBundle()) {
-            const { sectionId, label } = bundledMail.getOpenedBundleRef();
+            const { sectionId, label, frozenOrder } = bundledMail.getOpenedBundleRef();
+            // Pin the reopened bundle back to the position it had when the user
+            // opened it, so it holds its slot instead of jumping to the order its
+            // (now newest) message would give it after a rerender. Every other row
+            // is renumbered on the 100-grid each pass, so pinning to the exact old
+            // order would tie with the row that slid into that slot — and since
+            // bundle rows are appended last in the DOM, the tie drops the bundle
+            // below it. Offsetting half a grid step keeps it strictly between the
+            // same two grid neighbours (frozenOrder-100 and frozenOrder), i.e. its
+            // original slot. Its collapsed messages (order+1..+n) still fit in the
+            // remaining half-step gap.
+            if (frozenOrder != null) {
+                const pinnedOrder = frozenOrder - Math.floor(ORDER_INCREMENT / 2);
+                const bundle = bundledMail.getBundleInSection(sectionId, label);
+                bundle.setOrder(pinnedOrder);
+                bundle.getBundleRow().style.order = pinnedOrder;
+            }
             this.bundleToggler.openBundle(sectionId, label);
         }
         else {
@@ -191,7 +212,7 @@ class Bundler {
      *
      * Returns an object with info for debug printing.
      */
-    _bundleMessages(messageList, sectionId, groupByDate) {
+    _bundleMessages(messageList, sectionId, groupByDate, reopenRecentBundle) {
         const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
 
         document.querySelector('html').classList.add(InbundlyClasses.INBUNDLY);
@@ -220,14 +241,7 @@ class Bundler {
         const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
 
         if (this.skipSingleItemBundles) {
-            for (const label in bundlesByLabel) {
-                // A custom bundle is explicit user intent, so keep it even with a
-                // single message; only auto-derived (label) bundles are pruned.
-                if (bundlesByLabel[label].getMessages().length === 1 &&
-                    !isCustomBundleKey(label)) {
-                    delete bundlesByLabel[label];
-                }
-            }
+            this._pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle);
         }
 
         const sortedTableRows =
@@ -276,6 +290,30 @@ class Bundler {
         })
 
         return bundlesByLabel;
+    }
+
+    /**
+     * Drop single-message bundles from `bundlesByLabel` in place, with two
+     * exemptions:
+     *  - custom bundles (explicit user intent), and
+     *  - the currently-open bundle in this section while a reopen is in effect,
+     *    so acting on its threads (archive/delete/snooze) doesn't make it vanish
+     *    mid-workflow — it survives at one message until emptied or collapsed.
+     */
+    _pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle) {
+        const openRef = reopenRecentBundle
+            ? this.bundledMail.getOpenedBundleRef()
+            : null;
+        for (const label in bundlesByLabel) {
+            const isOpenBundle = openRef &&
+                openRef.sectionId === sectionId &&
+                openRef.label === label;
+            if (bundlesByLabel[label].getMessages().length === 1 &&
+                !isCustomBundleKey(label) &&
+                !isOpenBundle) {
+                delete bundlesByLabel[label];
+            }
+        }
     }
 
     /**
@@ -524,8 +562,8 @@ class Bundler {
                 this.bundleToggler.closeAllBundles();
             }
         });
-
-        this.messageSelectHandler.startWatching(messageNodes);
+        // The selection observer is attached once per pass in bundleMessages
+        // (on role="main"), independent of whether this section was redrawn.
     }
 }
 

@@ -69,3 +69,50 @@ test('optionsReady resolves only after stored keepStarredUnbundled is applied', 
 
     expect(bundler.keepStarredUnbundled).toBe(false);
 });
+
+function singleMessageBundle() {
+    return { getMessages: () => [document.createElement('div')] };
+}
+
+function prunableBundler(openedBundleRef) {
+    const bundler = Object.create(Bundler.prototype);
+    bundler.bundledMail = { getOpenedBundleRef: () => openedBundleRef };
+    return bundler;
+}
+
+test('single-item bundles are pruned when not the reopened open bundle', () => {
+    const bundler = prunableBundler({ sectionId: '0', label: 'Receipts', frozenOrder: 100 });
+    const bundles = { Newsletters: singleMessageBundle() };
+
+    bundler._pruneSingleItemBundles(bundles, '0', true);
+
+    expect(bundles.Newsletters).toBeUndefined();
+});
+
+test('the reopened open bundle survives single-item pruning', () => {
+    const bundler = prunableBundler({ sectionId: '0', label: 'Receipts', frozenOrder: 100 });
+    const bundles = { Receipts: singleMessageBundle() };
+
+    bundler._pruneSingleItemBundles(bundles, '0', true);
+
+    expect(bundles.Receipts).toBeDefined();
+});
+
+test('the open-bundle exemption is scoped to its own section', () => {
+    const bundler = prunableBundler({ sectionId: '1', label: 'Receipts', frozenOrder: 100 });
+    const bundles = { Receipts: singleMessageBundle() };
+
+    // Same label, different section — still pruned.
+    bundler._pruneSingleItemBundles(bundles, '0', true);
+
+    expect(bundles.Receipts).toBeUndefined();
+});
+
+test('single-item pruning ignores the open bundle when not reopening', () => {
+    const bundler = prunableBundler({ sectionId: '0', label: 'Receipts', frozenOrder: 100 });
+    const bundles = { Receipts: singleMessageBundle() };
+
+    bundler._pruneSingleItemBundles(bundles, '0', false);
+
+    expect(bundles.Receipts).toBeUndefined();
+});
