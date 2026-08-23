@@ -80,17 +80,25 @@ class MessageSelectHandler {
 
             const message = mutation.target;
 
-            // Re-add inbundly styling that get removed when gmail applies checked/unchecked styling
-            if (mutation.oldValue.includes(InbundlyClasses.BUNDLED_MESSAGE) &&
-                !message.classList.contains(InbundlyClasses.BUNDLED_MESSAGE)) 
-            {
-                // Bundled message
-                message.classList.add(InbundlyClasses.BUNDLED_MESSAGE);
-                if (mutation.oldValue.includes(InbundlyClasses.VISIBLE)) {
-                    message.classList.add(InbundlyClasses.VISIBLE);
+            // Gmail rewrites a row's class attribute when it is checked/selected,
+            // dropping inbundly's own classes. Restore them from the open-bundle
+            // state (the source of truth), not from which class Gmail happened to
+            // drop: the indent lives on `.bundled-message.visible`, so losing
+            // `visible` alone shifts the row left. Keying on open-bundle membership
+            // also stays close-safe — a collapsed bundle isn't the open bundle, so
+            // this never re-adds `visible` and fights closeAllBundles().
+            if (mutation.oldValue.includes(InbundlyClasses.BUNDLED_MESSAGE)) {
+                if (!message.classList.contains(InbundlyClasses.BUNDLED_MESSAGE)) {
+                    message.classList.add(InbundlyClasses.BUNDLED_MESSAGE);
                 }
-                if (mutation.oldValue.includes(InbundlyClasses.LAST)) {
-                    message.classList.add(InbundlyClasses.LAST);
+
+                const openBundle = this.bundledMail.getOpenedBundle();
+                const openMessages = openBundle ? openBundle.getMessages() : [];
+                if (openMessages.includes(message)) {
+                    message.classList.add(InbundlyClasses.VISIBLE);
+                    if (message === openMessages[openMessages.length - 1]) {
+                        message.classList.add(InbundlyClasses.LAST);
+                    }
                 }
             }
             
