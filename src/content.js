@@ -62,6 +62,15 @@ const logDebugMessage = message => {
 // control is hidden except the master switch itself.
 let bundlingEnabled = true;
 
+// Resolves once the stored bundlingEnabled has been read. The first bundle pass
+// waits on it (see handleContentLoaded) so a disabled inbox isn't bundled by the
+// default `true` before storage answers — mirroring the bundling objects' own
+// optionsReady gating.
+let resolveBundlingEnabledReady;
+const bundlingEnabledReady = new Promise(resolve => {
+    resolveBundlingEnabledReady = resolve;
+});
+
 const html = document.querySelector('html');
 if (html) {
     logDebugMessage('Applying styles');
@@ -74,7 +83,12 @@ if (html) {
         options => {
             applyUiOptions(options);
             applyBundlingEnabled(options.bundlingEnabled);
+            resolveBundlingEnabledReady();
         });
+}
+else {
+    // No <html> (shouldn't happen in Gmail) — don't leave the gate pending.
+    resolveBundlingEnabledReady();
 }
 
 /**
@@ -304,6 +318,7 @@ function handleContentLoaded() {
     // Wait so the first bundle pass sees stored values (e.g. keepStarredUnbundled
     // false) instead of racing with chrome.storage.sync.get.
     Promise.all([
+        bundlingEnabledReady,
         bundler.optionsReady,
         selectiveBundling.optionsReady,
         starHandler.optionsReady,
