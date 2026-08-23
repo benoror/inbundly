@@ -370,8 +370,11 @@ html.inbundly .bundled-message {
 
 html.inbundly .bundled-message.visible {
     display: flex;
-    margin-left: 40px;
-    margin-right: 40px;
+    /* !important so the open-row indent survives Gmail's own selected-row
+       (.x7) styling, which otherwise overrides the margin and shifts a
+       checked thread to the left. */
+    margin-left: 40px !important;
+    margin-right: 40px !important;
     width: auto;
     z-index: auto;
 }

@@ -15,101 +15,131 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { 
+import {
     GmailClasses,
     InbundlyClasses,
+    Selectors,
+    TableBodySelectors,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
 import { supportsBundling } from '../util/MessagePageUtils';
 import InbundlyStyler from '../bundling/InbundlyStyler';
 
-const MESSAGE_LIST_CONFIG = { 
+// Watch row class changes from a stable ancestor (role="main"). Gmail's list
+// virtualization recreates the table body (and rows) on interaction — cloning
+// our classes onto the new elements — which orphans any observer bound to the
+// tbody or the rows. role="main" survives that, so one subtree observer there
+// keeps catching class changes on whatever rows are currently live.
+const MAIN_CONFIG = {
     attributes: true,
-    childList: false,
-    subtree: false,
+    attributeFilter: ['class'],
     attributeOldValue: true,
+    childList: false,
+    subtree: true,
 };
 
 /**
- * Observers to handle when messages' checkboxes are clicked.
- *
- * Reapplies inbundly styling when Gmail applies its original styles when a message is selected.
+ * Reapplies inbundly's open-bundle styling when Gmail rewrites (or re-renders)
+ * a message row's class on select/check, and mirrors a message's selected state
+ * onto its bundle row.
  */
 class MessageSelectHandler {
 
     constructor(bundledMail, selectiveBundling) {
         this.bundledMail = bundledMail;
         this.selectiveBundling = selectiveBundling;
-        this.messageObservers = [];
+        this.observer = null;
+        this.observedMain = null;
         this.inbundlyStyler = new InbundlyStyler(bundledMail);
 
-        this._handleMessageChange = this._handleMessageChange.bind(this);
+        this._handleMutations = this._handleMutations.bind(this);
     }
 
     /**
-     * Start observing the given messages, adding to any already being watched.
-     * A bundle pass calls this once per section, so observers accumulate across
-     * sections; stopWatching() clears them at the start of the next full pass.
+     * Ensure the single role="main" observer is attached. A bundle pass calls this
+     * every bundle pass; it attaches on the first call and re-attaches only if
+     * role="main" itself was replaced (e.g. navigation), so it stays alive across
+     * passes that skip already-bundled sections.
      */
-    startWatching(messageElements) {
-        const observers = messageElements.map(el => {
-            const observer = new MutationObserver(this._handleMessageChange);
-            observer.observe(el, MESSAGE_LIST_CONFIG);
-            return observer;
-        });
-        this.messageObservers = this.messageObservers.concat(observers);
+    startWatching() {
+        const main = document.querySelector(Selectors.MAIN);
+        if (!main || this.observedMain === main) {
+            return;
+        }
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+        this.observer = new MutationObserver(this._handleMutations);
+        this.observer.observe(main, MAIN_CONFIG);
+        this.observedMain = main;
     }
 
     /**
-     * Stop watching all messages.
+     * Stop watching.
      */
     stopWatching() {
-        this.messageObservers.forEach(o => o.disconnect());
-        this.messageObservers = [];
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+        this.observer = null;
+        this.observedMain = null;
     }
 
-    _handleMessageChange(mutations) {
+    _handleMutations(mutations) {
         if (!supportsBundling(window.location.href)) {
             return;
         }
 
+        // The open bundle is identified by (sectionId, label). Membership is
+        // decided from the LIVE row via findRelevantLabels — getOpenedBundle()'s
+        // message element refs go stale when Gmail re-renders a row, but the
+        // row's own labels (and thus its bundle key) do not.
+        const openRef = this.bundledMail.getOpenedBundleRef();
+
         mutations.forEach(mutation => {
-            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') {
+            if (mutation.attributeName !== 'class') {
+                return;
+            }
+            const row = mutation.target;
+            if (!row.matches || !row.matches(TableBodySelectors.MESSAGE_NODES) ||
+                row.classList.contains(InbundlyClasses.BUNDLE_ROW)) {
                 return;
             }
 
-            const message = mutation.target;
+            const wasSelected = !!mutation.oldValue &&
+                mutation.oldValue.includes(GmailClasses.SELECTED);
+            const isSelected = row.classList.contains(GmailClasses.SELECTED);
+            const selectionChanged = wasSelected !== isSelected;
 
-            // Gmail rewrites a row's class attribute when it is checked/selected,
-            // dropping inbundly's own classes. Restore them from the open-bundle
-            // state (the source of truth), not from which class Gmail happened to
-            // drop: the indent lives on `.bundled-message.visible`, so losing
-            // `visible` alone shifts the row left. Keying on open-bundle membership
-            // also stays close-safe — a collapsed bundle isn't the open bundle, so
-            // this never re-adds `visible` and fights closeAllBundles().
-            if (mutation.oldValue.includes(InbundlyClasses.BUNDLED_MESSAGE)) {
-                if (!message.classList.contains(InbundlyClasses.BUNDLED_MESSAGE)) {
-                    message.classList.add(InbundlyClasses.BUNDLED_MESSAGE);
-                }
+            // Only a row missing our classes needs restoring; skip the label
+            // lookup for the common case (e.g. hover) where nothing was dropped.
+            const maybeRestore = !!openRef &&
+                (!row.classList.contains(InbundlyClasses.BUNDLED_MESSAGE) ||
+                    !row.classList.contains(InbundlyClasses.VISIBLE));
 
-                const openBundle = this.bundledMail.getOpenedBundle();
-                const openMessages = openBundle ? openBundle.getMessages() : [];
-                if (openMessages.includes(message)) {
-                    message.classList.add(InbundlyClasses.VISIBLE);
-                    if (message === openMessages[openMessages.length - 1]) {
-                        message.classList.add(InbundlyClasses.LAST);
-                    }
-                }
+            if (!selectionChanged && !maybeRestore) {
+                return;
             }
-            
-            if (mutation.oldValue.includes(GmailClasses.SELECTED) !== 
-                message.classList.contains(GmailClasses.SELECTED)) 
-            {
-                this.inbundlyStyler.markSelectedBundlesFor(
-                    this.selectiveBundling.findRelevantLabels(message));
+
+            const rowLabels = this.selectiveBundling.findRelevantLabels(row);
+
+            // Restore the open bundle's rows: the indent lives on
+            // `.bundled-message.visible`, so a class Gmail drops on select/check
+            // shifts the row left. Scoped to the open bundle (by label + section),
+            // so a collapsed bundle isn't reopened (close-safe).
+            if (maybeRestore &&
+                rowLabels.includes(openRef.label) &&
+                DomUtils.getSectionId(row) === openRef.sectionId) {
+                row.classList.add(InbundlyClasses.BUNDLED_MESSAGE);
+                row.classList.add(InbundlyClasses.VISIBLE);
+            }
+
+            // Mirror the row's selected state onto its bundle row(s).
+            if (selectionChanged) {
+                this.inbundlyStyler.markSelectedBundlesFor(rowLabels);
                 this.inbundlyStyler.disableBulkArchiveIfNecessary();
             }
-        });    
+        });
     }
 }
 

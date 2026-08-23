@@ -133,8 +133,12 @@ class Bundler {
         }
 
         this.messageListWatcher.disconnect();
-        // A full pass rebuilds every section's message observers from scratch.
-        this.messageSelectHandler.stopWatching();
+        // Keep the selection observer attached across passes. It lives on a stable
+        // role="main" ancestor and is idempotent, so re-attaching every pass (below)
+        // is a no-op unless main was replaced. Disconnecting here instead — and only
+        // re-attaching inside _bundleMessages — would leave it dead after any pass
+        // that skips already-bundled sections (a common Gmail rerender).
+        this.messageSelectHandler.startWatching();
 
         // More than one section means Gmail is already splitting the view by
         // importance/starred/query (each panel a heading of its own), so inbundly
@@ -558,8 +562,8 @@ class Bundler {
                 this.bundleToggler.closeAllBundles();
             }
         });
-
-        this.messageSelectHandler.startWatching(messageNodes);
+        // The selection observer is attached once per pass in bundleMessages
+        // (on role="main"), independent of whether this section was redrawn.
     }
 }
 
