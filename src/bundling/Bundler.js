@@ -167,13 +167,21 @@ class Bundler {
         // Either reopen the bundle that was open, or close all bundles
         if (reopenRecentBundle && bundledMail.getOpenedBundle()) {
             const { sectionId, label, frozenOrder } = bundledMail.getOpenedBundleRef();
-            // Pin the reopened bundle back to the order it had when the user
-            // opened it, so it holds its on-screen position instead of jumping to
-            // the slot its (now newest) message would give it after a rerender.
+            // Pin the reopened bundle back to the position it had when the user
+            // opened it, so it holds its slot instead of jumping to the order its
+            // (now newest) message would give it after a rerender. Every other row
+            // is renumbered on the 100-grid each pass, so pinning to the exact old
+            // order would tie with the row that slid into that slot — and since
+            // bundle rows are appended last in the DOM, the tie drops the bundle
+            // below it. Offsetting half a grid step keeps it strictly between the
+            // same two grid neighbours (frozenOrder-100 and frozenOrder), i.e. its
+            // original slot. Its collapsed messages (order+1..+n) still fit in the
+            // remaining half-step gap.
             if (frozenOrder != null) {
+                const pinnedOrder = frozenOrder - Math.floor(ORDER_INCREMENT / 2);
                 const bundle = bundledMail.getBundleInSection(sectionId, label);
-                bundle.setOrder(frozenOrder);
-                bundle.getBundleRow().style.order = frozenOrder;
+                bundle.setOrder(pinnedOrder);
+                bundle.getBundleRow().style.order = pinnedOrder;
             }
             this.bundleToggler.openBundle(sectionId, label);
         }

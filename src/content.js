@@ -50,6 +50,12 @@ import {
     optionsFromChanges,
 } from './util/Options';
 
+// Bundling-rule keys are the bundling options minus the master switch: a change
+// to one of these needs a Gmail refresh to re-derive the list, whereas
+// bundlingEnabled is handled on its own (enable bundles in place, disable
+// refreshes to a plain list).
+const BUNDLING_RULE_KEYS = BUNDLING_OPTION_KEYS.filter(k => k !== 'bundlingEnabled');
+
 const DEBUG = true;
 const logDebugMessage = message => {
     if (DEBUG) {
@@ -282,7 +288,16 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (changes.bundlingEnabled) {
         const { newValue } = changes.bundlingEnabled;
         applyBundlingEnabled(newValue);
-        needsRefresh = true;
+        if (bundlingEnabled) {
+            // Re-enabling: the list is already painted plain, and a refresh may
+            // no-op when Gmail's results are unchanged (so no rerender fires and
+            // nothing re-bundles). Bundle the current list directly instead.
+            bundleOrRetry(false);
+        }
+        else {
+            // Disabling: rebuild the plain Gmail list; the gate then keeps it plain.
+            needsRefresh = true;
+        }
     }
 
     if (changesInclude(changes, BUNDLING_OPTION_KEYS)) {
@@ -291,7 +306,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
         bundler.applyOptions(bundlingOptions);
         starHandler.applyOptions(bundlingOptions);
         dateGrouper.applyOptions(bundlingOptions);
-        needsRefresh = true;
+        // bundlingEnabled is handled above (enable bundles directly, disable
+        // refreshes); only a real bundling-rule change needs a Gmail refresh here.
+        if (changesInclude(changes, BUNDLING_RULE_KEYS)) {
+            needsRefresh = true;
+        }
     }
 
     if (needsRefresh) {

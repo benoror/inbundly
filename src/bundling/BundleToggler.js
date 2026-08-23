@@ -65,6 +65,12 @@ class BundleToggler {
         messages.forEach((el, i) => {
             el.style.order = bundle.getOrder() + i + 1;
             el.classList.add(InbundlyClasses.VISIBLE);
+            // Also set the open-row indent inline. The CSS (.bundled-message.visible)
+            // does the same, but Gmail rewrites the row's class attribute when it is
+            // selected/checked — an inline !important style survives that (and any
+            // Gmail row rule), so the row can't snap back to the left mid-selection.
+            el.style.setProperty('margin-left', '40px', 'important');
+            el.style.setProperty('margin-right', '40px', 'important');
 
             if (i === messages.length - 1) {
                 el.classList.add(InbundlyClasses.LAST);
@@ -102,6 +108,8 @@ class BundleToggler {
         document.querySelectorAll(`.${InbundlyClasses.BUNDLED_MESSAGE}.${InbundlyClasses.VISIBLE}`)
             .forEach(el => {
                 el.style.order = '';
+                el.style.removeProperty('margin-left');
+                el.style.removeProperty('margin-right');
                 el.classList.remove(InbundlyClasses.VISIBLE);
                 el.classList.remove(InbundlyClasses.LAST);
 
