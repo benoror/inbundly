@@ -10,6 +10,8 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-08-22
+
 ### Added
 - **Master bundling on/off switch.** Pause bundling without disabling the extension.
   A synced `bundlingEnabled` setting is surfaced three ways — a switch in Gmail's search
@@ -38,6 +40,7 @@ independent of upstream's versioning. The format is based on
   URL slug). The "Inbox Bundles for Gmail" descriptor now lives in the store
   summary/description, which stores also index.
 
+[4.1.0]: https://github.com/benoror/inbundly/releases/tag/v4.1.0
 [4.0.2]: https://github.com/benoror/inbundly/releases/tag/v4.0.2
 
 ## [4.0.1] - 2026-08-11
