@@ -229,26 +229,7 @@ class Bundler {
         const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
 
         if (this.skipSingleItemBundles) {
-            // The currently-open bundle stays alive even at one message, so
-            // acting on threads inside it (archive/delete/snooze) doesn't make it
-            // vanish mid-workflow. It collapses to nothing only when emptied, or
-            // once the user closes it. Only applies while reopening this section's
-            // open bundle.
-            const openRef = reopenRecentBundle
-                ? this.bundledMail.getOpenedBundleRef()
-                : null;
-            for (const label in bundlesByLabel) {
-                const isOpenBundle = openRef &&
-                    openRef.sectionId === sectionId &&
-                    openRef.label === label;
-                // A custom bundle is explicit user intent, so keep it even with a
-                // single message; only auto-derived (label) bundles are pruned.
-                if (bundlesByLabel[label].getMessages().length === 1 &&
-                    !isCustomBundleKey(label) &&
-                    !isOpenBundle) {
-                    delete bundlesByLabel[label];
-                }
-            }
+            this._pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle);
         }
 
         const sortedTableRows =
@@ -297,6 +278,30 @@ class Bundler {
         })
 
         return bundlesByLabel;
+    }
+
+    /**
+     * Drop single-message bundles from `bundlesByLabel` in place, with two
+     * exemptions:
+     *  - custom bundles (explicit user intent), and
+     *  - the currently-open bundle in this section while a reopen is in effect,
+     *    so acting on its threads (archive/delete/snooze) doesn't make it vanish
+     *    mid-workflow — it survives at one message until emptied or collapsed.
+     */
+    _pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle) {
+        const openRef = reopenRecentBundle
+            ? this.bundledMail.getOpenedBundleRef()
+            : null;
+        for (const label in bundlesByLabel) {
+            const isOpenBundle = openRef &&
+                openRef.sectionId === sectionId &&
+                openRef.label === label;
+            if (bundlesByLabel[label].getMessages().length === 1 &&
+                !isCustomBundleKey(label) &&
+                !isOpenBundle) {
+                delete bundlesByLabel[label];
+            }
+        }
     }
 
     /**

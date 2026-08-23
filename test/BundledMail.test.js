@@ -39,12 +39,30 @@ test('the open bundle is identified by section and label', () => {
 
     bundledMail.openBundle('1', 'Receipts');
 
-    expect(bundledMail.getOpenedBundleRef()).toEqual({ sectionId: '1', label: 'Receipts' });
+    expect(bundledMail.getOpenedBundleRef())
+        .toEqual({ sectionId: '1', label: 'Receipts', frozenOrder: null });
     expect(bundledMail.getOpenedBundle()).toBe(s1);
 
     bundledMail.closeBundle();
     expect(bundledMail.getOpenedBundleRef()).toBeNull();
     expect(bundledMail.getOpenedBundle()).toBeNull();
+});
+
+test('freezeOrder pins the open bundle order and clears when a new bundle opens', () => {
+    const bundledMail = new BundledMail();
+    bundledMail.setBundles({ Receipts: bundle('Receipts', '0') }, 1, '0');
+
+    bundledMail.openBundle('0', 'Receipts');
+    bundledMail.freezeOrder(300);
+    expect(bundledMail.getOpenedBundleRef().frozenOrder).toBe(300);
+
+    // Reopening the same bundle (e.g. a rebundle pass) preserves the frozen order.
+    bundledMail.openBundle('0', 'Receipts');
+    expect(bundledMail.getOpenedBundleRef().frozenOrder).toBe(300);
+
+    // Opening a different bundle drops it.
+    bundledMail.openBundle('0', 'Newsletters');
+    expect(bundledMail.getOpenedBundleRef().frozenOrder).toBeNull();
 });
 
 test('getOpenedBundle resolves against the latest bundles after a rebundle', () => {
