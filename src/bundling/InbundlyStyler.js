@@ -78,30 +78,29 @@ class InbundlyStyler {
     }
 
     /**
-     * For each bundle, disable bulk-archiving if any message outside of its bundle is selected.
+     * For each bundle, disable the bulk actions (archive, snooze) if any
+     * message outside of its bundle is selected — a toolbar action would apply
+     * to the whole selection.
      */
     disableBulkArchiveIfNecessary() {
         const selectedMessages = [].slice.call(
             document.querySelectorAll(Selectors.SELECTED));
         this.bundledMail.getAllBundles().forEach(bundle =>
-            this._updateBulkArchiveButton(bundle, selectedMessages));
+            this._updateBulkActionButtons(bundle, selectedMessages));
     }
 
     /**
-     * Enable/disable the bulk archive button for the given bundle.
+     * Enable/disable the bulk action buttons for the given bundle.
      */
-    _updateBulkArchiveButton(bundle, selectedMessages) {
+    _updateBulkActionButtons(bundle, selectedMessages) {
         const bundledMessageIds = new Set(bundle.getMessages().map(m => m.id));
         const allSelectedMessagesInBundle = !selectedMessages.some(
             m => !bundledMessageIds.has(m.id));
 
-        const bulkArchiveButton = bundle.getBundleRow().querySelector('.archive-bundle');
-        if (allSelectedMessagesInBundle) {
-            bulkArchiveButton.classList.remove('disabled');
-        }
-        else {
-            bulkArchiveButton.classList.add('disabled');
-        }
+        bundle.getBundleRow()
+            .querySelectorAll('.archive-bundle, .snooze-bundle')
+            .forEach(button =>
+                button.classList.toggle('disabled', !allSelectedMessagesInBundle));
     }
 }
 

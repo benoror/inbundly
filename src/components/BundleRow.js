@@ -17,6 +17,7 @@
 
 import BulkArchiveButton from './BulkArchiveButton';
 import BundleCheckbox from './BundleCheckbox';
+import BundleSnoozeButton from './BundleSnoozeButton';
 
 import MessagePageUtils from '../util/MessagePageUtils';
 import DomUtils from '../util/DomUtils';
@@ -91,6 +92,10 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     const bulkArchiveTd = DomUtils.htmlToElement(`<td class="${GmailClasses.CELL}"></td>`);
     bulkArchiveTd.appendChild(bulkArchiveButton);
 
+    const snoozeButton = BundleSnoozeButton.create(messages);
+    const snoozeTd = DomUtils.htmlToElement(`<td class="${GmailClasses.CELL}"></td>`);
+    snoozeTd.appendChild(snoozeButton);
+
     const labelQuery = labels
         .map(l => 'label%3A' + l
             .split(' ').join('-')
@@ -124,6 +129,7 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     // the select-all checkbox lines up with the per-message checkboxes when the
     // bundle is open.
     el.querySelector('.oZ-x3').appendChild(BundleCheckbox.create(messages));
+    el.appendChild(snoozeTd);
     el.appendChild(bulkArchiveTd);
     el.appendChild(DomUtils.htmlToElement(bundleDateHtml));
     // A custom bundle has no Gmail label to search, so it gets no "View all"

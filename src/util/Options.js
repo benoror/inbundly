@@ -35,6 +35,7 @@ const OPTION_DEFAULTS = {
     matchStylusCatppuccin: false,
     showPinnedToggle: false,
     showBundleArchive: true,
+    showBundleSnooze: true,
 };
 
 const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);
@@ -59,6 +60,7 @@ const BUNDLING_OPTION_KEYS = [
 const UI_OPTION_KEYS = [
     'showPinnedToggle',
     'showBundleArchive',
+    'showBundleSnooze',
 ];
 
 /**
