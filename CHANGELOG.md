@@ -22,6 +22,12 @@ independent of upstream's versioning. The format is based on
   It was hidden behind Options → Features, so few users found it. Turn it off there if you
   prefer plain bundle rows. A stored preference is unaffected.
 
+### Fixed
+- **Bundling no longer disappears after a slow inbox load.** When Gmail painted a partial
+  page and streamed the remaining rows in afterwards, those rows stayed unbundled until the
+  master switch was toggled off and on. Inbundly now detects the late rows and rebundles
+  the list automatically.
+
 ## [4.1.0] - 2026-08-22
 
 ### Added
