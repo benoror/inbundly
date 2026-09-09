@@ -12,10 +12,10 @@ independent of upstream's versioning. The format is based on
 
 ### Added
 - **Per-bundle select-all checkbox** ([#27](https://github.com/benoror/inbundly/issues/27)).
-  Each bundle row now has a checkbox (on hover, and while the bundle is open) that selects
-  or deselects every message in the bundle. Gmail's own toolbar actions — Archive, Delete,
-  Mark as read, Move — then apply to the selection. The checkbox shows a dash when only
-  part of the bundle is selected.
+  Each bundle row now has a checkbox — drawn by Gmail's own material styles, dimmed until
+  hover like Gmail's — that selects or deselects every message in the bundle. Gmail's own
+  toolbar actions — Archive, Delete, Mark as read, Move — then apply to the selection. It
+  shows Gmail's indeterminate icon when only part of the bundle is selected.
 
 ### Changed
 - **The archive-all button is now on by default** ([#27](https://github.com/benoror/inbundly/issues/27)).

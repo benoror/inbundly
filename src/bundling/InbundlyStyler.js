@@ -68,6 +68,12 @@ class InbundlyStyler {
                 ? 'false'
                 : (selectedCount === messages.length ? 'true' : 'mixed');
             checkbox.setAttribute('aria-checked', checkedState);
+            // Gmail's stylesheet draws the checked/indeterminate icons from
+            // these state classes, not from aria-checked.
+            checkbox.classList.toggle(
+                GmailClasses.CHECKBOX_CHECKED, checkedState === 'true');
+            checkbox.classList.toggle(
+                GmailClasses.CHECKBOX_INDETERMINATE, checkedState === 'mixed');
         }
     }
 

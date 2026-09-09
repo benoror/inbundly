@@ -1,4 +1,5 @@
 import BundleCheckbox from '../src/components/BundleCheckbox';
+import { Selectors } from '../src/util/Constants';
 
 /**
  * A minimal Gmail-like message row: a <tr> holding a checkbox node that
@@ -52,6 +53,24 @@ describe('BundleCheckbox', () => {
         checkbox.click();
 
         expect(rowListener).not.toHaveBeenCalled();
+    });
+
+    test('is not matched by the quick-select checkbox selector', () => {
+        // The checkbox carries Gmail's checkbox classes for styling; the
+        // quick-select handler must not attach to it (it re-dispatches
+        // click() on its target, which would double-toggle the bundle).
+        document.body.innerHTML = `
+            <div role="main"><div class="ae4">
+                <table><tbody><tr><td id="cell"></td></tr></tbody></table>
+            </div></div>
+        `;
+        const checkbox = BundleCheckbox.create([makeMessage(false)]);
+        document.getElementById('cell').appendChild(checkbox);
+
+        const matches = [...document.querySelectorAll(Selectors.CHECKBOXES)];
+
+        expect(checkbox.className).toContain('oZ-jc');
+        expect(matches).not.toContain(checkbox);
     });
 
     test('renders as an unchecked accessible checkbox', () => {

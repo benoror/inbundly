@@ -17,6 +17,7 @@
 
 import DomUtils from '../util/DomUtils';
 import {
+    GmailClasses,
     InbundlyClasses,
     Selectors,
 } from '../util/Constants';
@@ -28,12 +29,14 @@ import {
  * selection as usual.
  *
  * The checkbox doesn't track its own state: InbundlyStyler restyles it (via
- * aria-checked) when Gmail applies the selection to the message rows.
+ * aria-checked and Gmail's checked/indeterminate classes) when Gmail applies
+ * the selection to the message rows. Gmail's own stylesheet draws it, since
+ * it carries Gmail's material-checkbox classes.
  */
 function create(messages) {
     const html = `
         <span
-            class="${InbundlyClasses.BUNDLE_CHECKBOX}"
+            class="${InbundlyClasses.BUNDLE_CHECKBOX} ${GmailClasses.CHECKBOX}"
             role="checkbox"
             aria-checked="false"
             aria-label="Select all messages in this bundle"
