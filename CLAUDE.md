@@ -177,9 +177,13 @@ Flow for landing a feature branch and cutting a release:
   `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
   are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
   `BUNDLING_OPTION_KEYS`, `UI_OPTION_KEYS`). The options page (`dist/options/`)
-  is plain JS outside the webpack bundle, so it duplicates the key list as
-  `OPTION_KEYS` — keep both lists in sync when adding an option, since the
-  duplicate also gates the live-reload listener and JSON import.
+  is plain JS outside the webpack bundle, so it duplicates the keys as the
+  `OPTION_FIELDS` map (key → form controls + reader; `OPTION_KEYS` derives
+  from it) — keep it in sync with `OPTION_DEFAULTS` when adding an option,
+  since it wires auto-save and gates the live-reload listener and JSON import.
+  The page **auto-saves per key** (no Save button): each control writes only
+  its own key on change (list textareas debounce), so an untouched option
+  keeps following its default when a later version changes that default.
 - Cross-device sync additionally depends on the pinned extension ID; see
   **Extension identity** above.
 - **Live sync.** `content.js` listens to `chrome.storage.onChanged` for the

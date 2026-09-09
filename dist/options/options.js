@@ -18,66 +18,96 @@
 const PLACEHOLDER = 'Add the name of each bundle on a new line, for example:\n\nBank\nSchool\nNewsletters/*';
 const PRIORITY_PLACEHOLDER = 'Add a priority rule on each line, for example:\n\nBank\nSchool/*\nWork + Urgent';
 
-// The Save-button options. Mirrors OPTION_DEFAULTS in src/util/Options.js; this
-// page is plain JS outside the webpack bundle, so the list is duplicated here.
-const OPTION_KEYS = [
-    'bundlingEnabled',
-    'exclude',
-    'labels',
-    'groupMessagesByDate',
-    'combineLabels',
-    'keepStarredUnbundled',
-    'priorityBundles',
-    'skipSingleItemBundles',
-    'colorBundlesByLabel',
-    'bundleColorStyle',
-    'matchStylusCatppuccin',
-    'showPinnedToggle',
-    'showBundleArchive',
-];
+// Every option, keyed as in OPTION_DEFAULTS in src/util/Options.js (this page
+// is plain JS outside the webpack bundle, so the keys are duplicated here —
+// keep the two in sync). Each entry maps a storage key to the form control(s)
+// that edit it and a reader for the current form value. `list: true` marks the
+// free-text list textareas, which save debounced instead of per keystroke.
+const OPTION_FIELDS = {
+    bundlingEnabled: { controlIds: ['bundling-enabled-checkbox'],
+        read: () => document.getElementById('bundling-enabled-checkbox').checked },
+    exclude: { controlIds: ['exclude-radio', 'include-radio'],
+        read: () => document.getElementById('exclude-radio').checked },
+    labels: { controlIds: ['label-list'], list: true,
+        read: () => splitLines(document.getElementById('label-list').value) },
+    groupMessagesByDate: { controlIds: ['group-by-date-checkbox'],
+        read: () => document.getElementById('group-by-date-checkbox').checked },
+    combineLabels: { controlIds: ['combine-labels-checkbox'],
+        read: () => document.getElementById('combine-labels-checkbox').checked },
+    keepStarredUnbundled: { controlIds: ['keep-starred-unbundled-checkbox'],
+        read: () => document.getElementById('keep-starred-unbundled-checkbox').checked },
+    priorityBundles: { controlIds: ['priority-bundles-list'], list: true,
+        read: () => splitLines(document.getElementById('priority-bundles-list').value) },
+    skipSingleItemBundles: { controlIds: ['skip-single-item-bundles-checkbox'],
+        read: () => document.getElementById('skip-single-item-bundles-checkbox').checked },
+    colorBundlesByLabel: { controlIds: ['color-bundles-checkbox'],
+        read: () => document.getElementById('color-bundles-checkbox').checked },
+    bundleColorStyle: { controlIds: ['color-style-background', 'color-style-accent'],
+        read: () => document.querySelector('input[name="bundleColorStyle"]:checked').value },
+    matchStylusCatppuccin: { controlIds: ['catppuccin-matching-checkbox'],
+        read: () => document.getElementById('catppuccin-matching-checkbox').checked },
+    showPinnedToggle: { controlIds: ['show-pinned-toggle-checkbox'],
+        read: () => document.getElementById('show-pinned-toggle-checkbox').checked },
+    showBundleArchive: { controlIds: ['show-bundle-archive-checkbox'],
+        read: () => document.getElementById('show-bundle-archive-checkbox').checked },
+};
 
-function saveOptions() {
-    const bundlingEnabled = document.getElementById('bundling-enabled-checkbox').checked;
-    const exclude = document.getElementById('exclude-radio').checked;
-    const labelList = document.getElementById('label-list');
-    const labels = labelList.value.split(/[\n]+/).map(s => s.trim()).filter(s => !!s);
-    const groupMessagesByDate = document.getElementById('group-by-date-checkbox').checked;
-    const combineLabels = document.getElementById('combine-labels-checkbox').checked;
-    const keepStarredUnbundled =
-        document.getElementById('keep-starred-unbundled-checkbox').checked;
-    const priorityList = document.getElementById('priority-bundles-list');
-    const priorityBundles = priorityList.value.split(/[\n]+/).map(s => s.trim()).filter(s => !!s);
-    const skipSingleItemBundles = document.getElementById('skip-single-item-bundles-checkbox').checked;
-    const colorBundlesByLabel = document.getElementById('color-bundles-checkbox').checked;
-    const bundleColorStyle = document.querySelector('input[name="bundleColorStyle"]:checked').value;
-    const matchStylusCatppuccin = document.getElementById('catppuccin-matching-checkbox').checked;
-    const showPinnedToggle = document.getElementById('show-pinned-toggle-checkbox').checked;
-    const showBundleArchive = document.getElementById('show-bundle-archive-checkbox').checked;
+const OPTION_KEYS = Object.keys(OPTION_FIELDS);
 
-    chrome.storage.sync.set({
-        bundlingEnabled: !!bundlingEnabled,
-        exclude: !!exclude,
-        labels: labels,
-        groupMessagesByDate: !!groupMessagesByDate,
-        combineLabels: !!combineLabels,
-        keepStarredUnbundled: !!keepStarredUnbundled,
-        priorityBundles: priorityBundles,
-        skipSingleItemBundles: !!skipSingleItemBundles,
-        colorBundlesByLabel: !!colorBundlesByLabel,
-        bundleColorStyle: bundleColorStyle,
-        matchStylusCatppuccin: !!matchStylusCatppuccin,
-        showPinnedToggle: !!showPinnedToggle,
-        showBundleArchive: !!showBundleArchive,
-    }, function() {
-        labelList.value = labels.join('\n');
-        priorityList.value = priorityBundles.join('\n');
+function splitLines(value) {
+    return value.split(/[\n]+/).map(s => s.trim()).filter(s => !!s);
+}
 
-        const saveButton = document.getElementById('save-button');
-        saveButton.classList.add('saved');
-        setTimeout(() => {
-            saveButton.classList.remove('saved');
-        }, 3000);
-    });
+//
+// Auto-save
+//
+// Every control saves its own key the moment it changes; the list textareas
+// save shortly after typing stops (and on blur). Only the changed key is
+// written, so an untouched option keeps following its default if a future
+// version changes that default — the old Save button wrote every key, which
+// froze all defaults at their then-current values.
+
+const SAVED_FLASH_MS = 1600;
+const LIST_DEBOUNCE_MS = 750;
+
+// When this page wrote last, to tell its own storage.onChanged echo apart
+// from a change synced in from another device.
+let lastOwnWriteAt = 0;
+
+let savedFlashTimer;
+function flashSaved() {
+    const status = document.getElementById('save-status');
+    status.classList.add('visible');
+    clearTimeout(savedFlashTimer);
+    savedFlashTimer = setTimeout(() => status.classList.remove('visible'), SAVED_FLASH_MS);
+}
+
+function saveOption(key) {
+    lastOwnWriteAt = Date.now();
+    chrome.storage.sync.set({ [key]: OPTION_FIELDS[key].read() }, flashSaved);
+}
+
+for (const [key, field] of Object.entries(OPTION_FIELDS)) {
+    for (const id of field.controlIds) {
+        const control = document.getElementById(id);
+        if (field.list) {
+            let debounceTimer;
+            control.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => saveOption(key), LIST_DEBOUNCE_MS);
+            });
+            control.addEventListener('change', () => {
+                clearTimeout(debounceTimer);
+                // Normalize the list once editing is done (blur), not while
+                // typing — rewriting the value mid-edit would move the cursor.
+                control.value = splitLines(control.value).join('\n');
+                saveOption(key);
+            });
+        }
+        else {
+            control.addEventListener('change', () => saveOption(key));
+        }
+    }
 }
 
 function restoreOptionsForm() {
@@ -156,13 +186,15 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (changes[CUSTOM_BUNDLES_KEY]) {
         renderCustomBundles();
     }
-    // Any of the Save-button options — re-read the whole form so a remote
-    // sync doesn't leave stale checkboxes next to newer synced values.
-    if (OPTION_KEYS.some(key => Object.prototype.hasOwnProperty.call(changes, key))) {
+    // Any of the options — re-read the whole form so a remote sync doesn't
+    // leave stale checkboxes next to newer synced values. Skip the echo of
+    // this page's own auto-save: it's redundant, and re-reading would move
+    // the cursor in a list the user is still typing in.
+    if (OPTION_KEYS.some(key => Object.prototype.hasOwnProperty.call(changes, key)) &&
+        Date.now() - lastOwnWriteAt > 1000) {
         restoreOptionsForm();
     }
 });
-document.getElementById('save-button').addEventListener('click', saveOptions);
 
 
 //

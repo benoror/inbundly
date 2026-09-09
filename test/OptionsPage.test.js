@@ -78,7 +78,7 @@ function loadOptionsPage(initialStore = {}) {
             OPTION_KEYS,
             pickImportableSettings,
             restoreOptionsForm,
-            saveOptions,
+            saveOption,
         };`;
     // eslint-disable-next-line no-eval
     eval(SCRIPT + exposed);
@@ -100,16 +100,65 @@ test('the extension id is displayed, since sync depends on it matching', () => {
     expect(document.getElementById('extension-id').textContent).toBe(EXTENSION_ID);
 });
 
-test('saving writes every known option key', () => {
-    document.getElementById('priority-bundles-list').value = 'School/*';
-    document.getElementById('keep-starred-unbundled-checkbox').checked = false;
-    document.getElementById('save-button').click();
+test('changing a checkbox auto-saves only that key', () => {
+    const checkbox = document.getElementById('keep-starred-unbundled-checkbox');
+    checkbox.checked = false;
+    checkbox.dispatchEvent(new window.Event('change', { bubbles: true }));
 
-    for (const key of internals.OPTION_KEYS) {
-        expect(store).toHaveProperty(key);
+    // Only the changed key is written — an untouched option must keep
+    // following its default, so writing every key (the old Save button
+    // behavior) would be a regression.
+    expect(store).toEqual({
+        priorityBundles: ['Bank', 'Work + Urgent'],
+        keepStarredUnbundled: false,
+    });
+    expect(document.getElementById('save-status').classList.contains('visible')).toBe(true);
+});
+
+test('a list textarea auto-saves and normalizes on change', () => {
+    const list = document.getElementById('priority-bundles-list');
+    list.value = '  School/*  \n\n\nBank ';
+    list.dispatchEvent(new window.Event('change', { bubbles: true }));
+
+    expect(store.priorityBundles).toEqual(['School/*', 'Bank']);
+    expect(list.value).toBe('School/*\nBank');
+    expect(store).not.toHaveProperty('keepStarredUnbundled');
+});
+
+test('typing in a list textarea saves after the debounce delay', () => {
+    jest.useFakeTimers();
+    try {
+        const list = document.getElementById('label-list');
+        list.value = 'Newsletters';
+        list.dispatchEvent(new window.Event('input', { bubbles: true }));
+
+        expect(store).not.toHaveProperty('labels');
+        jest.advanceTimersByTime(1000);
+        expect(store.labels).toEqual(['Newsletters']);
     }
-    expect(store.priorityBundles).toEqual(['School/*']);
-    expect(store.keepStarredUnbundled).toBe(false);
+    finally {
+        jest.useRealTimers();
+    }
+});
+
+test('every option key has an auto-save field', () => {
+    // OPTION_KEYS is derived from the field map, so this pins the full list
+    // against src/util/Options.js OPTION_DEFAULTS.
+    expect([...internals.OPTION_KEYS].sort()).toEqual([
+        'bundleColorStyle',
+        'bundlingEnabled',
+        'colorBundlesByLabel',
+        'combineLabels',
+        'exclude',
+        'groupMessagesByDate',
+        'keepStarredUnbundled',
+        'labels',
+        'matchStylusCatppuccin',
+        'priorityBundles',
+        'showBundleArchive',
+        'showPinnedToggle',
+        'skipSingleItemBundles',
+    ]);
 });
 
 test('the options page groups settings and puts advanced options near the end', () => {

@@ -10,6 +10,14 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Changed
+- **Options save automatically.** The Save button is gone: every setting is stored the
+  moment you change it (the bundle/priority lists shortly after you stop typing), with a
+  "Saved" flash as confirmation. Each change writes only its own setting, so options you
+  never touched now follow new defaults in future versions — the old Save button froze
+  every option at its then-current value, which is why some long-time users never saw the
+  archive-all button appear.
+
 ## [4.2.0] - 2026-09-09
 
 ### Added
