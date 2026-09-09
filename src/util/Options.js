@@ -33,7 +33,7 @@ const OPTION_DEFAULTS = {
     bundleColorStyle: 'background',
     matchStylusCatppuccin: false,
     showPinnedToggle: false,
-    showBundleArchive: false,
+    showBundleArchive: true,
 };
 
 const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);

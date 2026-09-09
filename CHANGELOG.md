@@ -10,6 +10,11 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Changed
+- **The archive-all button is now on by default** ([#27](https://github.com/benoror/inbundly/issues/27)).
+  It was hidden behind Options → Features, so few users found it. Turn it off there if you
+  prefer plain bundle rows. A stored preference is unaffected.
+
 ## [4.1.0] - 2026-08-22
 
 ### Added

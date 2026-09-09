@@ -94,7 +94,7 @@ function restoreOptionsForm() {
         bundleColorStyle: 'background',
         matchStylusCatppuccin: false,
         showPinnedToggle: false,
-        showBundleArchive: false,
+        showBundleArchive: true,
     }, function(items) {
         document.getElementById('bundling-enabled-checkbox').checked = items.bundlingEnabled;
 
