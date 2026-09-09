@@ -49,8 +49,19 @@ Webpack bundles **only** `src/content.js` → `dist/content.js`. Everything else
 npm install       # one-time: install build deps
 npm run build     # one-off build → dist/content.js
 npm run watch     # rebuild automatically on save (use this while iterating)
-npm test          # Jest tests
+npm test          # Jest unit tests
+npm run test:e2e  # Playwright e2e tests (run `npm run build` first;
+                  # one-time: npx playwright install chromium)
 ```
+
+**Testing.** `TESTING.md` is the codified feature × scenario matrix — new
+features add rows there, and unit/e2e tests spin off those rows. The e2e suite
+(`e2e/`) loads the built extension into Chromium and serves a Gmail-shaped
+fixture page at mail.google.com via route interception; the fixture
+(`e2e/fixture/inbox.js`) mirrors the selector contract in
+`src/util/Constants.js` — when Gmail markup changes, update both together.
+CI (`.github/workflows/ci.yml`) runs unit + build and the e2e suite on every
+push/PR.
 
 `dist/content.js` is gitignored (build artifact) — do not commit it.
 

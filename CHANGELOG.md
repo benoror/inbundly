@@ -23,6 +23,11 @@ independent of upstream's versioning. The format is based on
   from 2+ threads. The bundle's "View all" searches `from:`. Turn off under Options →
   Bundle setup ("Sender bundles").
 
+- **Testing infrastructure.** A codified feature testing matrix (`TESTING.md`),
+  a Playwright e2e suite that runs the built extension against a Gmail-shaped
+  fixture page (`e2e/`, `npm run test:e2e`), and GitHub Actions CI running the
+  unit and e2e suites on every push and PR.
+
 ### Changed
 - **Options save automatically.** The Save button is gone: every setting is stored the
   moment you change it (the bundle/priority lists shortly after you stop typing), with a

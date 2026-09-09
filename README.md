@@ -94,6 +94,20 @@ npm run watch
 
 The `dist` directory can then be loaded as an [unpacked extension](https://developer.chrome.com/extensions/getstarted).
 
+### Testing
+
+```bash
+# Unit tests (Jest)
+npm test
+
+# End-to-end tests: the built extension against a Gmail-shaped fixture
+# (one-time setup: npx playwright install chromium)
+npm run test:e2e
+```
+
+[TESTING.md](TESTING.md) holds the full feature testing matrix. CI runs both
+suites on every push and PR.
+
 ### Syncing settings between computers
 
 Settings live in `chrome.storage.sync`, which only reaches installs that share one
