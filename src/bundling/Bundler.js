@@ -153,9 +153,20 @@ class Bundler {
         let numBundles = 0;
         messageLists.forEach((messageList, sectionIndex) => {
             const sectionId = String(sectionIndex);
-            // Only redraw if this section's list isn't still bundled.
+            // Only redraw if this section's list is still bundled AND complete.
+            // A bundled section can grow stale: on a slow first paint Gmail
+            // streams the rest of the page's rows into the same table, and
+            // those arrive without inbundly's stamps — leaving them unbundled
+            // until a redraw.
             if (messageList.children[0].classList.contains('is-bundled')) {
-                return;
+                if (!this._hasUnprocessedRows(messageList)) {
+                    return;
+                }
+                // Redrawing a still-bundled table (unlike the usual redraw of a
+                // table Gmail just rebuilt): drop the previous pass's injected
+                // nodes first, or the redraw would append a second set of
+                // bundle rows and dividers.
+                this._removeInjectedNodes(messageList);
             }
             const info = this._bundleMessages(
                 messageList, sectionId, groupByDate, reopenRecentBundle);
@@ -212,6 +223,34 @@ class Bundler {
      *
      * Returns an object with info for debug printing.
      */
+    /**
+     * True if the section's table holds message rows that no bundle pass has
+     * processed yet. Every processed row carries a stamp: an inline flex order
+     * (unbundled messages, dividers, bundle rows) or the bundled-message class
+     * (messages hidden in a bundle). Rows Gmail streams in later have neither.
+     */
+    _hasUnprocessedRows(messageList) {
+        const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
+        if (!tableBody) {
+            return false;
+        }
+        return [...tableBody.querySelectorAll(TableBodySelectors.MESSAGE_NODES)]
+            .some(row => !row.style.order &&
+                !row.classList.contains(InbundlyClasses.BUNDLED_MESSAGE) &&
+                !row.classList.contains(InbundlyClasses.BUNDLE_ROW));
+    }
+
+    /**
+     * Remove the nodes a previous bundle pass injected into the section's
+     * table (bundle rows, date dividers, the open-bundle backdrop), so a
+     * redraw of a still-bundled table starts clean.
+     */
+    _removeInjectedNodes(messageList) {
+        messageList.querySelectorAll(
+            `.${InbundlyClasses.BUNDLE_ROW}, .date-row, .bundle-area`)
+            .forEach(node => node.remove());
+    }
+
     _bundleMessages(messageList, sectionId, groupByDate, reopenRecentBundle) {
         const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
 

@@ -17,13 +17,19 @@
 
 import DomUtils from '../util/DomUtils';
 
-const OBSERVER_CONFIG = { attributes: false, childList: true, subtree: false };
+// subtree: true so row-level changes are seen too: on a slow first paint Gmail
+// streams the rest of the page's rows into the ALREADY-BUNDLED table (a
+// childList change on the tbody, two levels below the list container), which
+// left most of the page unbundled until something rebuilt the table. Safe from
+// feedback loops: Bundler disconnects this watcher during each pass and
+// re-attaches afterwards, so inbundly's own row insertions are never observed.
+const OBSERVER_CONFIG = { attributes: false, childList: true, subtree: true };
 
 /**
  * Wraps a mutation observer for an ancestor of the message list tables.
- * 
+ *
  * In addition to manually refreshes triggered by the user, Gmail occasionally replaces the children
- * of this dom element, resulting in the message list getting redrawn to its original 
+ * of this dom element, resulting in the message list getting redrawn to its original
  * unbundled state.
  */
 class MessageListWatcher {

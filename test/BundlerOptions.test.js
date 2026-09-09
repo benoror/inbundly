@@ -116,3 +116,47 @@ test('single-item pruning ignores the open bundle when not reopening', () => {
 
     expect(bundles.Receipts).toBeUndefined();
 });
+
+//
+// Stale-section detection (rows Gmail streams into an already-bundled table)
+//
+
+function createBundledList() {
+    const list = document.createElement('div');
+    list.innerHTML = `
+        <table class="F"><tbody>
+            <tr class="zA" style="order: 100"></tr>
+            <tr class="zA bundled-message"></tr>
+            <tr class="zA bundle-row" style="order: 200"></tr>
+            <div class="date-row" style="order: 50"></div>
+            <div class="bundle-area"></div>
+        </tbody></table>
+    `;
+    return list;
+}
+
+test('a fully processed section has no unprocessed rows', () => {
+    const bundler = createBundler(true);
+
+    expect(bundler._hasUnprocessedRows(createBundledList())).toBe(false);
+});
+
+test('a row streamed in without inbundly stamps marks the section stale', () => {
+    const bundler = createBundler(true);
+    const list = createBundledList();
+    const streamed = document.createElement('tr');
+    streamed.className = 'zA';
+    list.querySelector('tbody').appendChild(streamed);
+
+    expect(bundler._hasUnprocessedRows(list)).toBe(true);
+});
+
+test('removing injected nodes leaves only Gmail message rows', () => {
+    const bundler = createBundler(true);
+    const list = createBundledList();
+
+    bundler._removeInjectedNodes(list);
+
+    expect(list.querySelectorAll('.bundle-row, .date-row, .bundle-area').length).toBe(0);
+    expect(list.querySelectorAll('tr.zA').length).toBe(2);
+});
