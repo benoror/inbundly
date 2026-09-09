@@ -15,8 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { 
+import {
     GmailClasses,
+    InbundlyClasses,
     Selectors,
 } from '../util/Constants';
 
@@ -48,17 +49,25 @@ class InbundlyStyler {
     }
 
     /**
-     * Apply "selected" styling to the bundle.
+     * Apply "selected" styling to the bundle, and mirror how much of it is
+     * selected onto its select-all checkbox (none/some/all).
      */
     _markSelectedBundle(bundle) {
-        const hasSelectedMessages = bundle.getMessages()
-            .some(m => m.classList.contains(GmailClasses.SELECTED));
+        const messages = bundle.getMessages();
+        const selectedCount = messages
+            .filter(m => m.classList.contains(GmailClasses.SELECTED))
+            .length;
 
-        if (hasSelectedMessages) {
-            bundle.getBundleRow().classList.add(GmailClasses.SELECTED);
-        }
-        else {
-            bundle.getBundleRow().classList.remove(GmailClasses.SELECTED);
+        const bundleRow = bundle.getBundleRow();
+        bundleRow.classList.toggle(GmailClasses.SELECTED, selectedCount > 0);
+
+        const checkbox = bundleRow.querySelector(
+            `.${InbundlyClasses.BUNDLE_CHECKBOX}`);
+        if (checkbox) {
+            const checkedState = selectedCount === 0
+                ? 'false'
+                : (selectedCount === messages.length ? 'true' : 'mixed');
+            checkbox.setAttribute('aria-checked', checkedState);
         }
     }
 

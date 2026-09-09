@@ -361,6 +361,76 @@ html.inbundly .bundle-row .archive-bundle.disabled::before {
 }
 
 /**
+ * Select-all checkbox, in bundle row
+ */
+
+html.inbundly .bundle-row .PF {
+    align-items: center;
+    display: flex;
+}
+
+html.inbundly .bundle-row .bundle-checkbox {
+    border: 2px solid #757575;
+    border-radius: 2px;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: none;
+    height: 16px;
+    margin-left: 12px;
+    position: relative;
+    width: 16px;
+}
+
+/* Show on hover, when the bundle is open, and while anything is selected. */
+html.inbundly .bundle-row:hover .bundle-checkbox,
+html.inbundly .bundle-row.visible .bundle-checkbox,
+html.inbundly .bundle-row .bundle-checkbox:not([aria-checked="false"]) {
+    display: block;
+}
+
+html.inbundly .bundle-row .bundle-checkbox[aria-checked="true"] {
+    background-color: #757575;
+}
+
+html.inbundly .bundle-row .bundle-checkbox[aria-checked="true"]::after {
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    content: '';
+    height: 8px;
+    left: 3px;
+    position: absolute;
+    top: 0;
+    transform: rotate(45deg);
+    width: 4px;
+}
+
+html.inbundly .bundle-row .bundle-checkbox[aria-checked="mixed"]::after {
+    background-color: #757575;
+    content: '';
+    height: 2px;
+    left: 2px;
+    position: absolute;
+    top: 5px;
+    width: 8px;
+}
+
+html.inbundly.messages-dark-theme .bundle-row .bundle-checkbox {
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+html.inbundly.messages-dark-theme .bundle-row .bundle-checkbox[aria-checked="true"] {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+html.inbundly.messages-dark-theme .bundle-row .bundle-checkbox[aria-checked="true"]::after {
+    border-color: #202124;
+}
+
+html.inbundly.messages-dark-theme .bundle-row .bundle-checkbox[aria-checked="mixed"]::after {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+/**
  * Bundled messages
  */
 

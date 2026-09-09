@@ -49,6 +49,7 @@ const GmailClasses = {
 };
 
 const InbundlyClasses = {
+    BUNDLE_CHECKBOX: 'bundle-checkbox',
     BUNDLE_ROW: 'bundle-row',
     BUNDLED_MESSAGE: 'bundled-message',
     BUNDLING_DISABLED: 'bundling-disabled',
