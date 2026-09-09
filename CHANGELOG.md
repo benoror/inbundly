@@ -10,6 +10,8 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-09-09
+
 ### Added
 - **Per-bundle select-all checkbox** ([#27](https://github.com/benoror/inbundly/issues/27)).
   Each bundle row now has a checkbox — drawn by Gmail's own material styles, dimmed until
