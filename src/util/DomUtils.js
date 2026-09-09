@@ -178,6 +178,26 @@ const DomUtils = {
     },
 
     /**
+     * Read the sender email addresses of a message row, in the order Gmail
+     * lists them (oldest participant first, most recent sender last).
+     */
+    getSenderEmails: function(message) {
+        return [...message.querySelectorAll(Selectors.SENDERS)]
+            .map(span => span.getAttribute('email'))
+            .filter(Boolean);
+    },
+
+    /**
+     * The email address of a message row's most recent sender — the last
+     * participant Gmail lists. Null when the row exposes no address (e.g.
+     * drafts).
+     */
+    getLatestSenderEmail: function(message) {
+        const emails = DomUtils.getSenderEmails(message);
+        return emails.length ? emails[emails.length - 1] : null;
+    },
+
+    /**
      * Read the color that Gmail assigns to a label, by inspecting the label chip
      * matching labelTitle within the given message row.
      *
