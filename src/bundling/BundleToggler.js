@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { getCurrentPageNumber } from '../util/MessagePageUtils';
-import { 
-    InbundlyClasses, 
-    Selectors, 
+import OpenBundleStore from '../util/OpenBundleStore';
+import {
+    InbundlyClasses,
+    Selectors,
     ORDER_INCREMENT,
 } from '../util/Constants';
 
@@ -53,6 +53,16 @@ class BundleToggler {
             if (bundle) {
                 this.bundledMail.freezeOrder(bundle.getOrder());
             }
+        }
+
+        // Remember/forget only on a user toggle. Render paths (closeAllBundles
+        // on a rerender, reopen passes) must not touch the store, or a redraw
+        // would wipe the state this feature exists to preserve.
+        if (sameBundle) {
+            OpenBundleStore.clear();
+        }
+        else {
+            OpenBundleStore.save(sectionId, label);
         }
     }
 

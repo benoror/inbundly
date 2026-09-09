@@ -40,6 +40,7 @@ import {
     SECTION_ATTR,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
+import OpenBundleStore from '../util/OpenBundleStore';
 import { isCustomBundleKey } from '../util/CustomBundleKey';
 import { detectThemeFlavor, flavorBase, snapToAccent, isNeutral } from '../util/ThemePalette';
 
@@ -62,6 +63,7 @@ class Bundler {
         this.matchStylusCatppuccin = false;
         this.skipSingleItemBundles = true;
         this.keepStarredUnbundled = true;
+        this.rememberOpenBundle = true;
         // Wait for this before the first bundle pass — otherwise the defaults
         // above win a race against chrome.storage.sync and starred messages
         // stay unbundled even when keepStarredUnbundled is stored as false.
@@ -74,6 +76,7 @@ class Bundler {
                     matchStylusCatppuccin: false,
                     skipSingleItemBundles: true,
                     keepStarredUnbundled: true,
+                    rememberOpenBundle: true,
                 },
                 options => {
                     this.applyOptions(options);
@@ -106,6 +109,9 @@ class Bundler {
         }
         if ('keepStarredUnbundled' in options) {
             this.keepStarredUnbundled = !!options.keepStarredUnbundled;
+        }
+        if ('rememberOpenBundle' in options) {
+            this.rememberOpenBundle = !!options.rememberOpenBundle;
         }
 
         const html = document.querySelector('html');
@@ -202,6 +208,7 @@ class Bundler {
         }
         else {
             bundledMail.closeBundle();
+            this._restoreRememberedBundle();
         }
 
         this.messageListWatcher.observe();
@@ -213,6 +220,25 @@ class Bundler {
             numBundles,
             redrew,
         };
+    }
+
+    /**
+     * Reopen the bundle the user last opened (remembered per page/tab by
+     * OpenBundleStore), for passes where the in-memory ref is gone: the first
+     * paint after a tab reload, and "fresh page" rebundles like an Inbox-tab
+     * click, page navigation, or a refresh. No frozen order — the restored
+     * bundle sits wherever its newest message places it.
+     */
+    _restoreRememberedBundle() {
+        if (!this.rememberOpenBundle) {
+            return;
+        }
+        const stored = OpenBundleStore.load();
+        if (stored &&
+            this.bundledMail.getBundleInSection(stored.sectionId, stored.label))
+        {
+            this.bundleToggler.openBundle(stored.sectionId, stored.label);
+        }
     }
 
     /**
@@ -464,8 +490,12 @@ class Bundler {
     _drawBundleBox(tableBody) {
         const bundleBox = DomUtils.htmlToElement('<div class="bundle-area"></div>'); 
         bundleBox.addEventListener(
-            'click', 
-            () => this.bundleToggler.closeAllBundles());
+            'click',
+            () => {
+                // A user close — forget the remembered bundle too.
+                OpenBundleStore.clear();
+                this.bundleToggler.closeAllBundles();
+            });
         tableBody.appendChild(bundleBox);
     }
 
@@ -598,6 +628,8 @@ class Bundler {
         messageList.addEventListener('click', e => {
             // #63 - e.target may have been removed before event propagates to messageList
             if (document.body.contains(e.target) && !e.target.closest('tr')) {
+                // A user close — forget the remembered bundle too.
+                OpenBundleStore.clear();
                 this.bundleToggler.closeAllBundles();
             }
         });

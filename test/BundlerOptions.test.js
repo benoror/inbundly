@@ -5,6 +5,17 @@
 import Bundler from '../src/bundling/Bundler';
 import { Element, GmailClasses } from '../src/util/Constants';
 
+// Controllable stand-in for the remembered-open-bundle store.
+let mockStored = null;
+jest.mock('../src/util/OpenBundleStore', () => ({
+    __esModule: true,
+    default: {
+        load: () => mockStored,
+        save: () => {},
+        clear: () => {},
+    },
+}));
+
 function createBundler(keepStarredUnbundled) {
     const bundler = Object.create(Bundler.prototype);
     bundler.keepStarredUnbundled = keepStarredUnbundled;
@@ -115,6 +126,59 @@ test('single-item pruning ignores the open bundle when not reopening', () => {
     bundler._pruneSingleItemBundles(bundles, '0', false);
 
     expect(bundles.Receipts).toBeUndefined();
+});
+
+//
+// Restoring the remembered open bundle
+//
+
+function restorableBundler({ rememberOpenBundle = true, bundleExists = true } = {}) {
+    const opened = [];
+    const bundler = Object.create(Bundler.prototype);
+    bundler.rememberOpenBundle = rememberOpenBundle;
+    bundler.bundledMail = {
+        getBundleInSection: () => (bundleExists ? {} : undefined),
+    };
+    bundler.bundleToggler = {
+        openBundle: (sectionId, label) => opened.push({ sectionId, label }),
+    };
+    return { bundler, opened };
+}
+
+test('a remembered bundle reopens when the in-memory ref is gone', () => {
+    mockStored = { sectionId: '0', label: 'Receipts' };
+    const { bundler, opened } = restorableBundler();
+
+    bundler._restoreRememberedBundle();
+
+    expect(opened).toEqual([{ sectionId: '0', label: 'Receipts' }]);
+});
+
+test('nothing reopens when rememberOpenBundle is off', () => {
+    mockStored = { sectionId: '0', label: 'Receipts' };
+    const { bundler, opened } = restorableBundler({ rememberOpenBundle: false });
+
+    bundler._restoreRememberedBundle();
+
+    expect(opened).toEqual([]);
+});
+
+test('nothing reopens when the remembered bundle no longer exists', () => {
+    mockStored = { sectionId: '0', label: 'Receipts' };
+    const { bundler, opened } = restorableBundler({ bundleExists: false });
+
+    bundler._restoreRememberedBundle();
+
+    expect(opened).toEqual([]);
+});
+
+test('nothing reopens when nothing is remembered', () => {
+    mockStored = null;
+    const { bundler, opened } = restorableBundler();
+
+    bundler._restoreRememberedBundle();
+
+    expect(opened).toEqual([]);
 });
 
 //
