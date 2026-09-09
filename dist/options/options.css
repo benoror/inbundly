@@ -408,65 +408,38 @@ textarea::placeholder {
     font-style: italic;
 }
 
-.save-button {
-    background-color: var(--accent);
-    border: 2px solid var(--accent);
-    border-radius: 6px;
-    color: var(--on-accent);
-    cursor: pointer;
-    display: block;
+/** Auto-save status (replaces the old Save button) */
+
+.save-status-row {
+    align-items: center;
+    display: flex;
     float: right;
+    gap: 12px;
+    margin: 20px 0px;
+    min-height: 20px;
+}
+
+.autosave-hint {
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.save-status {
+    color: var(--accent);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.03em;
-    outline: none;
-    position: relative;
+    opacity: 0;
     text-transform: uppercase;
-    height: 36px;
-    width: 94px;
-    margin: 20px 0px;
+    transition: opacity 0.3s ease;
 }
 
-.save-button:hover {
-    background-color: var(--accent-strong);
-    border-color: var(--accent-strong);
+.save-status.visible {
+    opacity: 1;
 }
 
-.save-button:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-}
-
-.save-button .saved-text {
-    width: 100%;
-}
-.save-button .saved-text img {
+.save-status img {
     vertical-align: bottom;
-}
-
-.save-button .save-text,
-.save-button .saved-text {
-    display: block;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transition: transform 1s ease;
-}
-
-/** Save */
-.save-button .save-text {
-    transform: translate(-50%, -50%) translateY(0);
-}
-.save-button .saved-text {
-    transform: translate(-50%, -50%) translateY(35px);
-}
-
-/** Saved */
-.save-button.saved .save-text {
-    transform: translate(-50%, -50%) translateY(-35px);
-}
-.save-button.saved .saved-text {
-    transform: translate(-50%, -50%) translateY(0);
 }
 
 /** Rounded toggle switch */
