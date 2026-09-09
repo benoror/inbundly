@@ -210,9 +210,33 @@ Flow for landing a feature branch and cutting a release:
 - **Open-bundle stability.** The currently-open bundle holds its on-screen
   position while the user acts on its threads: `BundleToggler` captures its flex
   `order` on open (`BundledMail.freezeOrder`) and `Bundler` re-pins it on each
-  reopen pass until collapse. The open bundle is also exempt from single-item
-  pruning (`Bundler._pruneSingleItemBundles`), so it stays open at one message
+  reopen pass until collapse. The open bundle is also exempt from small-bundle
+  pruning (`Bundler._pruneSmallBundles`), so it stays open at one message
   regardless of `skipSingleItemBundles`.
+- **Remembered open bundle.** `util/OpenBundleStore.js` keeps the last
+  user-opened bundle in `sessionStorage` (the one non-sync store: per tab,
+  survives reloads, dies with the browser session), keyed by page + tab.
+  Written only on user intent — `BundleToggler.toggleBundle` and the two
+  click-to-close paths in `Bundler` — never from render paths, so
+  `closeAllBundles()` on a rerender must NOT clear it. When a bundle pass has
+  no in-memory open bundle, `Bundler._restoreRememberedBundle` reopens the
+  stored one (gated by the `rememberOpenBundle` option, default on).
+- **Bundle snooze.** `components/BundleSnoozeButton.js` drives Gmail's own
+  toolbar snooze via `util/GmailToolbar.js` (shared with `BulkArchiveButton`):
+  select the bundle's rows with Gmail's real checkboxes, wait for the toolbar,
+  click — Gmail's snooze menu opens for the selection.
+  `Selectors.TOOLBAR_SNOOZE_BUTTON` matches by `data-tooltip`/`aria-label`
+  ("Snooze" — English-only), since the button has no stable `act` code.
+  `InbundlyStyler` disables snooze together with archive when a message
+  outside the bundle is selected. UI key: `showBundleSnooze` (default on).
+- **Sender bundles.** When `senderBundling` is on (default), a message with no
+  labels falls back to a bundle keyed by its most recent sender
+  (`DomUtils.getLatestSenderEmail`): the domain, or the full address on
+  freemail domains (`util/SenderBundleKey.js`, prefix `0x1D`). Labeled
+  messages never sender-bundle, and a sender bundle needs 2+ threads —
+  `_pruneSmallBundles` always prunes one-message sender bundles, whatever
+  `skipSingleItemBundles` says. Sender bundle rows are uncolored (no label
+  chip) and "View all" searches `from:`.
 - **Custom bundles** (ad-hoc groupings with no Gmail label) are keyed by Gmail's
   stable `data-legacy-thread-id` (read via `DomUtils.getThreadId`) and persisted
   in `chrome.storage.sync` by `containers/CustomBundles.js`. Their bundle key is

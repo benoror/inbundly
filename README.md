@@ -31,6 +31,13 @@ your inbox.
 ## Features
 
 * Messages with the same label are bundled together in your inbox
+* Unlabeled messages that share a sender bundle by domain (or by exact
+  address for personal-mail domains) — labels always win, and a sender
+  bundle needs 2+ threads (on by default; Options → Bundle setup)
+* The open bundle is remembered across reloads, refreshes, and page
+  navigation for the browser session (on by default; Options → Features)
+* Snooze a whole bundle: a bundle-row button opens Gmail's own snooze
+  menu for all the bundle's threads (on by default; Options → Features)
 * Optionally bundle by the whole *set* of labels, so threads sharing labels
   A + B form their own bundle, colored by the first label (enable in Options)
 * Priority bundles: force chosen labels (or label sets) to always group

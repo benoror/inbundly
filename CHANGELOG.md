@@ -10,6 +10,19 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **The open bundle is remembered.** Reload the tab, refresh, click the Inbox tab, or
+  change pages — the bundle you had open reopens (per page and tab, for the browser
+  session). Turn off under Options → Features ("Remember the open bundle").
+- **Snooze a whole bundle.** Bundle rows gain a snooze button next to archive-all: it
+  selects the bundle's threads and opens Gmail's own snooze menu, so the time you pick
+  applies to the whole bundle. Turn off under Options → Features.
+- **Sender bundles.** Unlabeled messages that share a sender now bundle together — by
+  domain (`acme.com`), or by the exact address on personal-mail domains like gmail.com.
+  Labels, priority rules, and custom bundles always win, and a sender bundle only forms
+  from 2+ threads. The bundle's "View all" searches `from:`. Turn off under Options →
+  Bundle setup ("Sender bundles").
+
 ### Changed
 - **Options save automatically.** The Save button is gone: every setting is stored the
   moment you change it (the bundle/priority lists shortly after you stop typing), with a
