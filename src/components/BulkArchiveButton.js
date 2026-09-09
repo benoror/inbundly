@@ -16,9 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import DomUtils from '../util/DomUtils';
+import GmailToolbar from '../util/GmailToolbar';
 import {
     GmailClasses,
-    InbundlyClasses,
     Selectors,
 } from '../util/Constants';
 
@@ -26,10 +26,6 @@ import {
  * Create bulk archive button for archiving the given messages, which should be in the same bundle.
  */
 function create(messages) {
-    return _create(() => _selectMessages(messages));
-}
-
-function _create(selectMessagesFunction) {
     const html = `
         <span class="archive-bundle ${GmailClasses.ARCHIVE_BUTTON}">
         </span>
@@ -42,66 +38,13 @@ function _create(selectMessagesFunction) {
             return;
         }
 
-        _archiveMessages(selectMessagesFunction);
+        GmailToolbar.triggerToolbarAction(
+            Selectors.TOOLBAR_ARCHIVE_BUTTON,
+            () => GmailToolbar.selectMessages(messages));
         e.stopPropagation();
     });
 
     return archiveSpan;
-}
-
-function _archiveMessages(selectMessagesFunction) {
-    const toolbarArchiveButton = document.querySelector(Selectors.TOOLBAR_ARCHIVE_BUTTON);
-
-    const buttonIsVisible = new Promise((resolve, reject) => {
-        const observer = new MutationObserver((mutation, observer) => {
-            if (_isClickable(toolbarArchiveButton)) {
-                observer.disconnect();
-                resolve();
-            }
-        });
-        observer.observe(
-            toolbarArchiveButton.parentNode, 
-            { attributes: true, childList: false, subtree: true });
-    });
-
-    const selectMessages = new Promise((resolve, reject) => {
-        selectMessagesFunction();
-        resolve();
-    });
-
-    Promise.all([buttonIsVisible, selectMessages]).then(() => _simulateClick(toolbarArchiveButton));
-}
-
-/**
- * Select all given messages.
- */
-function _selectMessages(messages) {
-    for (let i = messages.length - 1; i >= 0; i--) {
-        const checkboxNode = messages[i].querySelector(Selectors.MESSAGE_CHECKBOX);
-        if (!DomUtils.isChecked(checkboxNode)) {
-            checkboxNode.click();
-        }
-    }
-}
-
-function _isClickable(button) {
-    return getComputedStyle(button.parentNode).display !== 'none' && 
-        button.getAttribute('aria-disabled') !== 'true';
-}
-
-function _simulateClick(element) {
-    const dispatchMouseEvent = function(target, name) {
-        const e = new MouseEvent(name, {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-          });
-        target.dispatchEvent(e);
-    };
-    dispatchMouseEvent(element, 'mouseover');
-    dispatchMouseEvent(element, 'mousedown');
-    dispatchMouseEvent(element, 'click');
-    dispatchMouseEvent(element, 'mouseup');
 }
 
 export default { create };
