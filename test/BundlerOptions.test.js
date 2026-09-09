@@ -4,6 +4,7 @@
 
 import Bundler from '../src/bundling/Bundler';
 import { Element, GmailClasses } from '../src/util/Constants';
+import { senderBundleKey } from '../src/util/SenderBundleKey';
 
 // Controllable stand-in for the remembered-open-bundle store.
 let mockStored = null;
@@ -85,9 +86,10 @@ function singleMessageBundle() {
     return { getMessages: () => [document.createElement('div')] };
 }
 
-function prunableBundler(openedBundleRef) {
+function prunableBundler(openedBundleRef, skipSingleItemBundles = true) {
     const bundler = Object.create(Bundler.prototype);
     bundler.bundledMail = { getOpenedBundleRef: () => openedBundleRef };
+    bundler.skipSingleItemBundles = skipSingleItemBundles;
     return bundler;
 }
 
@@ -95,7 +97,7 @@ test('single-item bundles are pruned when not the reopened open bundle', () => {
     const bundler = prunableBundler({ sectionId: '0', label: 'Receipts', frozenOrder: 100 });
     const bundles = { Newsletters: singleMessageBundle() };
 
-    bundler._pruneSingleItemBundles(bundles, '0', true);
+    bundler._pruneSmallBundles(bundles, '0', true);
 
     expect(bundles.Newsletters).toBeUndefined();
 });
@@ -104,7 +106,7 @@ test('the reopened open bundle survives single-item pruning', () => {
     const bundler = prunableBundler({ sectionId: '0', label: 'Receipts', frozenOrder: 100 });
     const bundles = { Receipts: singleMessageBundle() };
 
-    bundler._pruneSingleItemBundles(bundles, '0', true);
+    bundler._pruneSmallBundles(bundles, '0', true);
 
     expect(bundles.Receipts).toBeDefined();
 });
@@ -114,7 +116,7 @@ test('the open-bundle exemption is scoped to its own section', () => {
     const bundles = { Receipts: singleMessageBundle() };
 
     // Same label, different section — still pruned.
-    bundler._pruneSingleItemBundles(bundles, '0', true);
+    bundler._pruneSmallBundles(bundles, '0', true);
 
     expect(bundles.Receipts).toBeUndefined();
 });
@@ -123,9 +125,38 @@ test('single-item pruning ignores the open bundle when not reopening', () => {
     const bundler = prunableBundler({ sectionId: '0', label: 'Receipts', frozenOrder: 100 });
     const bundles = { Receipts: singleMessageBundle() };
 
-    bundler._pruneSingleItemBundles(bundles, '0', false);
+    bundler._pruneSmallBundles(bundles, '0', false);
 
     expect(bundles.Receipts).toBeUndefined();
+});
+
+test('label bundles keep single messages when skipSingleItemBundles is off', () => {
+    const bundler = prunableBundler(null, false);
+    const bundles = { Newsletters: singleMessageBundle() };
+
+    bundler._pruneSmallBundles(bundles, '0', false);
+
+    expect(bundles.Newsletters).toBeDefined();
+});
+
+test('a one-message sender bundle is pruned even with skipSingleItemBundles off', () => {
+    const bundler = prunableBundler(null, false);
+    const key = senderBundleKey('acme.com');
+    const bundles = { [key]: singleMessageBundle() };
+
+    bundler._pruneSmallBundles(bundles, '0', false);
+
+    expect(bundles[key]).toBeUndefined();
+});
+
+test('an open one-message sender bundle survives pruning', () => {
+    const key = senderBundleKey('acme.com');
+    const bundler = prunableBundler({ sectionId: '0', label: key, frozenOrder: 100 });
+    const bundles = { [key]: singleMessageBundle() };
+
+    bundler._pruneSmallBundles(bundles, '0', true);
+
+    expect(bundles[key]).toBeDefined();
 });
 
 //

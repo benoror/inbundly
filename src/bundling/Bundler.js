@@ -42,6 +42,7 @@ import {
 import DomUtils from '../util/DomUtils';
 import OpenBundleStore from '../util/OpenBundleStore';
 import { isCustomBundleKey } from '../util/CustomBundleKey';
+import { isSenderBundleKey } from '../util/SenderBundleKey';
 import { detectThemeFlavor, flavorBase, snapToAccent, isNeutral } from '../util/ThemePalette';
 
 /**
@@ -305,9 +306,7 @@ class Bundler {
 
         const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
 
-        if (this.skipSingleItemBundles) {
-            this._pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle);
-        }
+        this._pruneSmallBundles(bundlesByLabel, sectionId, reopenRecentBundle);
 
         const sortedTableRows =
             this._calculateSortedTableRows(messageNodes, bundlesByLabel, groupByDate);
@@ -358,14 +357,16 @@ class Bundler {
     }
 
     /**
-     * Drop single-message bundles from `bundlesByLabel` in place, with two
-     * exemptions:
+     * Drop single-message bundles from `bundlesByLabel` in place. Sender
+     * bundles always need 2+ threads — one thread from a sender is just a
+     * message, not a group. Label bundles are pruned only when the
+     * skipSingleItemBundles option is on. Two exemptions:
      *  - custom bundles (explicit user intent), and
      *  - the currently-open bundle in this section while a reopen is in effect,
      *    so acting on its threads (archive/delete/snooze) doesn't make it vanish
      *    mid-workflow — it survives at one message until emptied or collapsed.
      */
-    _pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle) {
+    _pruneSmallBundles(bundlesByLabel, sectionId, reopenRecentBundle) {
         const openRef = reopenRecentBundle
             ? this.bundledMail.getOpenedBundleRef()
             : null;
@@ -373,8 +374,10 @@ class Bundler {
             const isOpenBundle = openRef &&
                 openRef.sectionId === sectionId &&
                 openRef.label === label;
+            const prunable = isSenderBundleKey(label) ||
+                (this.skipSingleItemBundles && !isCustomBundleKey(label));
             if (bundlesByLabel[label].getMessages().length === 1 &&
-                !isCustomBundleKey(label) &&
+                prunable &&
                 !isOpenBundle) {
                 delete bundlesByLabel[label];
             }

@@ -18,6 +18,7 @@
 import SelectiveBundling from '../src/bundling/SelectiveBundling';
 import DomUtils from '../src/util/DomUtils';
 import { customBundleKey } from '../src/util/CustomBundleKey';
+import { senderBundleKey } from '../src/util/SenderBundleKey';
 
 /**
  * Build a SelectiveBundling with the given stored options. The chrome storage
@@ -161,4 +162,49 @@ test('plain BrokerLit priority does not match a nested BrokerLit label', () => {
 
     expect(relevantLabels(bundling, ['IH/Spoînt/BrokerLit', 'Procevi']))
         .toEqual(['IH/Spoînt/BrokerLit\u001fProcevi']);
+});
+
+//
+// Sender bundling — unlabeled messages fall back to a sender bundle
+//
+
+function relevantForSender(bundling, messageLabels, senderEmail) {
+    DomUtils.getLabelStrings = jest.fn().mockReturnValue(messageLabels);
+    DomUtils.getLatestSenderEmail = jest.fn().mockReturnValue(senderEmail);
+    return bundling.findRelevantLabels({});
+}
+
+test('an unlabeled message bundles by its sender domain', () => {
+    const bundling = makeBundling({});
+    expect(relevantForSender(bundling, [], 'news@acme.com'))
+        .toEqual([senderBundleKey('acme.com')]);
+});
+
+test('an unlabeled freemail message bundles by the full address', () => {
+    const bundling = makeBundling({});
+    expect(relevantForSender(bundling, [], 'jane@gmail.com'))
+        .toEqual([senderBundleKey('jane@gmail.com')]);
+});
+
+test('a labeled message never sender-bundles', () => {
+    const bundling = makeBundling({ exclude: true, labels: [] });
+    expect(relevantForSender(bundling, ['Work'], 'news@acme.com'))
+        .toEqual(['Work']);
+});
+
+test('sender bundling can be turned off', () => {
+    const bundling = makeBundling({ senderBundling: false });
+    expect(relevantForSender(bundling, [], 'news@acme.com')).toEqual([]);
+});
+
+test('an unlabeled message without a sender address stays loose', () => {
+    const bundling = makeBundling({});
+    expect(relevantForSender(bundling, [], null)).toEqual([]);
+});
+
+test('a custom bundle wins over sender bundling', () => {
+    const customBundles = withCustomBundle('t1', 'Trip');
+    const bundling = makeBundling({}, customBundles);
+    expect(relevantForSender(bundling, [], 'news@acme.com'))
+        .toEqual([customBundleKey('Trip')]);
 });

@@ -18,6 +18,7 @@
 import DomUtils from '../util/DomUtils';
 import { LABEL_SET_SEPARATOR } from '../util/Constants';
 import { matchLabelPattern, parsePriorityRules, ruleMatchesLabels, ruleLabels } from '../util/LabelSet';
+import { senderIdForEmail, senderBundleKey } from '../util/SenderBundleKey';
 
 /**
  * Identifies the labels that have bundling enabled, according to the user's options.
@@ -40,6 +41,7 @@ class SelectiveBundling {
         this.labels = [];
         this.combineLabels = true;
         this.priorityRules = [];
+        this.senderBundling = true;
         this.optionsReady = new Promise(resolve => {
             chrome.storage.sync.get(
                 {
@@ -47,6 +49,7 @@ class SelectiveBundling {
                     labels: [],
                     combineLabels: true,
                     priorityBundles: [],
+                    senderBundling: true,
                 },
                 options => {
                     this.applyOptions(options);
@@ -73,6 +76,9 @@ class SelectiveBundling {
         if ('priorityBundles' in options) {
             this.priorityRules = parsePriorityRules(options.priorityBundles || []);
         }
+        if ('senderBundling' in options) {
+            this.senderBundling = !!options.senderBundling;
+        }
     }
 
     /**
@@ -89,6 +95,11 @@ class SelectiveBundling {
      * bottom, first match wins), that rule becomes its sole bundle, overriding
      * both the include/exclude gate and set-grouping. This lets specific labels
      * (or label sets) always group together, regardless of other labels present.
+     *
+     * Last, when senderBundling is on, a message with no labels at all falls
+     * back to a sender bundle keyed by its most recent sender (domain, or full
+     * address on freemail domains). Labeled messages never sender-bundle — the
+     * user's own grouping always wins.
      */
     findRelevantLabels(message) {
         if (this.customBundles) {
@@ -104,6 +115,11 @@ class SelectiveBundling {
             if (ruleMatchesLabels(rule, messageLabels)) {
                 return [ruleLabels(rule).join(LABEL_SET_SEPARATOR)];
             }
+        }
+
+        if (this.senderBundling && messageLabels.length === 0) {
+            const senderId = senderIdForEmail(DomUtils.getLatestSenderEmail(message));
+            return senderId ? [senderBundleKey(senderId)] : [];
         }
 
         const inList = l => this.labels.some(pattern => matchLabelPattern(pattern, l));
