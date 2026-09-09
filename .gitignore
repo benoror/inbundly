@@ -1,5 +1,7 @@
 node_modules/
 dist/content.js
+test-results/
+playwright-report/
 .DS_Store
 packages/
 .package-stage/
