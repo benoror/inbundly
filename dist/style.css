@@ -364,7 +364,9 @@ html.inbundly .bundle-row .archive-bundle.disabled::before {
  * Select-all checkbox, in bundle row
  */
 
-html.inbundly .bundle-row .PF {
+/* Gmail's checkbox column; its own padding (13px left) aligns the box with the
+   per-message checkboxes of an open bundle. */
+html.inbundly .bundle-row .oZ-x3 {
     align-items: center;
     display: flex;
 }
@@ -375,10 +377,10 @@ html.inbundly .bundle-row .bundle-checkbox {
     box-sizing: border-box;
     cursor: pointer;
     display: none;
-    height: 16px;
-    margin-left: 12px;
+    flex: none;
+    height: 18px;
     position: relative;
-    width: 16px;
+    width: 18px;
 }
 
 /* Show on hover, when the bundle is open, and while anything is selected. */
@@ -396,12 +398,12 @@ html.inbundly .bundle-row .bundle-checkbox[aria-checked="true"]::after {
     border: solid #fff;
     border-width: 0 2px 2px 0;
     content: '';
-    height: 8px;
-    left: 3px;
+    height: 9px;
+    left: 4px;
     position: absolute;
-    top: 0;
+    top: 1px;
     transform: rotate(45deg);
-    width: 4px;
+    width: 5px;
 }
 
 html.inbundly .bundle-row .bundle-checkbox[aria-checked="mixed"]::after {
@@ -410,8 +412,8 @@ html.inbundly .bundle-row .bundle-checkbox[aria-checked="mixed"]::after {
     height: 2px;
     left: 2px;
     position: absolute;
-    top: 5px;
-    width: 8px;
+    top: 6px;
+    width: 10px;
 }
 
 html.inbundly.messages-dark-theme .bundle-row .bundle-checkbox {

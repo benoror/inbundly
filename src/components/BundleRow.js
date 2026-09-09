@@ -120,9 +120,10 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     `;
 
     const el = DomUtils.htmlToElement(html);
-    // The PF cell is Gmail's checkbox column, so the select-all checkbox lines
-    // up with the per-message checkboxes when the bundle is open.
-    el.querySelector('.PF').appendChild(BundleCheckbox.create(messages));
+    // The oZ-x3 cell is Gmail's checkbox column (PF is the 3px flag column), so
+    // the select-all checkbox lines up with the per-message checkboxes when the
+    // bundle is open.
+    el.querySelector('.oZ-x3').appendChild(BundleCheckbox.create(messages));
     el.appendChild(bulkArchiveTd);
     el.appendChild(DomUtils.htmlToElement(bundleDateHtml));
     // A custom bundle has no Gmail label to search, so it gets no "View all"
