@@ -136,6 +136,17 @@ class MessageSelectHandler {
 
             // Mirror the row's selected state onto its bundle row(s).
             if (selectionChanged) {
+                // Gmail rewrites the row's class wholesale on select/deselect,
+                // dropping inbundly's classes. The open bundle's rows are
+                // restored above; re-hide a closed bundle's row here so it
+                // doesn't pop out of its bundle while (de)selected.
+                const sectionId = DomUtils.getSectionId(row);
+                if (!row.classList.contains(InbundlyClasses.BUNDLED_MESSAGE) &&
+                    rowLabels.some(
+                        l => this.bundledMail.getBundleInSection(sectionId, l))) {
+                    row.classList.add(InbundlyClasses.BUNDLED_MESSAGE);
+                }
+
                 this.inbundlyStyler.markSelectedBundlesFor(rowLabels);
                 this.inbundlyStyler.disableBulkArchiveIfNecessary();
             }

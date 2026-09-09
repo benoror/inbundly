@@ -35,6 +35,12 @@ const LABEL_SET_SEPARATOR = String.fromCharCode(31);
 const GmailClasses = {
     ARCHIVE_BUTTON: 'brq bqX',
     CELL: 'xY',
+    // Gmail's material checkbox: its stylesheet draws an element with these
+    // classes (as a direct child of a CELL) in both themes — dimmed at rest,
+    // ripple on hover, and per-state icons via the two state classes below.
+    CHECKBOX: 'oZ-jc T-Jo J-J5-Ji',
+    CHECKBOX_CHECKED: 'T-Jo-Jp',
+    CHECKBOX_INDETERMINATE: 'T-Jo-ayH',
     DATE_CELL: 'xW',
     IMPORTANCE_MARKER: 'WA',
     PERSONAL_LEVEL_INDICATOR: 'bnk',
@@ -49,6 +55,7 @@ const GmailClasses = {
 };
 
 const InbundlyClasses = {
+    BUNDLE_CHECKBOX: 'bundle-checkbox',
     BUNDLE_ROW: 'bundle-row',
     BUNDLED_MESSAGE: 'bundled-message',
     BUNDLING_DISABLED: 'bundling-disabled',
@@ -82,7 +89,12 @@ const LABELS = `.ar.as .at`;
 // mapped back to the section it belongs to (used to scope bundle toggling).
 const SECTION_ATTR = 'data-inbundly-section';
 const Selectors = {
-    CHECKBOXES: `${CURRENT_TABPANEL} tr td .oZ-jc.T-Jo.J-J5-Ji`,
+    // Per-message checkboxes only: inbundly's own bundle select-all checkbox
+    // carries the same Gmail classes (GmailClasses.CHECKBOX) so Gmail's
+    // stylesheet draws it, and must not get the quick-select click handler
+    // (which re-dispatches click() on its target, double-toggling it).
+    CHECKBOXES:
+        `${CURRENT_TABPANEL} tr td .oZ-jc.T-Jo.J-J5-Ji:not(.${InbundlyClasses.BUNDLE_CHECKBOX})`,
     CURRENT_TAB: `${MAIN} [role="tab"][aria-selected="true"]`,
     CURRENT_TABPANEL: CURRENT_TABPANEL,
     INBOX_LABEL: `${LABELS}[title="Inbox"]`,

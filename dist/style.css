@@ -361,6 +361,32 @@ html.inbundly .bundle-row .archive-bundle.disabled::before {
 }
 
 /**
+ * Select-all checkbox, in bundle row
+ */
+
+/* Gmail's checkbox column; its 13px left padding aligns the checkbox with the
+   per-message checkboxes. */
+html.inbundly .bundle-row .oZ-x3 {
+    align-items: center;
+    display: flex;
+}
+
+/* The checkbox carries Gmail's own material-checkbox classes (see
+   GmailClasses.CHECKBOX), so Gmail's stylesheet draws it in both themes:
+   dimmed at rest, ripple on hover, checked/indeterminate icons from the
+   T-Jo-Jp / T-Jo-ayH state classes. */
+html.inbundly .bundle-row .bundle-checkbox {
+    cursor: pointer;
+    flex: none;
+}
+
+/* The open bundle header drops the 3px flag cell and the checkbox cell's 13px
+   padding; compensate so the checkbox stays in Gmail's checkbox column. */
+html.inbundly .bundle-row.visible .bundle-checkbox {
+    margin-left: 16px;
+}
+
+/**
  * Bundled messages
  */
 

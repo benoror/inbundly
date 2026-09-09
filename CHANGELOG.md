@@ -10,6 +10,24 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Per-bundle select-all checkbox** ([#27](https://github.com/benoror/inbundly/issues/27)).
+  Each bundle row now has a checkbox — drawn by Gmail's own material styles, dimmed until
+  hover like Gmail's — that selects or deselects every message in the bundle. Gmail's own
+  toolbar actions — Archive, Delete, Mark as read, Move — then apply to the selection. It
+  shows Gmail's indeterminate icon when only part of the bundle is selected.
+
+### Changed
+- **The archive-all button is now on by default** ([#27](https://github.com/benoror/inbundly/issues/27)).
+  It was hidden behind Options → Features, so few users found it. Turn it off there if you
+  prefer plain bundle rows. A stored preference is unaffected.
+
+### Fixed
+- **Bundling no longer disappears after a slow inbox load.** When Gmail painted a partial
+  page and streamed the remaining rows in afterwards, those rows stayed unbundled until the
+  master switch was toggled off and on. Inbundly now detects the late rows and rebundles
+  the list automatically.
+
 ## [4.1.0] - 2026-08-22
 
 ### Added

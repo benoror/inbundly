@@ -53,8 +53,11 @@ your inbox.
 * Optionally color bundles to match their Gmail label color — either a subtle
   background tint or just the left accent bar and text, both theme-aware
   (enable in Options)
-* The pinned-messages toggle and per-bundle archive-all button are optional
-  (hidden by default; enable them under Options → Features)
+* Select or archive all of a bundle's messages from its row: a Gmail-style
+  select-all checkbox (Gmail's toolbar actions then apply to the selection)
+  and an archive-all button shown on hover and while the bundle is open
+* The pinned-messages toggle (hidden by default) and the archive-all button
+  (shown by default) toggle under Options → Features
 * Optional Stylus userstyle color-matching: when enabled, bundle colors are
   snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
   default)

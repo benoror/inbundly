@@ -81,10 +81,11 @@ if (html) {
     logDebugMessage('Applying styles');
     html.classList.add(InbundlyClasses.INBUNDLY);
 
-    // The pinned-messages toggle and bulk-archive button are hidden by default;
-    // opt in to them from the options page. Values sync across devices.
+    // The pinned-messages toggle is hidden by default; the bulk-archive button
+    // is shown by default. Both toggle from the options page and sync across
+    // devices. Keep these fallbacks equal to OPTION_DEFAULTS in util/Options.js.
     chrome.storage.sync.get(
-        { showPinnedToggle: false, showBundleArchive: false, bundlingEnabled: true },
+        { showPinnedToggle: false, showBundleArchive: true, bundlingEnabled: true },
         options => {
             applyUiOptions(options);
             applyBundlingEnabled(options.bundlingEnabled);

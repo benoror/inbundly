@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import BulkArchiveButton from './BulkArchiveButton';
+import BundleCheckbox from './BundleCheckbox';
 
 import MessagePageUtils from '../util/MessagePageUtils';
 import DomUtils from '../util/DomUtils';
@@ -119,6 +120,10 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     `;
 
     const el = DomUtils.htmlToElement(html);
+    // The oZ-x3 cell is Gmail's checkbox column (PF is the 3px flag column), so
+    // the select-all checkbox lines up with the per-message checkboxes when the
+    // bundle is open.
+    el.querySelector('.oZ-x3').appendChild(BundleCheckbox.create(messages));
     el.appendChild(bulkArchiveTd);
     el.appendChild(DomUtils.htmlToElement(bundleDateHtml));
     // A custom bundle has no Gmail label to search, so it gets no "View all"
