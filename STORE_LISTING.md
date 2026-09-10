@@ -41,14 +41,12 @@ FEATURES
   subtree wildcards and first-match-wins rules.
 • Remember the open bundle — reload, refresh, or bounce through Inbox — the bundle you
   had open comes back (per tab/page, for the session).
-• Snooze a whole bundle — one click selects the bundle’s threads and opens Gmail’s own
-  snooze menu for all of them.
-• Delete a whole bundle — an optional bundle-row button (off by default) moves the
-  bundle’s threads to Trash via Gmail’s own Delete.
+• Bundle bulk actions — select-all, archive-all, snooze-all, or delete/trash-all from
+  the bundle row. Each control uses Gmail’s own toolbar actions on every thread in the
+  bundle. Toggle individually under Options → Features.
 • Label colors — tint bundles to match their Gmail label color: a subtle background fill
   or an accent bar, both theme-aware.
-• Skip single-item bundles, select or archive all of a bundle from its row, and pin a
-  message outside its bundle by starring it.
+• Skip single-item bundles and pin a message outside its bundle by starring it.
 • Options autosave — no Save button. Change a setting and it’s stored; new defaults
   reach installs that never touched that option.
 • Light & dark — follows your Gmail theme with careful, readable colors.
