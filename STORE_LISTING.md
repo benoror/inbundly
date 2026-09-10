@@ -33,24 +33,31 @@ than the original, with sender bundles, custom bundles, priority rules, and labe
 
 FEATURES
 • Label bundles — messages sharing a Gmail label are grouped into one collapsible bundle.
-• Sender bundles — unlabeled mail that shares a sender groups by domain (or exact
-  address on gmail.com & friends). Labels, priority, and custom still win.
+• Combine labels — bundle each distinct set of labels together, so threads labeled A + B
+  form their own bundle, separate from just A.
 • Custom bundles — select any messages and bundle them on the fly, no label needed. They
   sync across your signed-in Chrome browsers.
 • Priority bundles — force chosen labels (or label sets) to always group together, with
   subtree wildcards and first-match-wins rules.
+• Sender bundles — unlabeled mail that shares a sender groups by domain (or exact
+  address on gmail.com & friends). Labels, priority, and custom still win.
+• Keep starred messages outside bundles — Inbox-style pinning. Toggle under
+  Options → Bundle setup.
 • Remember the open bundle — reload, refresh, or bounce through Inbox — the bundle you
   had open comes back (per tab/page, for the session).
-• Snooze a whole bundle — one click selects the bundle’s threads and opens Gmail’s own
-  snooze menu for all of them.
-• Delete a whole bundle — an optional bundle-row button (off by default) moves the
-  bundle’s threads to Trash via Gmail’s own Delete.
+• Bundle bulk actions — select-all, archive-all, snooze-all, or delete/trash-all from
+  the bundle row. Each control uses Gmail’s own toolbar actions on every thread in the
+  bundle. Toggle individually under Options → Features.
+• Master switch — pause bundling without disabling the extension. The same
+  “Bundle my inbox” switch lives in Gmail’s search bar, Options, and the toolbar popup.
+• All inbox types — Default, Important/Unread/Starred first, Priority Inbox, and
+  Multiple Inboxes, each visible section independently.
 • Label colors — tint bundles to match their Gmail label color: a subtle background fill
   or an accent bar, both theme-aware.
-• Skip single-item bundles, select or archive all of a bundle from its row, and pin a
-  message outside its bundle by starring it.
 • Options autosave — no Save button. Change a setting and it’s stored; new defaults
   reach installs that never touched that option.
+• Sync & backup — options and custom bundles sync across signed-in browsers; export or
+  import JSON under Options → Sync & backup when you need a hand-off.
 • Light & dark — follows your Gmail theme with careful, readable colors.
 
 PRIVATE BY DESIGN
