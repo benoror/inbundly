@@ -12,7 +12,7 @@ Coverage keys:
 - **manual** — needs real Gmail. Follow the protocol at the bottom.
 
 Feature history sources: `CHANGELOG.md`, merged PRs (#25, #27/#29, #31, #32),
-tags `v2.1.0` … `v4.3.0`.
+tags `v2.1.0` … `v4.4.0`.
 
 ## 1. Core bundling
 

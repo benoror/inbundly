@@ -10,6 +10,8 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [4.4.0] - 2026-09-10
+
 ### Added
 - **Delete/trash a whole bundle.** Bundle rows gain a delete-all button next to
   archive-all and snooze: it selects the bundle's threads and clicks Gmail's own
