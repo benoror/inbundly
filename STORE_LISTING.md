@@ -29,18 +29,26 @@ Inbundly brings back the best part of Google Inbox — bundles — to Gmail.
 
 It automatically groups your email by label into tidy, collapsible bundles right in your
 inbox, so related messages stay together and your inbox stays calm. And it goes further
-than the original, with custom bundles, priority rules, and label coloring.
+than the original, with sender bundles, custom bundles, priority rules, and label coloring.
 
 FEATURES
 • Label bundles — messages sharing a Gmail label are grouped into one collapsible bundle.
+• Sender bundles — unlabeled mail that shares a sender groups by domain (or exact
+  address on gmail.com & friends). Labels, priority, and custom still win.
 • Custom bundles — select any messages and bundle them on the fly, no label needed. They
   sync across your signed-in Chrome browsers.
 • Priority bundles — force chosen labels (or label sets) to always group together, with
   subtree wildcards and first-match-wins rules.
+• Remember the open bundle — reload, refresh, or bounce through Inbox — the bundle you
+  had open comes back (per tab/page, for the session).
+• Snooze a whole bundle — one click selects the bundle’s threads and opens Gmail’s own
+  snooze menu for all of them.
 • Label colors — tint bundles to match their Gmail label color: a subtle background fill
   or an accent bar, both theme-aware.
-• Skip single-item bundles, quick-archive a whole bundle, and pin a message outside its
-  bundle by starring it.
+• Skip single-item bundles, select or archive all of a bundle from its row, and pin a
+  message outside its bundle by starring it.
+• Options autosave — no Save button. Change a setting and it’s stored; new defaults
+  reach installs that never touched that option.
 • Light & dark — follows your Gmail theme with careful, readable colors.
 
 PRIVATE BY DESIGN
@@ -57,8 +65,8 @@ Not affiliated with Google. Gmail is a trademark of Google LLC.
 ## Single-purpose statement
 ```
 Inbundly has a single purpose: to visually reorganize the Gmail inbox by grouping messages
-into collapsible "bundles" (by label or by user-defined custom bundles) to make email easier
-to manage.
+into collapsible "bundles" (by label, sender, or user-defined custom bundles) to make email
+easier to manage.
 ```
 
 ## Permission justifications
