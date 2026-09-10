@@ -33,21 +33,22 @@ than the original, with sender bundles, custom bundles, priority rules, and labe
 
 FEATURES
 • Label bundles — messages sharing a Gmail label are grouped into one collapsible bundle.
-• Sender bundles — unlabeled mail groups by sender domain (or the full address on Gmail
-  and other freemail). Labels, priority rules, and custom bundles always win.
+• Sender bundles — unlabeled mail that shares a sender groups by domain (or exact
+  address on gmail.com & friends). Labels, priority, and custom still win.
 • Custom bundles — select any messages and bundle them on the fly, no label needed. They
   sync across your signed-in Chrome browsers.
 • Priority bundles — force chosen labels (or label sets) to always group together, with
   subtree wildcards and first-match-wins rules.
-• Remember the open bundle — reload, refresh, or change Inbox pages and the bundle you
-  had open reopens (per tab, for the browser session).
-• Snooze a whole bundle — a button on the bundle row opens Gmail’s snooze menu for every
-  thread in the bundle.
+• Remember the open bundle — reload, refresh, or bounce through Inbox — the bundle you
+  had open comes back (per tab/page, for the session).
+• Snooze a whole bundle — one click selects the bundle’s threads and opens Gmail’s own
+  snooze menu for all of them.
 • Label colors — tint bundles to match their Gmail label color: a subtle background fill
   or an accent bar, both theme-aware.
 • Skip single-item bundles, select or archive all of a bundle from its row, and pin a
   message outside its bundle by starring it.
-• Options save as you change them — no Save button.
+• Options autosave — no Save button. Change a setting and it’s stored; new defaults
+  reach installs that never touched that option.
 • Light & dark — follows your Gmail theme with careful, readable colors.
 
 PRIVATE BY DESIGN
