@@ -81,15 +81,16 @@ if (html) {
     logDebugMessage('Applying styles');
     html.classList.add(InbundlyClasses.INBUNDLY);
 
-    // The pinned-messages toggle is hidden by default; the bulk-archive and
-    // snooze buttons are shown by default. All toggle from the options page and
-    // sync across devices. Keep these fallbacks equal to OPTION_DEFAULTS in
-    // util/Options.js.
+    // The pinned-messages toggle and delete-all button are hidden by default;
+    // the bulk-archive and snooze buttons are shown by default. All toggle
+    // from the options page and sync across devices. Keep these fallbacks
+    // equal to OPTION_DEFAULTS in util/Options.js.
     chrome.storage.sync.get(
         {
             showPinnedToggle: false,
             showBundleArchive: true,
             showBundleSnooze: true,
+            showBundleDelete: false,
             bundlingEnabled: true,
         },
         options => {
@@ -105,9 +106,14 @@ else {
 
 /**
  * Toggle injected UI chrome from the showPinnedToggle / showBundleArchive /
- * showBundleSnooze options.
+ * showBundleSnooze / showBundleDelete options.
  */
-function applyUiOptions({ showPinnedToggle, showBundleArchive, showBundleSnooze } = {}) {
+function applyUiOptions({
+    showPinnedToggle,
+    showBundleArchive,
+    showBundleSnooze,
+    showBundleDelete,
+} = {}) {
     const htmlEl = document.querySelector('html');
     if (!htmlEl) {
         return;
@@ -120,6 +126,9 @@ function applyUiOptions({ showPinnedToggle, showBundleArchive, showBundleSnooze 
     }
     if (showBundleSnooze !== undefined) {
         htmlEl.classList.toggle(InbundlyClasses.HIDE_BUNDLE_SNOOZE, !showBundleSnooze);
+    }
+    if (showBundleDelete !== undefined) {
+        htmlEl.classList.toggle(InbundlyClasses.HIDE_BUNDLE_DELETE, !showBundleDelete);
     }
 }
 

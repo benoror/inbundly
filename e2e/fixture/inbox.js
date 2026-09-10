@@ -131,7 +131,7 @@ function inboxPage({ threads = [], tab = 'Primary' } = {}) {
     <div class="G-atb" gh="tm">
       <div class="G-Ni" style="display: none;">
         <div class="T-I J-J5-Ji" act="7" aria-label="Archive" role="button"></div>
-        <div class="T-I J-J5-Ji" act="10" aria-label="Delete" role="button"></div>
+        <div class="T-I J-J5-Ji" act="10" data-tooltip="Delete" aria-label="Delete" role="button"></div>
         <div class="T-I J-J5-Ji" data-tooltip="Snooze" aria-label="Snooze" role="button"></div>
       </div>
       <div class="T-I J-J5-Ji" act="20" aria-label="Refresh" role="button"></div>

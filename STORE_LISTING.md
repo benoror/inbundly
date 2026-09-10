@@ -43,6 +43,8 @@ FEATURES
   had open comes back (per tab/page, for the session).
 • Snooze a whole bundle — one click selects the bundle’s threads and opens Gmail’s own
   snooze menu for all of them.
+• Delete a whole bundle — an optional bundle-row button (off by default) moves the
+  bundle’s threads to Trash via Gmail’s own Delete.
 • Label colors — tint bundles to match their Gmail label color: a subtle background fill
   or an accent bar, both theme-aware.
 • Skip single-item bundles, select or archive all of a bundle from its row, and pin a

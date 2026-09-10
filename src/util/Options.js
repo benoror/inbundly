@@ -37,6 +37,7 @@ const OPTION_DEFAULTS = {
     showPinnedToggle: false,
     showBundleArchive: true,
     showBundleSnooze: true,
+    showBundleDelete: false,
 };
 
 const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);
@@ -63,6 +64,7 @@ const UI_OPTION_KEYS = [
     'showPinnedToggle',
     'showBundleArchive',
     'showBundleSnooze',
+    'showBundleDelete',
 ];
 
 /**

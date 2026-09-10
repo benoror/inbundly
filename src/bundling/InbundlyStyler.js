@@ -78,7 +78,7 @@ class InbundlyStyler {
     }
 
     /**
-     * For each bundle, disable the bulk actions (archive, snooze) if any
+     * For each bundle, disable the bulk actions (archive, snooze, delete) if any
      * message outside of its bundle is selected — a toolbar action would apply
      * to the whole selection.
      */
@@ -98,7 +98,7 @@ class InbundlyStyler {
             m => !bundledMessageIds.has(m.id));
 
         bundle.getBundleRow()
-            .querySelectorAll('.archive-bundle, .snooze-bundle')
+            .querySelectorAll('.archive-bundle, .snooze-bundle, .delete-bundle')
             .forEach(button =>
                 button.classList.toggle('disabled', !allSelectedMessagesInBundle));
     }

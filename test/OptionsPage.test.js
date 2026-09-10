@@ -94,6 +94,7 @@ test('the options page loads and restores stored values without throwing', () =>
     expect(document.getElementById('priority-bundles-list').value)
         .toBe('Bank\nWork + Urgent');
     expect(document.getElementById('keep-starred-unbundled-checkbox').checked).toBe(true);
+    expect(document.getElementById('show-bundle-delete-checkbox').checked).toBe(false);
 });
 
 test('the extension id is displayed, since sync depends on it matching', () => {
@@ -158,6 +159,7 @@ test('every option key has an auto-save field', () => {
         'rememberOpenBundle',
         'senderBundling',
         'showBundleArchive',
+        'showBundleDelete',
         'showBundleSnooze',
         'showPinnedToggle',
         'skipSingleItemBundles',

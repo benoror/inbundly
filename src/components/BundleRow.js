@@ -17,6 +17,7 @@
 
 import BulkArchiveButton from './BulkArchiveButton';
 import BundleCheckbox from './BundleCheckbox';
+import BundleDeleteButton from './BundleDeleteButton';
 import BundleSnoozeButton from './BundleSnoozeButton';
 
 import MessagePageUtils from '../util/MessagePageUtils';
@@ -99,6 +100,10 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     const bulkArchiveTd = DomUtils.htmlToElement(`<td class="${GmailClasses.CELL}"></td>`);
     bulkArchiveTd.appendChild(bulkArchiveButton);
 
+    const deleteButton = BundleDeleteButton.create(messages);
+    const deleteTd = DomUtils.htmlToElement(`<td class="${GmailClasses.CELL}"></td>`);
+    deleteTd.appendChild(deleteButton);
+
     const snoozeButton = BundleSnoozeButton.create(messages);
     const snoozeTd = DomUtils.htmlToElement(`<td class="${GmailClasses.CELL}"></td>`);
     snoozeTd.appendChild(snoozeButton);
@@ -144,6 +149,7 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     el.querySelector('.oZ-x3').appendChild(BundleCheckbox.create(messages));
     el.appendChild(snoozeTd);
     el.appendChild(bulkArchiveTd);
+    el.appendChild(deleteTd);
     el.appendChild(DomUtils.htmlToElement(bundleDateHtml));
     // A custom bundle has no Gmail label to search, so it gets no "View all"
     // link — an empty cell keeps the row's column layout aligned.
