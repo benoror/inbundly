@@ -70,7 +70,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         </li>
                         <li>
                             <a href="#archiving-messages">
-                                Archiving &amp; snoozing messages
+                                Archiving, snoozing &amp; deleting messages
                             </a>
                         </li>
                         <li>
@@ -224,7 +224,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section>
-                <h2 id="archiving-messages">Archiving &amp; snoozing messages</h2>
+                <h2 id="archiving-messages">Archiving, snoozing &amp; deleting messages</h2>
                 <p>
                     Messages in a bundle can be archived easily, with a single click. You can archive
                     all messages in a bundle, that are on the current page. Messages in each date section
@@ -235,7 +235,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     Gmail's own snooze menu, so the time you pick applies to the whole bundle.
                 </p>
                 <p>
-                    The archive-all and snooze buttons are on by default &mdash; turn them off under
+                    A delete-all button (off by default) selects the bundle's threads and clicks
+                    Gmail's own Delete, so the conversations move to Trash and Gmail's undo toast
+                    still applies. Inbundly does not delete outside Gmail.
+                </p>
+                <p>
+                    The archive-all and snooze buttons are on by default; delete-all is off
+                    because it is more destructive &mdash; turn each on or off under
                     <a href="#">Options &rarr; Features</a>.
                 </p>
                 <div>
@@ -396,6 +402,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         <span class="slider"></span>
                     </label>
                     <span class="switch-label">Show the snooze button on bundles &mdash; snoozes the whole bundle with Gmail's own snooze menu</span>
+                </div>
+
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="show-bundle-delete-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Show the delete-all button on bundles &mdash; moves the whole bundle to Trash via Gmail's own Delete (off by default)</span>
                 </div>
 
                 <div class="option-row">

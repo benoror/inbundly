@@ -56,6 +56,8 @@ const OPTION_FIELDS = {
         read: () => document.getElementById('show-bundle-archive-checkbox').checked },
     showBundleSnooze: { controlIds: ['show-bundle-snooze-checkbox'],
         read: () => document.getElementById('show-bundle-snooze-checkbox').checked },
+    showBundleDelete: { controlIds: ['show-bundle-delete-checkbox'],
+        read: () => document.getElementById('show-bundle-delete-checkbox').checked },
 };
 
 const OPTION_KEYS = Object.keys(OPTION_FIELDS);
@@ -134,6 +136,7 @@ function restoreOptionsForm() {
         showPinnedToggle: false,
         showBundleArchive: true,
         showBundleSnooze: true,
+        showBundleDelete: false,
     }, function(items) {
         document.getElementById('bundling-enabled-checkbox').checked = items.bundlingEnabled;
 
@@ -167,6 +170,7 @@ function restoreOptionsForm() {
         document.getElementById('show-pinned-toggle-checkbox').checked = items.showPinnedToggle;
         document.getElementById('show-bundle-archive-checkbox').checked = items.showBundleArchive;
         document.getElementById('show-bundle-snooze-checkbox').checked = items.showBundleSnooze;
+        document.getElementById('show-bundle-delete-checkbox').checked = items.showBundleDelete;
 
     });
 }
