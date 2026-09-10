@@ -61,6 +61,7 @@ const InbundlyClasses = {
     BUNDLING_DISABLED: 'bundling-disabled',
     DARK_THEME: 'dark-theme',
     HIDE_BUNDLE_ARCHIVE: 'hide-bundle-archive',
+    HIDE_BUNDLE_DELETE: 'hide-bundle-delete',
     HIDE_BUNDLE_SNOOZE: 'hide-bundle-snooze',
     HIDE_PINNED_TOGGLE: 'hide-pinned-toggle',
     MESSAGES_DARK_THEME: 'messages-dark-theme',
@@ -134,6 +135,11 @@ const Selectors = {
     TABPANELS: `${MAIN} [role="tabpanel"]`,
     TABLE_BODY: `.F tbody`,
     TOOLBAR_ARCHIVE_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[act="7"]`,
+    // Delete/Trash. act="10" is the stable code (like archive's act="7");
+    // tooltip / aria-label are English fallbacks if Gmail drops the act.
+    TOOLBAR_DELETE_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[act="10"],
+        .G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Delete"],
+        .G-atb:not([style*="none"]) .T-I.J-J5-Ji[aria-label="Delete"]`,
     // The snooze button carries no stable act code, so match its tooltip
     // (with an aria-label fallback). English-only, like the date headings.
     TOOLBAR_SNOOZE_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Snooze"],
