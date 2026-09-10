@@ -70,7 +70,7 @@ tags `v2.1.0` … `v4.3.0`.
 | 4.7 | Option `rememberOpenBundle` off → no restore | happy | unit `BundlerOptions` |
 | 4.8 | StarHandler's internal `openBundle` (scroll anchoring) must not write the store | edge | unit (by design: writes live only in `BundleToggler`) |
 
-## 5. Bundle actions (archive, snooze, select)
+## 5. Bundle actions (archive, snooze, select, delete)
 
 | # | Scenario | Kind | Coverage |
 |---|----------|------|----------|
@@ -78,11 +78,14 @@ tags `v2.1.0` … `v4.3.0`.
 | 5.2 | Partial selection shows the indeterminate icon (`aria-checked=mixed`) | edge | e2e `bundle-actions.spec` |
 | 5.3 | Archive-all: selects the bundle's rows, then clicks Gmail's toolbar archive (`act="7"`) | happy | e2e `bundle-actions.spec` · unit `GmailToolbar` |
 | 5.4 | Snooze bundle: selects rows, clicks Gmail's toolbar snooze; Gmail's own menu picks the time | happy | e2e `bundle-actions.spec` · unit `BundleSnoozeButton` · manual ✔ (menu + "2 conversations snoozed", 2026-09-09) |
-| 5.5 | Snooze/archive disabled when a message outside the bundle is selected | edge | e2e `bundle-actions.spec` · manual ✔ |
+| 5.5 | Snooze/archive/delete disabled when a message outside the bundle is selected | edge | e2e `bundle-actions.spec` · manual ✔ |
 | 5.6 | Toolbar button missing (Gmail markup change) → click is a silent no-op, no throw | edge | unit `GmailToolbar` |
 | 5.7 | Toolbar snooze selector (`data-tooltip="Snooze"` / `aria-label`) matches real Gmail — verified live 2026-09-09 | contract | manual ✔ + e2e fixture mirrors it |
 | 5.8 | Date-section archive-all still works (shares `GmailToolbar`) | happy | manual |
 | 5.9 | `showBundleArchive` / `showBundleSnooze` off → buttons hidden via `<html>` class | happy | e2e `bundle-actions.spec` (live storage flip) · unit `Options` |
+| 5.10 | Delete-all: selects the bundle's rows, then clicks Gmail's toolbar delete (`act="10"`) | happy | e2e `bundle-actions.spec` · unit `BundleDeleteButton` |
+| 5.11 | `showBundleDelete` off by default (destructive); on → button shown via live storage flip | happy | e2e `bundle-actions.spec` · unit `Options` |
+| 5.12 | Toolbar delete selector (`act="10"` / `data-tooltip="Delete"` / `aria-label`) matches the fixture contract | contract | unit `BundleDeleteButton` · e2e fixture mirrors it |
 
 ## 6. Pinning / starred
 
@@ -153,7 +156,7 @@ The fixture builds its DOM strictly from the selector contract in
 `src/util/Constants.js` (rows `tr.zA`, checkbox `.oZ-jc` in `td.oZ-x3`,
 senders `.yX.xY .yW .bA4 span[email]`, labels `.ar.as .at`, list
 `[role=main] .ae4 .Cp > div > table.F > tbody`, toolbar
-`.G-atb > .G-Ni[display:none] > [act="7"] / [data-tooltip="Snooze"]`),
+`.G-atb > .G-Ni[display:none] > [act="7"] / [act="10"] / [data-tooltip="Snooze"]`),
 verified against live Gmail on 2026-09-09. It also emulates the Gmail
 behaviors the extension depends on: clicking a row checkbox toggles
 `aria-checked` and the row's `x7` class, and reveals the toolbar's action
@@ -171,6 +174,7 @@ DOM looks like.
 3. Mutating checks must be reversed before finishing:
    - Snooze test → unsnooze from `#snoozed` (select → clock menu → Unsnooze).
    - Archive test → move back to Inbox from All Mail.
+   - Delete/trash-all test → restore from Trash.
    - Star test → unstar. Selection test → deselect.
    - Label/custom-bundle changes → restore the previous labels/membership.
 4. Chrome blocks automation on `chrome://` and `chrome-extension://` pages:

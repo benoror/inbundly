@@ -27,6 +27,7 @@ import {
 test('OPTION_KEYS covers every default', () => {
     expect(OPTION_KEYS.sort()).toEqual(Object.keys(OPTION_DEFAULTS).sort());
     expect(OPTION_DEFAULTS.keepStarredUnbundled).toBe(true);
+    expect(OPTION_DEFAULTS.showBundleDelete).toBe(false);
 });
 
 test('bundling and UI key groups partition the option keys', () => {

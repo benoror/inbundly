@@ -2,8 +2,8 @@
 // Copyright (C) 2020  Teresa Ou
 // Copyright (C) 2026  Ben Orozco
 
-// Bundle action scenarios: select-all, archive, snooze, disable rules, and a
-// live option flip (TESTING.md §5, §10.4).
+// Bundle action scenarios: select-all, archive, snooze, delete, disable
+// rules, and a live option flip (TESTING.md §5, §10.4).
 
 const { test, expect } = require('@playwright/test');
 const { inboxPage } = require('./fixture/inbox');
@@ -101,6 +101,37 @@ test('bundle archive-all clicks the toolbar archive', async () => {
     await page.close();
 });
 
+test('showBundleDelete is off by default and flips live', async () => {
+    const page = await openInbox(context);
+
+    await expect(page.locator('html')).toHaveClass(/hide-bundle-delete/);
+
+    await setSyncOptions(context, { showBundleDelete: true });
+    await expect(page.locator('html')).not.toHaveClass(/hide-bundle-delete/);
+
+    await setSyncOptions(context, { showBundleDelete: false });
+    await expect(page.locator('html')).toHaveClass(/hide-bundle-delete/);
+
+    await page.close();
+});
+
+test('bundle delete-all clicks the toolbar delete', async () => {
+    const page = await openInbox(context);
+
+    // Delete-all is off by default; enable it so the control is live.
+    await setSyncOptions(context, { showBundleDelete: true });
+    await expect(page.locator('html')).not.toHaveClass(/hide-bundle-delete/);
+
+    await workBundle(page).locator('.delete-bundle').dispatchEvent('click');
+
+    await expect(page.locator('tr.zA.x7:not(.bundle-row)')).toHaveCount(2);
+    await expect.poll(() => page.evaluate(() => window.__gmail.clicks))
+        .toContain('Delete');
+
+    await setSyncOptions(context, { showBundleDelete: false });
+    await page.close();
+});
+
 test('selecting a message outside the bundle disables its actions', async () => {
     const page = await openInbox(context);
 
@@ -109,6 +140,7 @@ test('selecting a message outside the bundle disables its actions', async () => 
     const bundle = workBundle(page);
     await expect(bundle.locator('.snooze-bundle')).toHaveClass(/disabled/);
     await expect(bundle.locator('.archive-bundle')).toHaveClass(/disabled/);
+    await expect(bundle.locator('.delete-bundle')).toHaveClass(/disabled/);
 
     // A disabled snooze must not reach the toolbar.
     await bundle.locator('.snooze-bundle').dispatchEvent('click');

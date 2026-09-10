@@ -38,6 +38,8 @@ your inbox.
   navigation for the browser session (on by default; Options → Features)
 * Snooze a whole bundle: a bundle-row button opens Gmail's own snooze
   menu for all the bundle's threads (on by default; Options → Features)
+* Delete/trash a whole bundle: a bundle-row button selects the threads
+  and clicks Gmail's own Delete (off by default; Options → Features)
 * Optionally bundle by the whole *set* of labels, so threads sharing labels
   A + B form their own bundle, colored by the first label (enable in Options)
 * Priority bundles: force chosen labels (or label sets) to always group
@@ -60,11 +62,13 @@ your inbox.
 * Optionally color bundles to match their Gmail label color — either a subtle
   background tint or just the left accent bar and text, both theme-aware
   (enable in Options)
-* Select or archive all of a bundle's messages from its row: a Gmail-style
-  select-all checkbox (Gmail's toolbar actions then apply to the selection)
-  and an archive-all button shown on hover and while the bundle is open
-* The pinned-messages toggle (hidden by default) and the archive-all button
-  (shown by default) toggle under Options → Features
+* Select, archive, snooze, or delete all of a bundle's messages from its
+  row: a Gmail-style select-all checkbox (Gmail's toolbar actions then
+  apply to the selection) plus archive-all, snooze, and delete-all buttons
+  shown on hover and while the bundle is open
+* The pinned-messages toggle and delete-all button (hidden by default)
+  and the archive-all and snooze buttons (shown by default) toggle under
+  Options → Features
 * Optional Stylus userstyle color-matching: when enabled, bundle colors are
   snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
   default)

@@ -198,7 +198,8 @@ Flow for landing a feature branch and cutting a release:
 - Cross-device sync additionally depends on the pinned extension ID; see
   **Extension identity** above.
 - **Live sync.** `content.js` listens to `chrome.storage.onChanged` for the
-  sync area. UI-only keys (`showPinnedToggle`, `showBundleArchive`) toggle CSS
+  sync area. UI-only keys (`showPinnedToggle`, `showBundleArchive`,
+  `showBundleSnooze`, `showBundleDelete`) toggle CSS
   classes on `<html>`; bundling keys call `applyOptions` on `SelectiveBundling`,
   `Bundler`, `StarHandler`, and `DateGrouper`, then refresh Gmail so the list
   rebundles. `keepStarredUnbundled` (default `true`) is a bundling key: when on,
@@ -240,6 +241,15 @@ Flow for landing a feature branch and cutting a release:
   ("Snooze" — English-only), since the button has no stable `act` code.
   `InbundlyStyler` disables snooze together with archive when a message
   outside the bundle is selected. UI key: `showBundleSnooze` (default on).
+- **Bundle delete/trash-all.** `components/BundleDeleteButton.js` drives
+  Gmail's own toolbar Delete via the same `util/GmailToolbar.js` path:
+  select the bundle's rows, wait for the toolbar, click. Gmail moves the
+  threads to Trash (undo toast included). `Selectors.TOOLBAR_DELETE_BUTTON`
+  matches `act="10"` (stable, like archive's `act="7"`) with English
+  tooltip / `aria-label` fallbacks. `InbundlyStyler` disables delete with
+  the other bulk actions when a message outside the bundle is selected.
+  UI key: `showBundleDelete` (default **off** — more destructive than
+  archive; no Inbundly-side confirm).
 - **Sender bundles.** When `senderBundling` is on (default), a message with no
   labels falls back to a bundle keyed by its most recent sender
   (`DomUtils.getLatestSenderEmail`): the domain, or the full address on
