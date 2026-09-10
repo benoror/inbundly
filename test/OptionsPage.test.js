@@ -155,7 +155,10 @@ test('every option key has an auto-save field', () => {
         'labels',
         'matchStylusCatppuccin',
         'priorityBundles',
+        'rememberOpenBundle',
+        'senderBundling',
         'showBundleArchive',
+        'showBundleSnooze',
         'showPinnedToggle',
         'skipSingleItemBundles',
     ]);

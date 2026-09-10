@@ -17,11 +17,13 @@
 
 import BulkArchiveButton from './BulkArchiveButton';
 import BundleCheckbox from './BundleCheckbox';
+import BundleSnoozeButton from './BundleSnoozeButton';
 
 import MessagePageUtils from '../util/MessagePageUtils';
 import DomUtils from '../util/DomUtils';
 import { formatLabelSetTitle } from '../util/LabelSet';
 import { isCustomBundleKey, customBundleName } from '../util/CustomBundleKey';
+import { isSenderBundleKey, senderBundleName } from '../util/SenderBundleKey';
 import {
     GmailClasses,
     InbundlyClasses,
@@ -40,13 +42,19 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
         : messages.length;
     const unreadClass = hasUnread ? GmailClasses.UNREAD : GmailClasses.READ;
 
-    // A custom bundle's key carries the user's chosen name; show it verbatim.
+    // A custom bundle's key carries the user's chosen name, and a sender
+    // bundle's key the domain/address it groups by; show those verbatim.
     // Otherwise a combined-label bundle's key is several labels joined; present
     // them compactly (factoring any shared parent path). Single-label keys split
     // to themselves (no separator present).
     const isCustom = isCustomBundleKey(label);
+    const isSender = isSenderBundleKey(label);
     const labels = label.split(LABEL_SET_SEPARATOR);
-    const displayLabel = isCustom ? customBundleName(label) : formatLabelSetTitle(labels);
+    const displayLabel = isCustom
+        ? customBundleName(label)
+        : isSender
+            ? senderBundleName(label)
+            : formatLabelSetTitle(labels);
 
     let spacerClass = '';
     if (document.querySelector(Selectors.IMPORTANCE_MARKER)) {
@@ -91,13 +99,23 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     const bulkArchiveTd = DomUtils.htmlToElement(`<td class="${GmailClasses.CELL}"></td>`);
     bulkArchiveTd.appendChild(bulkArchiveButton);
 
-    const labelQuery = labels
-        .map(l => 'label%3A' + l
-            .split(' ').join('-')
-            .split('/').join('%2F')
-            .split('&').join('-'))
-        .join('+');
-    const url = `${baseUrl}#search/label%3AInbox+${labelQuery}`;
+    const snoozeButton = BundleSnoozeButton.create(messages);
+    const snoozeTd = DomUtils.htmlToElement(`<td class="${GmailClasses.CELL}"></td>`);
+    snoozeTd.appendChild(snoozeButton);
+
+    // A sender bundle searches by sender instead of label: the whole domain,
+    // or the exact address for a freemail sender (the id contains an '@').
+    const senderId = senderBundleName(label);
+    const searchQuery = isSender
+        ? 'from%3A' + encodeURIComponent(
+            senderId.includes('@') ? senderId : '@' + senderId)
+        : labels
+            .map(l => 'label%3A' + l
+                .split(' ').join('-')
+                .split('/').join('%2F')
+                .split('&').join('-'))
+            .join('+');
+    const url = `${baseUrl}#search/label%3AInbox+${searchQuery}`;
     const viewAllButtonHtml = `
         <td class="${GmailClasses.CELL}">
             <a 
@@ -124,6 +142,7 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     // the select-all checkbox lines up with the per-message checkboxes when the
     // bundle is open.
     el.querySelector('.oZ-x3').appendChild(BundleCheckbox.create(messages));
+    el.appendChild(snoozeTd);
     el.appendChild(bulkArchiveTd);
     el.appendChild(DomUtils.htmlToElement(bundleDateHtml));
     // A custom bundle has no Gmail label to search, so it gets no "View all"

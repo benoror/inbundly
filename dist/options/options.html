@@ -70,7 +70,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         </li>
                         <li>
                             <a href="#archiving-messages">
-                                Archiving messages
+                                Archiving &amp; snoozing messages
                             </a>
                         </li>
                         <li>
@@ -173,8 +173,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         both. Rules are checked top to bottom; the first match wins.
                     </li>
                     <li>
+                        <b>Sender bundles.</b> Unlabeled messages that share a sender bundle
+                        together &mdash; by domain (<code>acme.com</code>), or by the exact
+                        address on personal-mail domains like gmail.com. Labels, priority
+                        rules, and custom bundles always win, and a sender bundle only forms
+                        from 2+ threads (on by default).
+                    </li>
+                    <li>
                         <b>Single-item bundles.</b> Labels with only one thread are shown as regular
                         messages instead of a one-row bundle (on by default).
+                    </li>
+                    <li>
+                        <b>Remember the open bundle.</b> The bundle you have open reopens after
+                        reloads, refreshes, and page navigation, for the browser session
+                        (on by default).
                     </li>
                     <li>
                         <b>Bundle colors.</b> Tint each bundle to match its Gmail label color, either
@@ -212,14 +224,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section>
-                <h2 id="archiving-messages">Archiving messages</h2>
+                <h2 id="archiving-messages">Archiving &amp; snoozing messages</h2>
                 <p>
                     Messages in a bundle can be archived easily, with a single click. You can archive
                     all messages in a bundle, that are on the current page. Messages in each date section
                     can also be archived in the same way.
                 </p>
                 <p>
-                    The archive-all button is on by default &mdash; turn it off under
+                    Bundles also have a snooze button: it selects the bundle's threads and opens
+                    Gmail's own snooze menu, so the time you pick applies to the whole bundle.
+                </p>
+                <p>
+                    The archive-all and snooze buttons are on by default &mdash; turn them off under
                     <a href="#">Options &rarr; Features</a>.
                 </p>
                 <div>
@@ -303,6 +319,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
                 <textarea id="label-list" rows="16"></textarea>
 
+                <h3 class="subsection-header">Sender bundles</h3>
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="sender-bundling-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Bundle unlabeled messages that share a sender &mdash; by domain, or by the exact address for personal-mail domains like gmail.com (needs 2+ threads; labels always win)</span>
+                </div>
+
                 <h3 class="subsection-header">Date grouping</h3>
                 <div class="option-row">
                     <label class="switch">
@@ -363,6 +388,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         <span class="slider"></span>
                     </label>
                     <span class="switch-label">Show the archive-all button on bundles and date sections</span>
+                </div>
+
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="show-bundle-snooze-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Show the snooze button on bundles &mdash; snoozes the whole bundle with Gmail's own snooze menu</span>
+                </div>
+
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="remember-open-bundle-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Remember the open bundle &mdash; reopen it after reloads, refreshes, and page navigation</span>
                 </div>
             </section>
 

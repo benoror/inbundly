@@ -40,7 +40,9 @@ import {
     SECTION_ATTR,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
+import OpenBundleStore from '../util/OpenBundleStore';
 import { isCustomBundleKey } from '../util/CustomBundleKey';
+import { isSenderBundleKey } from '../util/SenderBundleKey';
 import { detectThemeFlavor, flavorBase, snapToAccent, isNeutral } from '../util/ThemePalette';
 
 /**
@@ -62,6 +64,7 @@ class Bundler {
         this.matchStylusCatppuccin = false;
         this.skipSingleItemBundles = true;
         this.keepStarredUnbundled = true;
+        this.rememberOpenBundle = true;
         // Wait for this before the first bundle pass — otherwise the defaults
         // above win a race against chrome.storage.sync and starred messages
         // stay unbundled even when keepStarredUnbundled is stored as false.
@@ -74,6 +77,7 @@ class Bundler {
                     matchStylusCatppuccin: false,
                     skipSingleItemBundles: true,
                     keepStarredUnbundled: true,
+                    rememberOpenBundle: true,
                 },
                 options => {
                     this.applyOptions(options);
@@ -106,6 +110,9 @@ class Bundler {
         }
         if ('keepStarredUnbundled' in options) {
             this.keepStarredUnbundled = !!options.keepStarredUnbundled;
+        }
+        if ('rememberOpenBundle' in options) {
+            this.rememberOpenBundle = !!options.rememberOpenBundle;
         }
 
         const html = document.querySelector('html');
@@ -202,6 +209,7 @@ class Bundler {
         }
         else {
             bundledMail.closeBundle();
+            this._restoreRememberedBundle();
         }
 
         this.messageListWatcher.observe();
@@ -213,6 +221,25 @@ class Bundler {
             numBundles,
             redrew,
         };
+    }
+
+    /**
+     * Reopen the bundle the user last opened (remembered per page/tab by
+     * OpenBundleStore), for passes where the in-memory ref is gone: the first
+     * paint after a tab reload, and "fresh page" rebundles like an Inbox-tab
+     * click, page navigation, or a refresh. No frozen order — the restored
+     * bundle sits wherever its newest message places it.
+     */
+    _restoreRememberedBundle() {
+        if (!this.rememberOpenBundle) {
+            return;
+        }
+        const stored = OpenBundleStore.load();
+        if (stored &&
+            this.bundledMail.getBundleInSection(stored.sectionId, stored.label))
+        {
+            this.bundleToggler.openBundle(stored.sectionId, stored.label);
+        }
     }
 
     /**
@@ -279,9 +306,7 @@ class Bundler {
 
         const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
 
-        if (this.skipSingleItemBundles) {
-            this._pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle);
-        }
+        this._pruneSmallBundles(bundlesByLabel, sectionId, reopenRecentBundle);
 
         const sortedTableRows =
             this._calculateSortedTableRows(messageNodes, bundlesByLabel, groupByDate);
@@ -332,14 +357,16 @@ class Bundler {
     }
 
     /**
-     * Drop single-message bundles from `bundlesByLabel` in place, with two
-     * exemptions:
+     * Drop single-message bundles from `bundlesByLabel` in place. Sender
+     * bundles always need 2+ threads — one thread from a sender is just a
+     * message, not a group. Label bundles are pruned only when the
+     * skipSingleItemBundles option is on. Two exemptions:
      *  - custom bundles (explicit user intent), and
      *  - the currently-open bundle in this section while a reopen is in effect,
      *    so acting on its threads (archive/delete/snooze) doesn't make it vanish
      *    mid-workflow — it survives at one message until emptied or collapsed.
      */
-    _pruneSingleItemBundles(bundlesByLabel, sectionId, reopenRecentBundle) {
+    _pruneSmallBundles(bundlesByLabel, sectionId, reopenRecentBundle) {
         const openRef = reopenRecentBundle
             ? this.bundledMail.getOpenedBundleRef()
             : null;
@@ -347,8 +374,10 @@ class Bundler {
             const isOpenBundle = openRef &&
                 openRef.sectionId === sectionId &&
                 openRef.label === label;
+            const prunable = isSenderBundleKey(label) ||
+                (this.skipSingleItemBundles && !isCustomBundleKey(label));
             if (bundlesByLabel[label].getMessages().length === 1 &&
-                !isCustomBundleKey(label) &&
+                prunable &&
                 !isOpenBundle) {
                 delete bundlesByLabel[label];
             }
@@ -464,8 +493,12 @@ class Bundler {
     _drawBundleBox(tableBody) {
         const bundleBox = DomUtils.htmlToElement('<div class="bundle-area"></div>'); 
         bundleBox.addEventListener(
-            'click', 
-            () => this.bundleToggler.closeAllBundles());
+            'click',
+            () => {
+                // A user close — forget the remembered bundle too.
+                OpenBundleStore.clear();
+                this.bundleToggler.closeAllBundles();
+            });
         tableBody.appendChild(bundleBox);
     }
 
@@ -598,6 +631,8 @@ class Bundler {
         messageList.addEventListener('click', e => {
             // #63 - e.target may have been removed before event propagates to messageList
             if (document.body.contains(e.target) && !e.target.closest('tr')) {
+                // A user close — forget the remembered bundle too.
+                OpenBundleStore.clear();
                 this.bundleToggler.closeAllBundles();
             }
         });

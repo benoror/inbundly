@@ -23,28 +23,30 @@ import {
 } from '../util/Constants';
 
 /**
- * Create bulk archive button for archiving the given messages, which should be in the same bundle.
+ * Create a snooze button for the given messages, which should be in the same
+ * bundle. Clicking it selects the messages and clicks Gmail's own toolbar
+ * snooze button, so Gmail's snooze menu opens for the whole bundle.
  */
 function create(messages) {
     const html = `
-        <span class="archive-bundle ${GmailClasses.ARCHIVE_BUTTON}">
+        <span class="snooze-bundle ${GmailClasses.ARCHIVE_BUTTON}">
         </span>
     `;
 
-    const archiveSpan = DomUtils.htmlToElement(html);
-    archiveSpan.addEventListener('click', e =>  {
-        if (archiveSpan.classList.contains('disabled')) {
+    const snoozeSpan = DomUtils.htmlToElement(html);
+    snoozeSpan.addEventListener('click', e => {
+        if (snoozeSpan.classList.contains('disabled')) {
             e.stopPropagation();
             return;
         }
 
         GmailToolbar.triggerToolbarAction(
-            Selectors.TOOLBAR_ARCHIVE_BUTTON,
+            Selectors.TOOLBAR_SNOOZE_BUTTON,
             () => GmailToolbar.selectMessages(messages));
         e.stopPropagation();
     });
 
-    return archiveSpan;
+    return snoozeSpan;
 }
 
 export default { create };

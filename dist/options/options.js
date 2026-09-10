@@ -38,8 +38,12 @@ const OPTION_FIELDS = {
         read: () => document.getElementById('keep-starred-unbundled-checkbox').checked },
     priorityBundles: { controlIds: ['priority-bundles-list'], list: true,
         read: () => splitLines(document.getElementById('priority-bundles-list').value) },
+    senderBundling: { controlIds: ['sender-bundling-checkbox'],
+        read: () => document.getElementById('sender-bundling-checkbox').checked },
     skipSingleItemBundles: { controlIds: ['skip-single-item-bundles-checkbox'],
         read: () => document.getElementById('skip-single-item-bundles-checkbox').checked },
+    rememberOpenBundle: { controlIds: ['remember-open-bundle-checkbox'],
+        read: () => document.getElementById('remember-open-bundle-checkbox').checked },
     colorBundlesByLabel: { controlIds: ['color-bundles-checkbox'],
         read: () => document.getElementById('color-bundles-checkbox').checked },
     bundleColorStyle: { controlIds: ['color-style-background', 'color-style-accent'],
@@ -50,6 +54,8 @@ const OPTION_FIELDS = {
         read: () => document.getElementById('show-pinned-toggle-checkbox').checked },
     showBundleArchive: { controlIds: ['show-bundle-archive-checkbox'],
         read: () => document.getElementById('show-bundle-archive-checkbox').checked },
+    showBundleSnooze: { controlIds: ['show-bundle-snooze-checkbox'],
+        read: () => document.getElementById('show-bundle-snooze-checkbox').checked },
 };
 
 const OPTION_KEYS = Object.keys(OPTION_FIELDS);
@@ -119,12 +125,15 @@ function restoreOptionsForm() {
         combineLabels: true,
         keepStarredUnbundled: true,
         priorityBundles: [],
+        senderBundling: true,
         skipSingleItemBundles: true,
+        rememberOpenBundle: true,
         colorBundlesByLabel: true,
         bundleColorStyle: 'background',
         matchStylusCatppuccin: false,
         showPinnedToggle: false,
         showBundleArchive: true,
+        showBundleSnooze: true,
     }, function(items) {
         document.getElementById('bundling-enabled-checkbox').checked = items.bundlingEnabled;
 
@@ -144,7 +153,9 @@ function restoreOptionsForm() {
         const priorityList = document.getElementById('priority-bundles-list');
         priorityList.value = items.priorityBundles.join('\n');
         priorityList.placeholder = PRIORITY_PLACEHOLDER;
+        document.getElementById('sender-bundling-checkbox').checked = items.senderBundling;
         document.getElementById('skip-single-item-bundles-checkbox').checked = items.skipSingleItemBundles;
+        document.getElementById('remember-open-bundle-checkbox').checked = items.rememberOpenBundle;
         document.getElementById('color-bundles-checkbox').checked = items.colorBundlesByLabel;
 
         const styleId = items.bundleColorStyle === 'accent'
@@ -155,6 +166,7 @@ function restoreOptionsForm() {
         document.getElementById('catppuccin-matching-checkbox').checked = items.matchStylusCatppuccin;
         document.getElementById('show-pinned-toggle-checkbox').checked = items.showPinnedToggle;
         document.getElementById('show-bundle-archive-checkbox').checked = items.showBundleArchive;
+        document.getElementById('show-bundle-snooze-checkbox').checked = items.showBundleSnooze;
 
     });
 }

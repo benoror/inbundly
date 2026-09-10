@@ -31,6 +31,13 @@ your inbox.
 ## Features
 
 * Messages with the same label are bundled together in your inbox
+* Unlabeled messages that share a sender bundle by domain (or by exact
+  address for personal-mail domains) — labels always win, and a sender
+  bundle needs 2+ threads (on by default; Options → Bundle setup)
+* The open bundle is remembered across reloads, refreshes, and page
+  navigation for the browser session (on by default; Options → Features)
+* Snooze a whole bundle: a bundle-row button opens Gmail's own snooze
+  menu for all the bundle's threads (on by default; Options → Features)
 * Optionally bundle by the whole *set* of labels, so threads sharing labels
   A + B form their own bundle, colored by the first label (enable in Options)
 * Priority bundles: force chosen labels (or label sets) to always group
@@ -86,6 +93,20 @@ npm run watch
 ```
 
 The `dist` directory can then be loaded as an [unpacked extension](https://developer.chrome.com/extensions/getstarted).
+
+### Testing
+
+```bash
+# Unit tests (Jest)
+npm test
+
+# End-to-end tests: the built extension against a Gmail-shaped fixture
+# (one-time setup: npx playwright install chromium)
+npm run test:e2e
+```
+
+[TESTING.md](TESTING.md) holds the full feature testing matrix. CI runs both
+suites on every push and PR.
 
 ### Syncing settings between computers
 

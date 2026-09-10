@@ -81,11 +81,17 @@ if (html) {
     logDebugMessage('Applying styles');
     html.classList.add(InbundlyClasses.INBUNDLY);
 
-    // The pinned-messages toggle is hidden by default; the bulk-archive button
-    // is shown by default. Both toggle from the options page and sync across
-    // devices. Keep these fallbacks equal to OPTION_DEFAULTS in util/Options.js.
+    // The pinned-messages toggle is hidden by default; the bulk-archive and
+    // snooze buttons are shown by default. All toggle from the options page and
+    // sync across devices. Keep these fallbacks equal to OPTION_DEFAULTS in
+    // util/Options.js.
     chrome.storage.sync.get(
-        { showPinnedToggle: false, showBundleArchive: true, bundlingEnabled: true },
+        {
+            showPinnedToggle: false,
+            showBundleArchive: true,
+            showBundleSnooze: true,
+            bundlingEnabled: true,
+        },
         options => {
             applyUiOptions(options);
             applyBundlingEnabled(options.bundlingEnabled);
@@ -98,9 +104,10 @@ else {
 }
 
 /**
- * Toggle injected UI chrome from showPinnedToggle / showBundleArchive options.
+ * Toggle injected UI chrome from the showPinnedToggle / showBundleArchive /
+ * showBundleSnooze options.
  */
-function applyUiOptions({ showPinnedToggle, showBundleArchive } = {}) {
+function applyUiOptions({ showPinnedToggle, showBundleArchive, showBundleSnooze } = {}) {
     const htmlEl = document.querySelector('html');
     if (!htmlEl) {
         return;
@@ -110,6 +117,9 @@ function applyUiOptions({ showPinnedToggle, showBundleArchive } = {}) {
     }
     if (showBundleArchive !== undefined) {
         htmlEl.classList.toggle(InbundlyClasses.HIDE_BUNDLE_ARCHIVE, !showBundleArchive);
+    }
+    if (showBundleSnooze !== undefined) {
+        htmlEl.classList.toggle(InbundlyClasses.HIDE_BUNDLE_SNOOZE, !showBundleSnooze);
     }
 }
 

@@ -61,6 +61,7 @@ const InbundlyClasses = {
     BUNDLING_DISABLED: 'bundling-disabled',
     DARK_THEME: 'dark-theme',
     HIDE_BUNDLE_ARCHIVE: 'hide-bundle-archive',
+    HIDE_BUNDLE_SNOOZE: 'hide-bundle-snooze',
     HIDE_PINNED_TOGGLE: 'hide-pinned-toggle',
     MESSAGES_DARK_THEME: 'messages-dark-theme',
     MESSAGES_DEFAULT_THEME: 'messages-default-theme',
@@ -133,6 +134,10 @@ const Selectors = {
     TABPANELS: `${MAIN} [role="tabpanel"]`,
     TABLE_BODY: `.F tbody`,
     TOOLBAR_ARCHIVE_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[act="7"]`,
+    // The snooze button carries no stable act code, so match its tooltip
+    // (with an aria-label fallback). English-only, like the date headings.
+    TOOLBAR_SNOOZE_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Snooze"],
+        .G-atb:not([style*="none"]) .T-I.J-J5-Ji[aria-label="Snooze"]`,
     UNSTARRED: `.T-KT.aXw`,
 };
 

@@ -28,12 +28,15 @@ const OPTION_DEFAULTS = {
     combineLabels: true,
     keepStarredUnbundled: true,
     priorityBundles: [],
+    senderBundling: true,
     skipSingleItemBundles: true,
+    rememberOpenBundle: true,
     colorBundlesByLabel: true,
     bundleColorStyle: 'background',
     matchStylusCatppuccin: false,
     showPinnedToggle: false,
     showBundleArchive: true,
+    showBundleSnooze: true,
 };
 
 const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);
@@ -46,8 +49,10 @@ const BUNDLING_OPTION_KEYS = [
     'combineLabels',
     'keepStarredUnbundled',
     'priorityBundles',
+    'senderBundling',
     'groupMessagesByDate',
     'skipSingleItemBundles',
+    'rememberOpenBundle',
     'colorBundlesByLabel',
     'bundleColorStyle',
     'matchStylusCatppuccin',
@@ -57,6 +62,7 @@ const BUNDLING_OPTION_KEYS = [
 const UI_OPTION_KEYS = [
     'showPinnedToggle',
     'showBundleArchive',
+    'showBundleSnooze',
 ];
 
 /**

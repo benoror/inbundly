@@ -70,6 +70,45 @@ test('getThreadId - returns null when the row has no thread id', () => {
 });
 
 //
+// getSenderEmails / getLatestSenderEmail
+//
+
+function messageWithSenders(emails) {
+    const message = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.className = 'yX xY';
+    const yW = document.createElement('div');
+    yW.className = 'yW';
+    const bA4 = document.createElement('span');
+    bA4.className = 'bA4';
+    emails.forEach(email => {
+        const span = document.createElement('span');
+        if (email) {
+            span.setAttribute('email', email);
+        }
+        bA4.appendChild(span);
+    });
+    yW.appendChild(bA4);
+    cell.appendChild(yW);
+    message.appendChild(cell);
+    return message;
+}
+
+test('getSenderEmails - reads every sender address in DOM order', () => {
+    const message = messageWithSenders(['old@acme.com', 'new@acme.com']);
+    expect(DomUtils.getSenderEmails(message)).toEqual(['old@acme.com', 'new@acme.com']);
+});
+
+test('getLatestSenderEmail - picks the most recent sender', () => {
+    const message = messageWithSenders(['old@acme.com', 'new@other.com']);
+    expect(DomUtils.getLatestSenderEmail(message)).toBe('new@other.com');
+});
+
+test('getLatestSenderEmail - returns null when no address is exposed', () => {
+    expect(DomUtils.getLatestSenderEmail(document.createElement('tr'))).toBeNull();
+});
+
+//
 // getLabelStrings / getLabelName
 //
 

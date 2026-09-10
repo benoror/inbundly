@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "test": "jest",
+    "test:e2e": "playwright test",
     "build": "webpack",
     "watch": "webpack --watch",
     "package": "node scripts/package.mjs",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@babel/core": "^7.18.9",
     "@babel/plugin-transform-modules-commonjs": "^7.9.6",
+    "@playwright/test": "^1.48.0",
     "jest": "^26.0.1",
     "opentype.js": "^2.0.0",
     "sharp": "^0.35.3",
@@ -44,7 +46,8 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/.claude/"
+      "/.claude/",
+      "/e2e/"
     ]
   }
 }

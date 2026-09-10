@@ -288,9 +288,10 @@ html.inbundly .bundle-row .flex-grow {
 }
 
 /*
- * Optional features, hidden by default and enabled from the options page:
- * the pinned-messages toggle and the bulk-archive button (on both bundle rows
- * and date dividers). !important overrides the hover/visible reveal rules.
+ * Optional features, toggled from the options page: the pinned-messages
+ * toggle (hidden by default), the bulk-archive button (on both bundle rows
+ * and date dividers), and the bundle snooze button (both shown by default).
+ * !important overrides the hover/visible reveal rules.
  */
 html.inbundly.hide-pinned-toggle .pinned-toggle {
     display: none !important;
@@ -298,13 +299,26 @@ html.inbundly.hide-pinned-toggle .pinned-toggle {
 html.inbundly.hide-bundle-archive .archive-bundle {
     display: none !important;
 }
+html.inbundly.hide-bundle-snooze .snooze-bundle {
+    display: none !important;
+}
 
-html.inbundly .bundle-row .archive-bundle {
-    background-image: url('chrome-extension://__MSG_@@extension_id__/assets/check-all.svg');
+html.inbundly .bundle-row .archive-bundle,
+html.inbundly .bundle-row .snooze-bundle {
     background-size: 24px;
     display: none;
     height: 20px;
     width: 24px;
+}
+
+html.inbundly .bundle-row .archive-bundle {
+    background-image: url('chrome-extension://__MSG_@@extension_id__/assets/check-all.svg');
+}
+
+html.inbundly .bundle-row .snooze-bundle {
+    background-image: url('chrome-extension://__MSG_@@extension_id__/assets/snooze.svg');
+    /* Keep the snooze and archive hover circles apart in both row states. */
+    margin-right: 16px;
 }
 
 html.inbundly .bundle-row:not(.visible) .archive-bundle {
@@ -312,17 +326,20 @@ html.inbundly .bundle-row:not(.visible) .archive-bundle {
 }
 
 /** Adjust size of circle on hover */
-html.inbundly .bundle-row .archive-bundle:before {
+html.inbundly .bundle-row .archive-bundle:before,
+html.inbundly .bundle-row .snooze-bundle:before {
     left: -8px;
     right: -8px;
 }
-html.inbundly.compact .bundle-row .archive-bundle:before {
+html.inbundly.compact .bundle-row .archive-bundle:before,
+html.inbundly.compact .bundle-row .snooze-bundle:before {
     left: -2px;
     right: -2px;
 }
 
 /** Show on hover */
-html.inbundly .bundle-row:hover .archive-bundle {
+html.inbundly .bundle-row:hover .archive-bundle,
+html.inbundly .bundle-row:hover .snooze-bundle {
     display: block;
 }
 
@@ -332,7 +349,14 @@ html.inbundly.messages-dark-theme .bundle-row:not(.visible) .archive-bundle {
     opacity: 0.7;
 }
 
-html.inbundly.dark-theme .bundle-row.visible .archive-bundle:before {
+html.inbundly.messages-dark-theme .bundle-row.visible .snooze-bundle,
+html.inbundly.messages-dark-theme .bundle-row:not(.visible) .snooze-bundle {
+    background-image: url('chrome-extension://__MSG_@@extension_id__/assets/light-snooze.svg');
+    opacity: 0.7;
+}
+
+html.inbundly.dark-theme .bundle-row.visible .archive-bundle:before,
+html.inbundly.dark-theme .bundle-row.visible .snooze-bundle:before {
     background-color: rgb(255, 255, 255, 0.2);
 }
 
@@ -341,22 +365,34 @@ html.inbundly.dark-theme .bundle-row.visible .archive-bundle:before {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/check-all.svg');
     }
 
+    html.inbundly .bundle-row .snooze-bundle {
+        background-image: url('moz-extension://__MSG_@@extension_id__/assets/snooze.svg');
+    }
+
     html.inbundly.dark-theme .bundle-row.visible .archive-bundle,
     html.inbundly.messages-dark-theme .bundle-row:not(.visible) .archive-bundle {
         background-image: url('moz-extension://__MSG_@@extension_id__/assets/light-check-all.svg');
     }
+
+    html.inbundly.dark-theme .bundle-row.visible .snooze-bundle,
+    html.inbundly.messages-dark-theme .bundle-row:not(.visible) .snooze-bundle {
+        background-image: url('moz-extension://__MSG_@@extension_id__/assets/light-snooze.svg');
+    }
 }
 
-html.inbundly .bundle-row.visible .archive-bundle {
+html.inbundly .bundle-row.visible .archive-bundle,
+html.inbundly .bundle-row.visible .snooze-bundle {
     display: block;
 }
 
-html.inbundly .bundle-row .archive-bundle.disabled {
+html.inbundly .bundle-row .archive-bundle.disabled,
+html.inbundly .bundle-row .snooze-bundle.disabled {
     cursor: default;
     opacity: .15;
 }
 
-html.inbundly .bundle-row .archive-bundle.disabled::before {
+html.inbundly .bundle-row .archive-bundle.disabled::before,
+html.inbundly .bundle-row .snooze-bundle.disabled::before {
     display: none;
 }
 
