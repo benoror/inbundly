@@ -10,6 +10,8 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-09-10
+
 ### Added
 - **The open bundle is remembered.** Reload the tab, refresh, click the Inbox tab, or
   change pages — the bundle you had open reopens (per page and tab, for the browser
