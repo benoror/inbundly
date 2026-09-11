@@ -100,6 +100,8 @@ header.site {
 .hero p.lead { font-size: 1.18rem; color: var(--muted); margin: 0 0 28px; max-width: 34ch; }
 .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
 .cta-note { font-size: 13px; color: var(--muted); margin-top: 14px; }
+.ph-badge { margin: 18px 0 0; }
+.ph-badge img { display: block; }
 
 /* Hero visual */
 .hero-card {
