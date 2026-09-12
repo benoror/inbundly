@@ -538,7 +538,7 @@ const FEATURES = {
                 await page.waitForSelector('.bundle-row.visible', { timeout: 10000 });
             },
             checks: [
-                eq('the open bundle after reload is Work', text(() => page.locator('.bundle-row.visible .bundle-and-count')), 'Work (2)'),
+                eq('the open bundle after reload is Work (count hides while open)', text(() => page.locator('.bundle-row.visible .bundle-and-count')), 'Work'),
                 eq('two Work threads visible again', visibleBundledMessages(P), 2),
             ],
             shots,

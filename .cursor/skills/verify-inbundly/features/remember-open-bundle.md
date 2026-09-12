@@ -41,7 +41,7 @@ Preconditions:
 - **Open Work.** `await page.locator('.bundle-row', { hasText: 'Work' }).click()`.
   `.bundled-message.visible` count is `2` and `JSON.parse(await store()).label` is `Work`.
 - **Reload restores.** `await page.reload(); await page.waitForSelector('.bundle-row.visible')`.
-  `.bundle-row.visible .bundle-and-count` reads `Work (2)` and `.bundled-message.visible`
+  `.bundle-row.visible .bundle-and-count` has inner text `Work` and `.bundled-message.visible`
   count is `2`.
 - **Collapse forgets.** Click the Work row again. `.bundled-message.visible` is `0` and
   `store()` is `null`.
@@ -55,6 +55,9 @@ Preconditions:
   `walk.md` records the store value at each step.
 
 ## Gotchas
+
+- The `(N)` count is hidden while a bundle is open, so the open row's inner text is `Work`,
+  not `Work (2)`; use `textContent` if you need the count regardless of state.
 
 - The store is `sessionStorage`, so it is per tab and per browser session: a new
   `context.newPage()` starts empty even in the same profile. Reload the same page to test
