@@ -22,6 +22,20 @@ EXPECTED_EXTENSION_ID="cpggdbckpaoikhddngoeepdedfkleiab"
 
 FEATURES="core-bundling bundle-actions sender-bundles remember-open-bundle options-autosave"
 
+# Run a command, mirror its output to the terminal and a log file (dropping
+# Node's NO_COLOR/FORCE_COLOR warning noise), and return the command's own
+# exit status rather than tee's.
+run_logged() {
+    local logfile="$1"
+    shift
+    local status
+    set +e
+    "$@" 2>&1 | grep -v -e NO_COLOR -e trace-warnings | tee "$logfile"
+    status="${PIPESTATUS[0]}"
+    set -e
+    return "$status"
+}
+
 log()  { printf '%s\n' "$*"; }
 ok()   { printf 'ok    %s\n' "$*"; }
 fail() { printf 'FAIL  %s\n' "$*"; }
@@ -139,7 +153,7 @@ cmd_doctor() {
     fi
 
     log "probe: loading the built extension against a 2-thread fixture"
-    if TMPDIR="$SCRATCH_DIR" node "$SKILL_DIR/scripts/drive.js" doctor 2>&1 | grep -v -e NO_COLOR -e trace-warnings | tee "$EVIDENCE_DIR/doctor.log" | sed 's/^/      /'; [ "${PIPESTATUS[0]}" -eq 0 ]; then
+    if TMPDIR="$SCRATCH_DIR" run_logged "$EVIDENCE_DIR/doctor.log" node "$SKILL_DIR/scripts/drive.js" doctor; then
         ok "doctor: extension $EXPECTED_EXTENSION_ID loads and bundles; worth driving"
     else
         fail "doctor: the extension did not load or bundle (see $EVIDENCE_DIR/doctor.log)"
@@ -160,7 +174,7 @@ cmd_drive() {
     log "evidence: $out"
 
     log "walk: node scripts/drive.js $feature"
-    if ! TMPDIR="$SCRATCH_DIR" node "$SKILL_DIR/scripts/drive.js" "$feature" --evidence "$out" 2>&1 | grep -v -e NO_COLOR -e trace-warnings | tee "$out/walk.log"; [ "${PIPESTATUS[0]}" -eq 0 ]; then
+    if ! TMPDIR="$SCRATCH_DIR" run_logged "$out/walk.log" node "$SKILL_DIR/scripts/drive.js" "$feature" --evidence "$out"; then
         result=FAIL
     fi
 
@@ -169,7 +183,7 @@ cmd_drive() {
     log "spec: npx playwright test $spec${grep_expr:+ -g \"$grep_expr\"}"
     local -a pw=(npx playwright test "$spec" --reporter=list,json)
     if [ -n "$grep_expr" ]; then pw+=(-g "$grep_expr"); fi
-    if ! TMPDIR="$SCRATCH_DIR" PLAYWRIGHT_JSON_OUTPUT_FILE="$out/playwright.json" "${pw[@]}" 2>&1 | grep -v -e NO_COLOR -e trace-warnings | tee "$out/playwright.log"; [ "${PIPESTATUS[0]}" -eq 0 ]; then
+    if ! TMPDIR="$SCRATCH_DIR" PLAYWRIGHT_JSON_OUTPUT_FILE="$out/playwright.json" run_logged "$out/playwright.log" "${pw[@]}"; then
         result=FAIL
     fi
 
@@ -178,7 +192,7 @@ cmd_drive() {
     if [ -n "$jest_files" ]; then
         log "unit: npx jest $jest_files"
         # shellcheck disable=SC2086
-        if ! npx jest $jest_files 2>&1 | tee "$out/jest.log"; [ "${PIPESTATUS[0]}" -eq 0 ]; then
+        if ! run_logged "$out/jest.log" npx jest $jest_files; then
             result=FAIL
         fi
     fi

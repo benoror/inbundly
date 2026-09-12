@@ -95,7 +95,9 @@ Everything lands in `.cursor/skills/verify-inbundly/evidence/<RUN_ID>/` (gitigno
 its `.gitignore`), one subdirectory per driven feature:
 
 - `NN-<step>-<page>.png` and `NN-<step>-<page>.aria.txt`: state after each user action
-  (the action and the resulting state, not just the final screen).
+  (the action and the resulting state, not just the final screen). The fixture ships no
+  Gmail stylesheet, so screenshots are layout-rough (overlapping cells are normal); the
+  ARIA snapshot and `walk.md` are the precise record, the screenshot shows what opened.
 - `walk.md`, `steps.json`, `result.json`: every check with its observed value and pass/fail;
   `console.log`: page console and page errors, including the extension's
   `inbundly-debug:` lines when `DEBUG` is on.
