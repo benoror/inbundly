@@ -73,6 +73,11 @@ your inbox.
 * The pinned-messages toggle and delete-all button (hidden by default)
   and the archive-all and snooze buttons (shown by default) toggle under
   Options → Features
+* Gmail keyboard shortcuts that know about bundles: `j` / `k` step through
+  the rows you see (bundle rows included, hidden threads skipped); on a
+  bundle row `Enter` opens it, `x` selects it, `e` / `b` / `#` archive,
+  snooze, or delete all of it; `Escape` collapses from inside; opening a
+  bundle puts the cursor on its first thread so `e` archives what you see
 * Optional Stylus userstyle color-matching: when enabled, bundle colors are
   snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
   default)

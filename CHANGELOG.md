@@ -10,6 +10,21 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Keyboard navigation that knows about bundles** (#46). `j` / `k` (and the
+  arrow keys once focus is in the list) step through the rows you see: plain
+  threads, bundle rows, and the open bundle's threads, in display order. A
+  collapsed bundle is one stop instead of a detour through its hidden threads.
+  On a bundle row, `Enter` / `o` opens it, `x` selects all of it, `e` / `b` / `#`
+  run archive-all / snooze / delete-all (when that button is shown and enabled),
+  and `Escape` from inside collapses it. Opening a bundle, by key or by click,
+  puts Gmail's cursor on its first thread, so `e` archives the thread you are
+  looking at instead of whatever Gmail's cursor was left on.
+
+### Fixed
+- Gmail's archive shortcut (and `x`, `#`, `b`, `Enter`) acting on a thread you
+  could not see while a bundle was open (inboxy#50, #77, #82).
+
 ## [4.4.0] - 2026-09-10
 
 ### Added
