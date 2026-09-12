@@ -133,7 +133,7 @@ tags `v2.1.0` … `v4.4.0`.
 | 10.4 | Option changes sync live (other device / other tab) and rebundle | happy | e2e `bundle-actions.spec` (storage flip) · unit |
 | 10.5 | JSON export/import round-trip; unknown keys dropped | edge | unit `OptionsPage` |
 | 10.6 | Extension ID pinned via manifest `key` (sync depends on it) | contract | unit `ExtensionId` |
-| 10.7 | Options page UI itself | happy | unit `OptionsPage` (jsdom) · manual only — Chrome blocks automation on `chrome-extension://` pages |
+| 10.7 | Options page UI itself | happy | unit `OptionsPage` (jsdom) · verify-inbundly `options-autosave` walk (Playwright Chromium loads and scripts `chrome-extension://…/options/options.html`; flips a real switch, reads `chrome.storage.sync` through the service worker, checks the Gmail tab reacts live) · manual for branded Chrome, where automation of `chrome-extension://` pages is blocked |
 
 ## 11. Robustness
 
@@ -160,7 +160,9 @@ senders `.yX.xY .yW .bA4 span[email]`, labels `.ar.as .at`, list
 verified against live Gmail on 2026-09-09. It also emulates the Gmail
 behaviors the extension depends on: clicking a row checkbox toggles
 `aria-checked` and the row's `x7` class, and reveals the toolbar's action
-cluster; toolbar clicks are recorded on `window.__gmail.clicks`.
+cluster while any message row (`tr.zA.x7:not(.bundle-row)`, since the
+extension mirrors a full selection onto its bundle row too) is selected;
+toolbar clicks are recorded on `window.__gmail.clicks`.
 
 **When Gmail changes markup**: update `src/util/Constants.js` AND the fixture
 together — the fixture is the executable record of what we believe Gmail's
@@ -184,9 +186,11 @@ spec. The feature recipes live in `.cursor/skills/verify-inbundly/features/`.
    - Delete/trash-all test → restore from Trash.
    - Star test → unstar. Selection test → deselect.
    - Label/custom-bundle changes → restore the previous labels/membership.
-4. Chrome blocks automation on `chrome://` and `chrome-extension://` pages:
-   extension reload and the Options page need a human (options logic is
-   covered by `OptionsPage.test.js` in jsdom).
+4. Branded Chrome blocks automation on `chrome://` and `chrome-extension://`
+   pages: extension reload and the real-extension Options page need a human
+   there (options logic is covered by `OptionsPage.test.js` in jsdom, and the
+   Options UI by the verify-inbundly `options-autosave` walk in Playwright
+   Chromium, row 10.7).
 5. Snooze-selector canary: in DevTools on Gmail, confirm
    `document.querySelector('.T-I.J-J5-Ji[data-tooltip="Snooze"]')` is not
    null. If it is, Gmail changed — update `TOOLBAR_SNOOZE_BUTTON`.
