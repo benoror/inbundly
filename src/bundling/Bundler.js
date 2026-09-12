@@ -497,7 +497,7 @@ class Bundler {
             () => {
                 // A user close — forget the remembered bundle too.
                 OpenBundleStore.clear();
-                this.bundleToggler.closeAllBundles();
+                this.bundleToggler.closeAllBundles(true);
             });
         tableBody.appendChild(bundleBox);
     }
@@ -633,7 +633,7 @@ class Bundler {
             if (document.body.contains(e.target) && !e.target.closest('tr')) {
                 // A user close — forget the remembered bundle too.
                 OpenBundleStore.clear();
-                this.bundleToggler.closeAllBundles();
+                this.bundleToggler.closeAllBundles(true);
             }
         });
         // The selection observer is attached once per pass in bundleMessages
