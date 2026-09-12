@@ -348,21 +348,22 @@ const FEATURES = {
             shots,
         });
 
-        // Each bulk action starts from a freshly opened inbox, like the spec:
-        // see the fixture gotcha in ../features/bundle-actions.md.
-        const freshInbox = async () => {
-            await page.close();
-            page = await openInbox(context);
-            rec.watch(page, 'inbox');
+        // Between bulk actions the user clears the selection with the bundle
+        // checkbox; Gmail's toolbar cluster hides again, and the next action
+        // reveals it afresh.
+        const deselectAll = async () => {
+            await checkbox().click();
+            await page.waitForFunction(() => !document.querySelector('tr.zA.x7'));
         };
 
         await rec.step('archive-all', {
             action: async () => {
-                await freshInbox();
+                await toggleRowCheckbox(page, 'Work 1');
                 await clickBundleAction(work(), '.archive-bundle');
             },
             checks: [
                 eq('bundle rows selected for the action', rowSelectedCount(P), 2),
+                truthy('Gmail toolbar action cluster revealed', toolbarVisible),
                 eventually(includes('Gmail toolbar Archive (act=7) clicked', gmailClicks(P), 'act:7')),
             ],
             shots,
@@ -370,7 +371,7 @@ const FEATURES = {
 
         await rec.step('snooze-all', {
             action: async () => {
-                await freshInbox();
+                await deselectAll();
                 await clickBundleAction(work(), '.snooze-bundle');
             },
             checks: [
@@ -382,12 +383,14 @@ const FEATURES = {
 
         await rec.step('enable-delete-all-live', {
             action: async () => {
-                await freshInbox();
+                await deselectAll();
                 await setSyncOptions(context, { showBundleDelete: true });
                 await page.waitForFunction(
                     () => !document.documentElement.classList.contains('hide-bundle-delete'));
             },
             checks: [
+                eq('nothing selected', count(P, 'tr.zA.x7'), 0),
+                falsy('Gmail toolbar action cluster hidden again', toolbarVisible),
                 falsy('html still hides delete-all', async () => (await htmlClass(P)()).includes('hide-bundle-delete')),
             ],
             shots,
@@ -404,7 +407,8 @@ const FEATURES = {
 
         await rec.step('outside-selection-disables-actions', {
             action: async () => {
-                await freshInbox();
+                await deselectAll();
+                await page.evaluate(() => { window.__gmail.clicks = []; });
                 await toggleRowCheckbox(page, 'Outside message');
                 await work().hover();
                 await work().locator('.snooze-bundle').click();

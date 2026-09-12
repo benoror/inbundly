@@ -59,19 +59,22 @@ Preconditions:
 - **Partial selection.** Toggle the `Work 1` row's own checkbox the synthetic way
   (`page.evaluate`: find the `tr.zA` containing the text, `.querySelector('.oZ-jc').click()`).
   `checkbox` has `aria-checked="mixed"`.
-- **Archive all.** On a freshly opened inbox: `await work.hover()` then
-  `await work.locator('.archive-bundle').click()`. `tr.zA.x7:not(.bundle-row)` count is `2`
-  and, polled (`expect.poll` or the walk's `eventually`),
-  `page.evaluate(() => window.__gmail.clicks)` contains `act:7`.
-- **Snooze all.** Fresh inbox, hover, `await work.locator('.snooze-bundle').click()`.
-  Two rows selected and `window.__gmail.clicks` contains `Snooze`.
+- **Archive all.** Clear the partial selection (toggle `Work 1` again), then
+  `await work.hover()` and `await work.locator('.archive-bundle').click()`.
+  `tr.zA.x7:not(.bundle-row)` count is `2`, `.G-Ni` is visible, and, polled (`expect.poll`
+  or the walk's `eventually`), `page.evaluate(() => window.__gmail.clicks)` contains `act:7`.
+- **Clear between actions.** `await checkbox.click()` (all members selected, so this
+  deselects them). `tr.zA.x7` count is `0` and `.G-Ni` is hidden again.
+- **Snooze all.** Hover, `await work.locator('.snooze-bundle').click()`. Two rows selected
+  and `window.__gmail.clicks` contains `Snooze`. Clear again with the bundle checkbox.
 - **Enable delete live.** `await setSyncOptions(context, { showBundleDelete: true })`.
   `page.locator('html')` loses class `hide-bundle-delete` without a reload.
 - **Delete all.** Hover, `await work.locator('.delete-bundle').click()`. Two rows selected
-  and `window.__gmail.clicks` contains `Delete`.
-- **Outside selection disables.** Fresh inbox, toggle the `Outside message` row checkbox
-  (synthetic), then hover and click `.snooze-bundle`. `.snooze-bundle`, `.archive-bundle`,
-  and `.delete-bundle` each have class `disabled`; `window.__gmail.clicks` stays `[]`.
+  and `window.__gmail.clicks` contains `Delete`. Clear again with the bundle checkbox.
+- **Outside selection disables.** Reset `window.__gmail.clicks` to `[]`, toggle the
+  `Outside message` row checkbox (synthetic), then hover and click `.snooze-bundle`.
+  `.snooze-bundle`, `.archive-bundle`, and `.delete-bundle` each have class `disabled`;
+  `window.__gmail.clicks` stays `[]`.
 - **Restore.** Toggle `Outside message` off and
   `await setSyncOptions(context, { showBundleDelete: false })`; `<html>` has
   `hide-bundle-delete` again.
@@ -87,11 +90,12 @@ Preconditions:
 - Toolbar clicks land asynchronously (the extension waits for Gmail's toolbar to reveal
   itself after selecting). Poll `window.__gmail.clicks`; a synchronous read right after the
   click returns `[]` and looks like a failure.
-- Fixture quirk: the fixture reveals or hides `.G-Ni` by querying `tr.zA.x7`, which also
-  matches the bundle row's own selected styling. After a deselect-all the fixture toolbar
-  therefore stays revealed, and the next bulk action never sees the reveal mutation it
-  waits for. Start every bulk action from a freshly opened inbox page (the walk and the
-  specs both do); this does not happen in real Gmail, whose selection model is its own.
+- A bulk action only fires once Gmail's toolbar cluster is revealed by the selection
+  (the extension waits for that mutation). If a scenario leaves `.G-Ni` visible with
+  nothing selected, the next action never fires; clear the selection with the bundle
+  checkbox between actions and confirm `.G-Ni` is hidden before the next one. The fixture
+  counts only message rows (`tr.zA.x7:not(.bundle-row)`) as selected for exactly this
+  reason; do not loosen that selector.
 - Never toggle a native row checkbox with a real click here: the extension's quick-select
   handler re-dispatches it and the row double-toggles.
 - `showBundleDelete` is off by default on purpose (destructive); a walk that enables it
