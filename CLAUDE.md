@@ -28,13 +28,16 @@ Gmail's DOM and restructuring the message list into collapsible bundles by label
 - `src/` — all editable JavaScript source (ES modules). Entry point: `src/content.js`.
   - `bundling/` — core logic that groups messages into bundles and toggles them
     (`Bundler`, `BundleToggler`, `DateGrouper`, `SelectiveBundling`, `InbundlyStyler`).
-  - `handlers/` — `MutationObserver`-based watchers that react to Gmail navigation,
-    rerenders, starring, and theme changes.
+ - `handlers/` — `MutationObserver`-based watchers that react to Gmail navigation,
+ rerenders, starring, and theme changes, plus `KeyboardNavHandler` (j/k and
+ thread shortcuts over the bundled list).
   - `components/` — DOM builders for injected UI (bundle rows, dividers, toggles, the
     bulk-archive button, the floating "Bundle selected" custom-bundle control).
   - `containers/` — in-memory models of the bundled mail state (`BundledMail`,
     `Bundle`, and `CustomBundles` — the persisted, thread-id-keyed custom bundles).
-  - `util/` — `Constants.js` (Gmail DOM selectors + Inbundly CSS classes) and DOM helpers.
+  - `util/` — `Constants.js` (Gmail DOM selectors + Inbundly CSS classes), DOM helpers,
+ `GmailToolbar` (drive Gmail's toolbar on a selection), `GmailCursor` (read/move
+ Gmail's keyboard cursor through row focus).
 - `dist/` — the loadable unpacked extension. Contains committed static assets
   (`manifest.json`, `style.css`, `background.js`, `popup/`, `options/`, `icons/`,
   `assets/`) plus the webpack-built `content.js`.
@@ -226,6 +229,31 @@ Flow for landing a feature branch and cutting a release:
   written from three places that all sync: `components/BundlingToggle.js` (a
   switch in Gmail's search bar next to the pinned toggle), the Options page, and
   the toolbar popup (`dist/popup/`).
+- **Keyboard navigation.** `handlers/KeyboardNavHandler.js` owns list
+ navigation while bundling applies (capture-phase `keydown` on `window`,
+ trusted keys only, attached with the observers). Gmail's own `j`/`k` walk
+ its DOM-ordered thread list, which includes threads hidden in collapsed
+ bundles and knows nothing about bundle rows; the handler instead steps
+ through the visible rows in flex `order` (plain rows, bundle rows, the open
+ bundle's threads) and swallows the key so Gmail can't. Moving the cursor
+ goes through `util/GmailCursor.js`: Gmail's cursor row carries `btb`
+ (`GmailClasses.CURSOR`) and follows DOM focus (its list is an ARIA grid), so
+ `focusRow()` on a message row moves Gmail's cursor too, and Gmail's own
+ `e`/`x`/`Enter` then act on it. Bundle rows get inbundly's own ring
+ (`InbundlyClasses.CURSOR`, `inbundly-cursor`) and Gmail's lingering mark is
+ cleared; because Gmail's internal cursor is still elsewhere, thread
+ shortcuts on a bundle row are intercepted: `Enter`/`o` toggle, `x`
+ select-all, `e`/`y`/`b`/`#` run the row's archive/snooze/delete buttons
+ (only when shown and enabled), the rest are swallowed. `Escape` inside the
+ open bundle collapses it. `BundleToggler.toggleBundle` focuses the first
+ revealed thread on a user open (the #46 archive-in-bundle fix) and
+ `closeAllBundles(true)` (user closes only) moves a cursor sitting on a
+ hidden-again thread to the bundle row; render-path closes pass `false` and
+ never touch focus. When Gmail's mark does not follow focus and nothing is
+ checked, `e`/`#`/`b`/`x`/`Enter` on a visible row fall back to Gmail's
+ toolbar/checkbox/row click for that row (`GmailToolbar`). The focus-follows
+ model is an observation, not an API: TESTING.md 12.9 is its live canary,
+ and the e2e fixture emulates it (`cursorFollowsFocus`).
 - **Open-bundle stability.** The currently-open bundle holds its on-screen
   position while the user acts on its threads: `BundleToggler` captures its flex
   `order` on open (`BundledMail.freezeOrder`) and `Bundler` re-pins it on each

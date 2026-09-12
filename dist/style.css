@@ -266,7 +266,28 @@ html.inbundly.messages-dark-theme .bundle-row:hover td.apU {
     }
 }
 
-/** 
+/**
+ * Keyboard cursor on a bundle row.
+ *
+ * Gmail draws its own cursor mark (.btb) only on its rows; when j/k land on a
+ * bundle row, inbundly draws an equivalent ring. The row is focused
+ * programmatically (tabindex=-1), so hide the browser's default focus outline
+ * in favour of this one.
+ */
+html.inbundly .bundle-row:focus {
+    outline: none;
+}
+
+html.inbundly .bundle-row.inbundly-cursor {
+    outline: 2px solid #1a73e8;
+    outline-offset: -2px;
+}
+
+html.inbundly.messages-dark-theme .bundle-row.inbundly-cursor {
+    outline-color: #8ab4f8;
+}
+
+/**
  * Message count, in bundle row 
  */
 

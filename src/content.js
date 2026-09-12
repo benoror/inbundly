@@ -27,6 +27,7 @@ import BundlingToggle from './components/BundlingToggle';
 import PinnedToggle from './components/PinnedToggle';
 import SelectionBundleControl from './components/SelectionBundleControl';
 
+import KeyboardNavHandler from './handlers/KeyboardNavHandler';
 import TabPanelsObserver from './handlers/TabPanelsObserver';
 import MessageListObserver from './handlers/MessageListObserver';
 import MainParentObserver from './handlers/MainParentObserver';
@@ -218,6 +219,12 @@ const selectionBundleControl = new SelectionBundleControl(customBundles);
 const bundler = new Bundler(bundleToggler, bundledMail, messageListWatcher, selectiveBundling);
 const starHandler = new StarHandler(bundledMail, selectiveBundling);
 const dateGrouper = new DateGrouper();
+// Keyboard navigation over the bundled list (j/k across bundle rows, shortcuts
+// inside an open bundle). Dormant whenever bundling doesn't apply to the page.
+const keyboardNavHandler = new KeyboardNavHandler(
+    bundledMail,
+    bundleToggler,
+    () => bundlingEnabled && supportsBundling(window.location.href));
 
 let pendingReopenRecentBundle = false;
 const bundleRetry = createCoalescedRetry(() => {
@@ -422,6 +429,7 @@ function startObservers() {
     tabPanelsObserver.observe();
     messageListObserver.observe();
     selectionBundleControl.attach();
+    keyboardNavHandler.attach();
 }
 
 /**

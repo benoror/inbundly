@@ -144,6 +144,21 @@ tags `v2.1.0` … `v4.4.0`.
 | 11.3 | Open bundle holds its position (frozen order) across rerenders | edge | unit `BundledMail` |
 | 11.4 | Theme detection does not crash in popout windows | edge | unit `ThemePalette` |
 
+## 12. Keyboard navigation (unreleased, PR #62, issue #46)
+
+| # | Scenario | Kind | Coverage |
+|---|----------|------|----------|
+| 12.1 | `j` / `k` (and arrows once focus is in the list) step through visible rows in display order: plain threads, bundle rows, the open bundle's threads; ends of the list stop | happy | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler` |
+| 12.2 | Gmail's cursor mark (`btb`) never lands on a thread hidden in a collapsed bundle; a cursor stranded on one resumes from its bundle row | edge | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler` |
+| 12.3 | `Enter` / `o` on a bundle row opens it; opening (keyboard or mouse) moves Gmail's cursor onto the first revealed thread, so `e` archives that thread (inboxy#50) | happy | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler`, `GmailCursor` |
+| 12.4 | `Escape` inside the open bundle collapses it, lands on the bundle row, forgets the remembered bundle (user close) | happy | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler` |
+| 12.5 | Bundle-row shortcuts mirror the row's buttons: `x` select-all, `e`/`y` archive-all, `b` snooze, `#` delete-all; each only when shown (`show*` option) and enabled (no outside selection) | happy | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler` |
+| 12.6 | Other thread shortcuts on a bundle row (`s`, `!`, `v`, `l`, `I`, `U`, `r`, `.`, ...) are swallowed; `c`, `/`, `g`, `z`, `?`, Tab pass through | edge | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler` |
+| 12.7 | Text fields, dialogs, menus, and focusable controls (bundle checkbox, View all) keep their keys; modifiers and untrusted (synthetic) keys pass through; inactive when bundling is off or off the inbox | edge | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler` |
+| 12.8 | Fallback when Gmail's cursor does not follow focus and nothing is checked: `e`/`#`/`b` go through Gmail's toolbar for the visible row, `x` clicks its checkbox, `Enter`/`o` click the row; an existing selection is left to Gmail | edge | e2e `keyboard-nav.spec` (`cursorFollowsFocus: false`) · unit `KeyboardNavHandler` |
+| 12.9 | Gmail cursor model canary: in live Gmail with shortcuts on, press `j`, then in DevTools confirm `document.activeElement` is the `tr.zA.btb` row and `document.activeElement.tabIndex === -1`; then run `[...document.querySelectorAll('tr.zA')][3].focus()` and confirm `btb` moved to that row. If either fails, Gmail changed the model `GmailCursor` relies on (the 12.8 fallbacks still cover `e`/`x`/`#`/`b`/`Enter`) | contract | manual |
+| 12.10 | Known limitations: a bundle row loses the cursor when Gmail rerenders the list (next `j` resumes from Gmail's mark or the top); `j`/`k` are handled even when Gmail's own shortcuts are turned off; the 12.8 `Enter` fallback is a best-effort row click; no shortcut parity beyond the keys above (Simplify-style shortcuts are out of scope) | note | — |
+
 ## How the e2e suite works
 
 Playwright loads the **built extension** (`dist/`, so run `npm run build`
@@ -162,7 +177,14 @@ behaviors the extension depends on: clicking a row checkbox toggles
 `aria-checked` and the row's `x7` class, and reveals the toolbar's action
 cluster while any message row (`tr.zA.x7:not(.bundle-row)`, since the
 extension mirrors a full selection onto its bundle row too) is selected;
-toolbar clicks are recorded on `window.__gmail.clicks`.
+toolbar clicks are recorded on `window.__gmail.clicks`. It also models
+Gmail's keyboard cursor the way the extension understands it (row 12.9 is
+the live canary): rows are focusable (`tabindex="-1"`), the cursor row
+carries `btb` and follows DOM focus, `j`/`k` walk Gmail's DOM-ordered list
+(hidden rows included), and `e`/`x`/`Enter`/`s` act on the checked rows or
+the cursor row, logging to `window.__gmail.actions`.
+`inboxPage({ cursorFollowsFocus: false })` builds a Gmail whose cursor
+ignores focus, for the extension's fallback paths.
 
 **When Gmail changes markup**: update `src/util/Constants.js` AND the fixture
 together — the fixture is the executable record of what we believe Gmail's
@@ -194,6 +216,11 @@ spec. The feature recipes live in `.cursor/skills/verify-inbundly/features/`.
 5. Snooze-selector canary: in DevTools on Gmail, confirm
    `document.querySelector('.T-I.J-J5-Ji[data-tooltip="Snooze"]')` is not
    null. If it is, Gmail changed — update `TOOLBAR_SNOOZE_BUTTON`.
+6. Keyboard-cursor canary (row 12.9): with Gmail shortcuts on, press `j` and
+   confirm `document.activeElement` is the `tr.zA.btb` row; focus another row
+   with `.focus()` and confirm `btb` follows. Then, with a bundle open, put the
+   cursor on one of its threads and press `e`: that thread (and only it) is
+   archived. Move it back from All Mail afterwards.
 
 Last full manual pass: **2026-09-09** (PR #32 features; all pass — snooze
 menu end-to-end with restore, remember-open-bundle across reloads, sender

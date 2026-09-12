@@ -41,6 +41,8 @@ const GmailClasses = {
     CHECKBOX: 'oZ-jc T-Jo J-J5-Ji',
     CHECKBOX_CHECKED: 'T-Jo-Jp',
     CHECKBOX_INDETERMINATE: 'T-Jo-ayH',
+    // Gmail's keyboard cursor: the row j/k walk and e/x/Enter act on.
+    CURSOR: 'btb',
     DATE_CELL: 'xW',
     IMPORTANCE_MARKER: 'WA',
     PERSONAL_LEVEL_INDICATOR: 'bnk',
@@ -59,6 +61,9 @@ const InbundlyClasses = {
     BUNDLE_ROW: 'bundle-row',
     BUNDLED_MESSAGE: 'bundled-message',
     BUNDLING_DISABLED: 'bundling-disabled',
+    // Inbundly's keyboard cursor on a bundle row (Gmail's own cursor mark only
+    // ever lands on Gmail's rows).
+    CURSOR: 'inbundly-cursor',
     DARK_THEME: 'dark-theme',
     HIDE_BUNDLE_ARCHIVE: 'hide-bundle-archive',
     HIDE_BUNDLE_DELETE: 'hide-bundle-delete',
@@ -99,6 +104,8 @@ const Selectors = {
         `${CURRENT_TABPANEL} tr td .oZ-jc.T-Jo.J-J5-Ji:not(.${InbundlyClasses.BUNDLE_CHECKBOX})`,
     CURRENT_TAB: `${MAIN} [role="tab"][aria-selected="true"]`,
     CURRENT_TABPANEL: CURRENT_TABPANEL,
+    // The row Gmail marks as its keyboard cursor, in the visible section(s).
+    CURSOR_ROW: `${CURRENT_TABPANEL} tr.${GmailClasses.ROW}.${GmailClasses.CURSOR}`,
     INBOX_LABEL: `${LABELS}[title="Inbox"]`,
     INBUNDLY: `.${InbundlyClasses.INBUNDLY}`,
     LABEL_CONTAINERS: '.ar.as',

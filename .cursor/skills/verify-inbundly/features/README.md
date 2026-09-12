@@ -77,6 +77,9 @@ required state, commands, and observable proof.
 - [Remember the open bundle](./remember-open-bundle.md) covers reopening after a reload,
   forgetting on collapse or backdrop close, and the session store behind it
   (`TESTING.md` 4.1 to 4.3).
+- [Keyboard navigation](./keyboard-nav.md) covers j/k stepping over bundle rows and the
+  open bundle's threads, Enter/Escape on a bundle, the archive shortcut acting inside an
+  open bundle, and bundle-row shortcuts (`TESTING.md` 12.1 to 12.8).
 - [Options autosave and live sync](./options-autosave.md) covers flipping a switch on the
   real Options page, per-key auto-save, persistence across reload, and the Gmail tab
   reacting live (`TESTING.md` 10.3, 10.4, 10.7).
