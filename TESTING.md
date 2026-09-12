@@ -166,6 +166,13 @@ cluster; toolbar clicks are recorded on `window.__gmail.clicks`.
 together — the fixture is the executable record of what we believe Gmail's
 DOM looks like.
 
+**Proof runs for agents**: `.cursor/skills/verify-inbundly/` wraps this
+harness as a verification skill (`scripts/verify.sh launch | doctor | drive
+<feature> | cleanup`). It walks one feature the way a user would, records
+screenshots, ARIA snapshots, and checked values under
+`.cursor/skills/verify-inbundly/evidence/<RUN_ID>/`, then runs the mapped
+spec. The feature recipes live in `.cursor/skills/verify-inbundly/features/`.
+
 ## Manual QA protocol (real Gmail, browser-use)
 
 1. Build (`npm run build`), reload the unpacked extension, refresh Gmail.

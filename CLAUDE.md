@@ -63,6 +63,13 @@ fixture page at mail.google.com via route interception; the fixture
 CI (`.github/workflows/ci.yml`) runs unit + build and the e2e suite on every
 push/PR.
 
+**Proving a change works.** `.cursor/skills/verify-inbundly/SKILL.md` is the
+project verification skill: `scripts/verify.sh launch`, `doctor`, `drive
+<feature>`, `cleanup`. It reuses the e2e harness to walk one mapped feature
+(`features/*.md`) as a user and leaves proof under
+`.cursor/skills/verify-inbundly/evidence/<RUN_ID>/` (gitignored). Live Gmail
+QA stays manual per `TESTING.md`.
+
 `dist/content.js` is gitignored (build artifact) — do not commit it.
 
 ### Loading in Chrome
