@@ -49,8 +49,9 @@ const ARROW_KEYS = new Set(['ArrowDown', 'ArrowUp']);
 // these are either mapped to a bundle action below or swallowed.
 const THREAD_ACTION_KEYS = new Set([
     'e', 'y', '#', 'x', 's', '!', 'b', 'v', 'l', 'm', 'I', 'U',
-    'r', 'a', 'f', '.', 't', 'T', '_', '+', '=', '-', 'Enter', 'o',
+    'r', 'a', 'f', '.', 'T', '_', '+', '=', '-', 'Enter', 'o',
 ]);
+const HANDLED_KEYS = new Set([...NEXT_KEYS, ...PREV_KEYS, ...THREAD_ACTION_KEYS, 'Escape']);
 
 // Where a keystroke belongs to something else: text entry, dialogs and menus,
 // and focusable controls with their own key handling (the bundle checkbox,
@@ -102,7 +103,7 @@ class KeyboardNavHandler {
         if (!e.isTrusted || e.ctrlKey || e.metaKey || e.altKey) {
             return;
         }
-        if (!this.isActive()) {
+        if (!HANDLED_KEYS.has(e.key) || !this.isActive()) {
             return;
         }
         const target = e.target;
