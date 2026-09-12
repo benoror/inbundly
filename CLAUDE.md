@@ -230,7 +230,7 @@ Flow for landing a feature branch and cutting a release:
   switch in Gmail's search bar next to the pinned toggle), the Options page, and
   the toolbar popup (`dist/popup/`).
 - **Keyboard navigation.** `handlers/KeyboardNavHandler.js` owns list
- navigation while bundling applies (capture-phase `keydown` on `document`,
+ navigation while bundling applies (capture-phase `keydown` on `window`,
  trusted keys only, attached with the observers). Gmail's own `j`/`k` walk
  its DOM-ordered thread list, which includes threads hidden in collapsed
  bundles and knows nothing about bundle rows; the handler instead steps

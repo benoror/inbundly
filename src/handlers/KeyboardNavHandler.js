@@ -82,19 +82,20 @@ class KeyboardNavHandler {
     }
 
     /**
-     * Listen in the capture phase so a handled key never reaches Gmail's own
-     * shortcut handler, which would move its cursor onto a hidden row.
+     * Listen at the earliest point of dispatch (window, capture phase) so a
+     * handled key never reaches Gmail's own shortcut handler, which would move
+     * its cursor onto a hidden row.
      */
     attach() {
         if (this.attached) {
             return;
         }
-        document.addEventListener('keydown', this.handleKeyDown, true);
+        window.addEventListener('keydown', this.handleKeyDown, true);
         this.attached = true;
     }
 
     detach() {
-        document.removeEventListener('keydown', this.handleKeyDown, true);
+        window.removeEventListener('keydown', this.handleKeyDown, true);
         this.attached = false;
     }
 
