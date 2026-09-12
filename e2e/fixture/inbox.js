@@ -168,7 +168,11 @@ ${rows}
             const on = cb.getAttribute('aria-checked') === 'true';
             cb.setAttribute('aria-checked', on ? 'false' : 'true');
             cb.closest('tr').classList.toggle('x7', !on);
-            const anySelected = !!document.querySelector('tr.zA.x7');
+            // Only message rows count as selected: the extension mirrors a
+            // full selection onto its bundle row as x7 too, and clears it
+            // asynchronously, so matching it here would keep the toolbar
+            // revealed after a deselect-all (real Gmail uses its own model).
+            const anySelected = !!document.querySelector('tr.zA.x7:not(.bundle-row)');
             document.querySelector('.G-Ni').style.display = anySelected ? '' : 'none';
         });
     });

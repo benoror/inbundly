@@ -1,0 +1,4 @@
+# Proof artifacts from verification runs live here (one directory per RUN_ID).
+# They survive `scripts/verify.sh cleanup` on disk but are not committed.
+*
+!.gitignore
