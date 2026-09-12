@@ -12,7 +12,7 @@
 //   node .cursor/skills/verify-inbundly/scripts/drive.js <feature> --evidence <dir>
 //
 // Features: core-bundling, bundle-actions, sender-bundles,
-//           remember-open-bundle, options-autosave
+//           remember-open-bundle, keyboard-nav, options-autosave
 
 const fs = require('fs');
 const path = require('path');
@@ -575,6 +575,150 @@ const FEATURES = {
             checks: [
                 eq('News closed', visibleBundledMessages(P), 0),
                 eq('sessionStorage cleared', openBundleStore(P), null),
+            ],
+            shots,
+        });
+    },
+
+    async 'keyboard-nav'({ context, rec }) {
+        // DOM (Gmail) order: Loose A, Work 1, Loose B, Work 2, News 1, News 2.
+        // Display order: Loose A, [Work], Loose B, [News].
+        await serveInbox(context, inboxPage({
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Loose A' },
+                { email: 'b@corp-two.com', subject: 'Work 1', labels: ['Work'] },
+                { email: 'c@corp-three.com', subject: 'Loose B' },
+                { email: 'd@corp-four.com', subject: 'Work 2', labels: ['Work'] },
+                { email: 'e@corp-five.com', subject: 'News 1', labels: ['News'] },
+                { email: 'f@corp-six.com', subject: 'News 2', labels: ['News'] },
+            ],
+        }));
+        let page;
+        const P = () => page;
+        const shots = () => [{ page, tag: 'inbox', ariaRoot: '[role="main"]' }];
+        const press = async (...keys) => {
+            for (const key of keys) {
+                await page.keyboard.press(key);
+            }
+        };
+        const cursor = () => page.evaluate(() => {
+            const active = document.activeElement;
+            const row = active && active.closest ? active.closest('tr.zA') : null;
+            if (!row) {
+                return active ? active.tagName.toLowerCase() : null;
+            }
+            return row.classList.contains('bundle-row')
+                ? row.querySelector('.bundle-and-count span').textContent.trim()
+                : row.querySelector('.y6 span span').textContent;
+        });
+        const gmailCursor = () => page.evaluate(() => {
+            const row = document.querySelector('tr.zA.btb:not(.bundle-row)');
+            return row ? row.querySelector('.y6 span span').textContent : null;
+        });
+        const gmailActions = () => page.evaluate(() => window.__gmail.actions);
+
+        await rec.step('inbox-bundled-no-cursor', {
+            action: async () => { page = await openInbox(context); rec.watch(page, 'inbox'); },
+            checks: [
+                eq('Work and News bundles', count(P, '.bundle-row'), 2),
+                eq('focus starts outside the list', cursor, 'body'),
+                eq('Gmail has no cursor row yet', gmailCursor, null),
+            ],
+            shots,
+        });
+
+        await rec.step('j-walks-onto-the-work-bundle-row', {
+            action: () => press('j', 'j'),
+            checks: [
+                eq('cursor on the Work bundle row', cursor, 'Work'),
+                eq('bundle row carries the cursor ring', count(P, '.bundle-row.inbundly-cursor:has-text("Work")'), 1),
+                eq('Gmail\'s own mark is not left on a thread', gmailCursor, null),
+            ],
+            shots,
+        });
+
+        await rec.step('j-skips-the-hidden-work-threads', {
+            action: () => press('j', 'j'),
+            checks: [
+                eq('cursor on the News bundle row (Loose B was the stop between)', cursor, 'News'),
+                eq('no hidden thread became visible', visibleBundledMessages(P), 0),
+            ],
+            shots,
+        });
+
+        await rec.step('k-back-to-loose-b', {
+            action: () => press('k'),
+            checks: [
+                eq('cursor on Loose B', cursor, 'Loose B'),
+                eq('Gmail\'s cursor mark followed onto the thread', gmailCursor, 'Loose B'),
+                eq('no bundle row rings', count(P, '.inbundly-cursor'), 0),
+            ],
+            shots,
+        });
+
+        await rec.step('enter-opens-work-and-lands-on-its-first-thread', {
+            action: () => press('k', 'Enter'),
+            checks: [
+                eq('two Work threads visible', visibleBundledMessages(P), 2),
+                eq('cursor on Work 1', cursor, 'Work 1'),
+                eq('Gmail agrees: its mark is on Work 1', gmailCursor, 'Work 1'),
+            ],
+            shots,
+        });
+
+        await rec.step('e-archives-the-thread-inside-the-bundle', {
+            action: () => press('e'),
+            checks: [
+                eq('Gmail archived Work 1, nothing else', gmailActions, [{ type: 'archive', subjects: ['Work 1'] }]),
+            ],
+            shots,
+        });
+
+        await rec.step('j-through-the-open-bundle-and-out', {
+            action: () => press('j', 'j'),
+            checks: [eq('cursor on Loose B after Work 2', cursor, 'Loose B')],
+            shots,
+        });
+
+        await rec.step('escape-from-inside-collapses-onto-the-row', {
+            action: () => press('k', 'Escape'),
+            checks: [
+                eq('bundle collapsed', visibleBundledMessages(P), 0),
+                eq('cursor on the Work bundle row', cursor, 'Work'),
+                eq('remembered bundle forgotten (a user close)', openBundleStore(P), null),
+            ],
+            shots,
+        });
+
+        await rec.step('s-on-the-bundle-row-is-inert', {
+            action: () => press('s'),
+            checks: [eq('no star action reached Gmail', gmailActions, [{ type: 'archive', subjects: ['Work 1'] }])],
+            shots,
+        });
+
+        await rec.step('e-on-the-bundle-row-archives-the-whole-bundle', {
+            action: () => press('e'),
+            checks: [
+                eq('both Work rows selected', rowSelectedCount(P), 2),
+                eventually(includes('Gmail toolbar Archive clicked', gmailClicks(P), 'act:7')),
+                eventually(eq('archive of both threads recorded', gmailActions, [
+                    { type: 'archive', subjects: ['Work 1'] },
+                    { type: 'archive', subjects: ['Work 1', 'Work 2'] },
+                ])),
+            ],
+            shots,
+        });
+
+        await rec.step('click-open-moves-the-cursor-into-the-bundle', {
+            action: async () => {
+                await bundleCheckbox(page.locator('.bundle-row', { hasText: 'Work' })).click();
+                await page.locator('.bundle-row', { hasText: 'News' }).click();
+            },
+            checks: [
+                eq('selection cleared first', rowSelectedCount(P), 0),
+                eq('two News threads visible', visibleBundledMessages(P), 2),
+                eq('cursor on News 1 after a mouse open', cursor, 'News 1'),
+                eq('Gmail\'s mark on News 1', gmailCursor, 'News 1'),
             ],
             shots,
         });

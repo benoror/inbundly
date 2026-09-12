@@ -1,6 +1,6 @@
 ---
 name: verify-inbundly
-description: "Drive Inbundly (the Gmail bundles browser extension) the way a user does and capture proof: the built extension loaded into Playwright Chromium against the repo's Gmail-shaped fixture page, plus the extension's Options page. Use it to prove a bundling, bundle-action, sender-bundle, remember-open-bundle, or options change works before opening or reviewing a PR, or whenever the e2e suite is red and you need evidence of what the user would see."
+description: "Drive Inbundly (the Gmail bundles browser extension) the way a user does and capture proof: the built extension loaded into Playwright Chromium against the repo's Gmail-shaped fixture page, plus the extension's Options page. Use it to prove a bundling, bundle-action, sender-bundle, remember-open-bundle, keyboard-navigation, or options change works before opening or reviewing a PR, or whenever the e2e suite is red and you need evidence of what the user would see."
 ---
 
 # Verify Inbundly
@@ -65,7 +65,7 @@ Pick the feature from the map, then:
 
 ```bash
 .cursor/skills/verify-inbundly/scripts/verify.sh drive <feature>
-# features: core-bundling bundle-actions sender-bundles remember-open-bundle options-autosave
+# features: core-bundling bundle-actions sender-bundles remember-open-bundle keyboard-nav options-autosave
 ```
 
 `drive` does two things and fails if either fails:
