@@ -21,7 +21,7 @@ import {
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
 import {
-    supportsBundling,
+    isInboxView,
     isStarredPage,
     getCurrentBaseUrl,
 } from '../util/MessagePageUtils';
@@ -89,7 +89,10 @@ class PinnedToggle {
 
     /**
      * Update the link and styling of the toggle based on the current url,
-     * or hide the toggle if it shouldn't be shown.
+     * or hide the toggle if it shouldn't be shown. The toggle switches
+     * between the Inbox and its pinned (starred) threads, so it only shows on
+     * those two, not on the other list views that can bundle (a search, a
+     * label view) where "pinned" has no counterpart.
      */
     _updateToggle(url) {
         if (isStarredPage(url)) {
@@ -98,7 +101,7 @@ class PinnedToggle {
             this.toggleElement.classList.add('show-pinned');
             document.querySelector('html').classList.add(InbundlyClasses.SHOW_PINNED_TOGGLE);
         }
-        else if (supportsBundling(url)) {
+        else if (isInboxView(url)) {
             this.toggleElement.style = {};
             this.anchorElement.href = `${this.baseUrl}#${Urls.STARRED_PAGE_HASH}`;
             this.toggleElement.classList.remove('show-pinned');

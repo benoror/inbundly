@@ -90,8 +90,9 @@ class SelectionBundleControl {
      * current selection.
      */
     update() {
-        // Only offer bundling where bundles are shown (the inbox), not on pages
-        // like Sent or Search where a custom bundle wouldn't render.
+        // Only offer bundling where bundles are shown: the Inbox, plus the
+        // other list views when bundleOtherViews is on. Never on pages like
+        // Sent or a conversation, where a custom bundle wouldn't render.
         const threadIds = supportsBundling(window.location.href)
             ? this._selectedThreadIds()
             : [];
