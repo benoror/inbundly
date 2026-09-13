@@ -18,7 +18,7 @@ tags `v2.1.0` … `v4.4.0`.
 
 | # | Scenario | Kind | Coverage |
 |---|----------|------|----------|
-| 1.1 | 2+ threads with the same label form one bundle row (title, count, senders preview, latest date) | happy | e2e `bundling.spec` · unit `BundlerOptions` |
+| 1.1 | 2+ threads with the same label form one bundle row (title, count, senders preview, newest thread's sender and date; see section 14) | happy | e2e `bundling.spec` · unit `BundlerOptions` |
 | 1.2 | Click a bundle row → messages expand in place; click again → collapse | happy | e2e `bundling.spec` |
 | 1.3 | Click outside any row → open bundle closes | edge | e2e `remember-open-bundle.spec` |
 | 1.4 | Only one bundle open at a time | edge | unit `BundledMail` |
@@ -174,6 +174,18 @@ tags `v2.1.0` … `v4.4.0`.
 | 13.9 | Paging in other views (`#search/q/p2`, `#label/Work/p2`, `#snoozed/p2`) is recognized like `#inbox/p2` | edge | unit `MessagePageUtils` |
 | 13.10 | Live Gmail contract: search results, label views, and Snoozed render the same `[role=main] .ae4 .Cp table.F tbody tr.zA` list as the Inbox; the pinned page already relied on this for `DateGrouper`, the rest is to be confirmed in live Gmail (open a search with the option on and check `document.querySelectorAll('.bundle-row').length`) | contract | manual |
 | 13.11 | Known limitations: the pinned toggle shows only on the Inbox and pinned page; Gmail's built-in label names are matched in English; `label:(A OR B)` searches drop only `A`; in a label view the threads that have no other label group by sender (2+ threads), which is by design; search results mixing Sent threads sender-bundle by recipient domain (Gmail lists the recipient where the sender goes); date dividers follow `groupMessagesByDate` in single-list views, so a search with mixed ages gets Today / Earlier headings | note | - |
+
+## 14. Collapsed-row glance (unreleased, PR #64, issue #56)
+
+| # | Scenario | Kind | Coverage |
+|---|----------|------|----------|
+| 14.1 | A closed bundle row shows its newest thread's most recent sender right before that thread's date (`.bundle-latest-sender`, then `.bundle-date`), reading like a Gmail thread row; the senders peek next to the title still lists everyone, most recent first | happy | e2e `collapsed-glance.spec`, `bundling.spec` · unit `MessageGlance` |
+| 14.2 | Newest thread unread: sender and date bold (like Gmail's unread rows); read: the sender sits in a muted weight and the date in the row's normal weight | happy | e2e `collapsed-glance.spec` · unit `MessageGlance` |
+| 14.3 | Tooltips: the sender's `title` is the address; the date's `title` is Gmail's full-date tooltip carried over from the thread's `.xW span[title]` | happy | e2e `collapsed-glance.spec` · unit `MessageGlance` |
+| 14.4 | Newest thread snoozed: its snoozed-until text stands in for the date, as before (7.3); newest thread exposes no sender span (drafts): date only, no crash; row without a date cell: empty date, no throw | edge | unit `MessageGlance` |
+| 14.5 | The glance is part of the date cell, so it hides while the bundle is open (`View all` takes its place) and returns on collapse; colored bundles paint it in the label's accent | happy | e2e `collapsed-glance.spec` · manual (colors) |
+| 14.6 | The sender's display text is whatever Gmail shows (`me`, a name, or an address); a long name truncates with an ellipsis at 160px; the vertical-split reading pane (`.Zs`) hides the sender and keeps the date alone | edge | manual |
+| 14.7 | Newest thread is the bundle's first row in Gmail's list order (Gmail sorts every bundlable view newest first; Snoozed sorts by snooze time, so there the glance is the soonest-due thread) | contract | manual |
 
 ## How the e2e suite works
 

@@ -83,6 +83,9 @@ your inbox.
   the Inbox. The label or sender a view is already filtered by is not bundled
   again there, and "View all" keeps you inside the view; conversations, Sent,
   Drafts, Spam, and Trash are left alone
+* Glance at a closed bundle: its row lists the senders inside and, at the
+  right, who wrote the newest thread and when, bold while that thread is
+  unread; hover for the address and the full date
 * Optional Stylus userstyle color-matching: when enabled, bundle colors are
   snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
   default)
