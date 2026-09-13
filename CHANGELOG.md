@@ -20,6 +20,17 @@ independent of upstream's versioning. The format is based on
   and `Escape` from inside collapses it. Opening a bundle, by key or by click,
   puts Gmail's cursor on its first thread, so `e` archives the thread you are
   looking at instead of whatever Gmail's cursor was left on.
+- **Bundles outside the Inbox** (#43, upstream inboxy#32 and inboxy#113). A new
+  switch under Options, Bundling ("Also bundle outside the inbox", off by
+  default) bundles search results, label views, Snoozed, Starred, Important,
+  and All Mail the way the Inbox is bundled, with the same open/close, bundle
+  actions, remembered open bundle, and keyboard navigation. Gmail's own chips
+  (the Inbox chip a search result shows, Sent, Draft) are never bundles, and
+  the label or sender a view is already filtered by is not bundled again there:
+  a label view of Work, or the Work bundle's own "View all", groups its threads
+  by their other labels or by sender instead of folding into one Work row.
+  "View all" links stay inside the view you are in. Conversations, Sent,
+  Drafts, Spam, Trash, and the pinned (starred in inbox) page are left alone.
 
 ### Fixed
 - Gmail's archive shortcut (and `x`, `#`, `b`, `Enter`) acting on a thread you

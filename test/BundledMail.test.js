@@ -5,16 +5,43 @@
 import BundledMail from '../src/containers/BundledMail';
 import Bundle from '../src/containers/Bundle';
 
-// BundledMail keys bundles by page/tab; pin those to fixed values so the tests
-// exercise only the section/label dimension.
+// BundledMail keys bundles by view/page/tab; pin those to controllable values
+// so the tests exercise the section/label dimension (and the view one).
+let mockView = 'inbox';
 jest.mock('../src/util/MessagePageUtils', () => ({
     getCurrentPageNumber: () => 1,
     getCurrentTab: () => '__NO_TAB',
+    getCurrentViewKey: () => mockView,
 }));
+
+beforeEach(() => {
+    mockView = 'inbox';
+});
 
 function bundle(label, sectionId) {
     return new Bundle(label, sectionId);
 }
+
+test('bundles are kept per list view: a search does not see the inbox bundles', () => {
+    const bundledMail = new BundledMail();
+    const inboxWork = bundle('Work', '0');
+    bundledMail.setBundles({ Work: inboxWork }, 1, '0');
+    bundledMail.openBundle('0', 'Work');
+
+    mockView = 'search/newsletters';
+    expect(bundledMail.getBundleInSection('0', 'Work')).toBeUndefined();
+    expect(bundledMail.getAllBundles()).toEqual([]);
+    // The open ref survives, but resolves to nothing in the other view.
+    expect(bundledMail.getOpenedBundle()).toBeUndefined();
+
+    const searchWork = bundle('Work', '0');
+    bundledMail.setBundles({ Work: searchWork }, 1, '0');
+    expect(bundledMail.getBundleInSection('0', 'Work')).toBe(searchWork);
+
+    mockView = 'inbox';
+    expect(bundledMail.getBundleInSection('0', 'Work')).toBe(inboxWork);
+    expect(bundledMail.getOpenedBundle()).toBe(inboxWork);
+});
 
 test('the same label bundles independently in different sections', () => {
     const bundledMail = new BundledMail();

@@ -17,7 +17,14 @@
 
 import DomUtils from '../util/DomUtils';
 import { LABEL_SET_SEPARATOR } from '../util/Constants';
-import { matchLabelPattern, parsePriorityRules, ruleMatchesLabels, ruleLabels } from '../util/LabelSet';
+import {
+    isSystemLabel,
+    matchLabelPattern,
+    parsePriorityRules,
+    ruleMatchesLabels,
+    ruleLabels,
+} from '../util/LabelSet';
+import { getCurrentViewFilters, labelSearchKey } from '../util/MessagePageUtils';
 import { senderIdForEmail, senderBundleKey } from '../util/SenderBundleKey';
 
 /**
@@ -100,6 +107,17 @@ class SelectiveBundling {
      * back to a sender bundle keyed by its most recent sender (domain, or full
      * address on freemail domains). Labeled messages never sender-bundle — the
      * user's own grouping always wins.
+     *
+     * Two kinds of chip are not labels for this purpose. Gmail's built-in
+     * labels (the Inbox chip a search result shows, Sent, Draft, ...) are not
+     * the user's grouping. And whatever the current view is already filtered
+     * by is not a grouping either: in a label view of Work, or on the "View
+     * all" search of the Work bundle, every thread is Work, and bundling them
+     * under Work again would fold the whole list into one row. So the view's
+     * own label (and the label:/from: terms of a search) are ignored, and the
+     * threads group by their other labels or by sender instead, the way they
+     * would in the Inbox if that chip were hidden. Gmail itself hides the
+     * viewed label's chip in a label view; this extends that to searches.
      */
     findRelevantLabels(message) {
         if (this.customBundles) {
@@ -109,7 +127,9 @@ class SelectiveBundling {
             }
         }
 
-        const messageLabels = DomUtils.getLabelStrings(message);
+        const view = getCurrentViewFilters();
+        const messageLabels = DomUtils.getLabelStrings(message)
+            .filter(l => !isSystemLabel(l) && !view.labels.includes(labelSearchKey(l)));
 
         for (const rule of this.priorityRules) {
             if (ruleMatchesLabels(rule, messageLabels)) {
@@ -119,7 +139,9 @@ class SelectiveBundling {
 
         if (this.senderBundling && messageLabels.length === 0) {
             const senderId = senderIdForEmail(DomUtils.getLatestSenderEmail(message));
-            return senderId ? [senderBundleKey(senderId)] : [];
+            return senderId && !view.senders.includes(senderId)
+                ? [senderBundleKey(senderId)]
+                : [];
         }
 
         const inList = l => this.labels.some(pattern => matchLabelPattern(pattern, l));

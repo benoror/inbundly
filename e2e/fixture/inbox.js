@@ -13,6 +13,10 @@
 //  - clicking a row checkbox toggles aria-checked and the row's `x7`
 //    (selected) class, and shows/hides the toolbar action cluster;
 //  - toolbar action clicks are recorded on window.__gmail.clicks;
+//  - the Refresh button (act="20") rebuilds the message list from pristine
+//    rows, the way Gmail repaints it (the extension clicks it after an
+//    option changes and rebundles from the rerender); counted on
+//    window.__gmail.refreshes;
 //  - the keyboard cursor: rows are focusable (tabindex=-1), the cursor row
 //    carries `btb`, j/k walk Gmail's own DOM-ordered list (hidden rows
 //    included), and e/x/Enter act on the checked rows or the cursor row.
@@ -116,9 +120,18 @@ function threadRow({
 /**
  * A full Gmail-shaped inbox page holding the given thread rows.
  * `threads` is an array of threadRow() option objects.
+ *
+ * `tab` names the selected category tab (`null` renders no tablist, as Gmail
+ * does outside the Inbox: search results, label views, Snoozed). The list
+ * markup is the same in every view; which view the extension sees is decided
+ * by the URL hash the page is opened at (e2e/helpers/gmail.js openView).
  */
 function inboxPage({ threads = [], tab = 'Primary', cursorFollowsFocus = true } = {}) {
     const rows = threads.map(threadRow).join('\n');
+    const tablist = tab === null ? '' : `
+    <div role="tablist">
+      <div role="tab" aria-selected="true" aria-label="${escapeHtml(tab)}">${escapeHtml(tab)}</div>
+    </div>`;
 
     return `<!DOCTYPE html>
 <html>
@@ -143,10 +156,7 @@ function inboxPage({ threads = [], tab = 'Primary', cursorFollowsFocus = true } 
         <div class="T-I J-J5-Ji" data-tooltip="Snooze" aria-label="Snooze" role="button"></div>
       </div>
       <div class="T-I J-J5-Ji" act="20" aria-label="Refresh" role="button"></div>
-    </div>
-    <div role="tablist">
-      <div role="tab" aria-selected="true" aria-label="${escapeHtml(tab)}">${escapeHtml(tab)}</div>
-    </div>
+    </div>${tablist}
     <div class="UI">
       <div class="aDP">
         <div class="ae4 aDM" role="tabpanel">
@@ -167,23 +177,26 @@ ${rows}
 </div>
 <script>
 (function emulateGmail() {
-    window.__gmail = { clicks: [], actions: [] };
+    window.__gmail = { clicks: [], actions: [], refreshes: 0 };
 
     // Gmail behavior: a row checkbox click toggles the row's selected state
     // and reveals the toolbar's action cluster while anything is selected.
-    document.querySelectorAll('td.oZ-x3 .oZ-jc').forEach(cb => {
-        cb.addEventListener('click', () => {
-            const on = cb.getAttribute('aria-checked') === 'true';
-            cb.setAttribute('aria-checked', on ? 'false' : 'true');
-            cb.closest('tr').classList.toggle('x7', !on);
-            // Only message rows count as selected: the extension mirrors a
-            // full selection onto its bundle row as x7 too, and clears it
-            // asynchronously, so matching it here would keep the toolbar
-            // revealed after a deselect-all (real Gmail uses its own model).
-            const anySelected = !!document.querySelector('tr.zA.x7:not(.bundle-row)');
-            document.querySelector('.G-Ni').style.display = anySelected ? '' : 'none';
+    function wireCheckboxes() {
+        document.querySelectorAll('td.oZ-x3 .oZ-jc').forEach(cb => {
+            cb.addEventListener('click', () => {
+                const on = cb.getAttribute('aria-checked') === 'true';
+                cb.setAttribute('aria-checked', on ? 'false' : 'true');
+                cb.closest('tr').classList.toggle('x7', !on);
+                // Only message rows count as selected: the extension mirrors a
+                // full selection onto its bundle row as x7 too, and clears it
+                // asynchronously, so matching it here would keep the toolbar
+                // revealed after a deselect-all (real Gmail uses its own model).
+                const anySelected = !!document.querySelector('tr.zA.x7:not(.bundle-row)');
+                document.querySelector('.G-Ni').style.display = anySelected ? '' : 'none';
+            });
         });
-    });
+    }
+    wireCheckboxes();
 
     // Record toolbar action clicks so tests can assert them. Archive also
     // lands on the actions log, with the rows it would act on.
@@ -199,6 +212,19 @@ ${rows}
                 });
             }
         });
+    });
+
+    // Gmail behavior: Refresh repaints the list from the server, i.e. fresh
+    // rows without anything the extension injected or stamped. This inline
+    // script runs before the content script, so the snapshot is pristine.
+    const listContainer = [...document.querySelectorAll('.Cp')]
+        .find(cp => cp.querySelector('table.F'));
+    const pristineList = listContainer.innerHTML;
+    document.querySelector('.G-atb .T-I[act="20"]').addEventListener('click', () => {
+        window.__gmail.refreshes += 1;
+        listContainer.innerHTML = pristineList;
+        wireCheckboxes();
+        wireRowClicks();
     });
 
     // --- Keyboard cursor -------------------------------------------------
@@ -286,13 +312,16 @@ ${rows}
     });
 
     // Clicking a row (not its checkbox or star) opens the thread.
-    messageRows().forEach(row => {
-        row.addEventListener('click', e => {
-            if (!e.target.closest('.oZ-jc, .T-KT')) {
-                record('open', [row]);
-            }
+    function wireRowClicks() {
+        messageRows().forEach(row => {
+            row.addEventListener('click', e => {
+                if (!e.target.closest('.oZ-jc, .T-KT')) {
+                    record('open', [row]);
+                }
+            });
         });
-    });
+    }
+    wireRowClicks();
 })();
 </script>
 </body>

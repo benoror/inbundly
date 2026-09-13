@@ -63,6 +63,8 @@ features add rows there, and unit/e2e tests spin off those rows. The e2e suite
 fixture page at mail.google.com via route interception; the fixture
 (`e2e/fixture/inbox.js`) mirrors the selector contract in
 `src/util/Constants.js` — when Gmail markup changes, update both together.
+One fixture serves every list view: `openView(context, hash)` opens it at
+`#search/...`, `#label/...`, `#snoozed`, and the hash decides the view.
 CI (`.github/workflows/ci.yml`) runs unit + build and the e2e suite on every
 push/PR.
 
@@ -194,6 +196,26 @@ Flow for landing a feature branch and cutting a release:
   de-facto grouping — so date dividers only render in the single-list Default
   inbox (and still honor `groupMessagesByDate` there). `DateGrouper` is unrelated:
   it only runs on the standalone starred **search** page, which is a single list.
+- **Views (which pages bundle).** `util/MessagePageUtils.js` parses the URL
+  hash into a list view (`parseView`: kind, argument, page, `key`). The Inbox
+  always bundles; search results (`#search/<q>`, `#section_query/<q>`), label
+  and category views, Snoozed, Starred, Important, and All Mail bundle only
+  when the `bundleOtherViews` option is on (default off, a bundling key; the
+  module holds the flag via `applyOptions`, read by `content.js` with the
+  master switch before the first pass). Conversations, Sent, Drafts, Spam,
+  Trash, settings, and the pinned page (`isStarredPage`, still `DateGrouper`'s)
+  never bundle. `supportsBundling(url)` is the one gate every handler asks;
+  `isInboxView` is for Inbox-only UI (the pinned toggle). `BundledMail` and
+  `OpenBundleStore` key state by view `key` ahead of page and tab, so two
+  searches never share bundles. Two rules make other views sane:
+  `LabelSet.isSystemLabel` drops Gmail's built-in chips (Inbox, Sent, Draft,
+  ...) that only show outside the Inbox, and `getViewFilters` names the label
+  (`#label/X`, `label:` terms) and sender (`from:`) the view is already
+  filtered by so `SelectiveBundling` does not bundle by them again (else a
+  bundle's "View all" search would fold into one row). `BundleRow`'s "View all"
+  takes its scope from `getViewSearchScope` (`label:Inbox`, the search's own
+  query, `in:snoozed`, ...). The same Gmail list markup is assumed in every
+  view; `TESTING.md` 13.10 is the live canary.
 - **Options storage.** Every Options-page setting and custom bundles live in
   `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
   are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
@@ -211,8 +233,10 @@ Flow for landing a feature branch and cutting a release:
   sync area. UI-only keys (`showPinnedToggle`, `showBundleArchive`,
   `showBundleSnooze`, `showBundleDelete`) toggle CSS
   classes on `<html>`; bundling keys call `applyOptions` on `SelectiveBundling`,
-  `Bundler`, `StarHandler`, and `DateGrouper`, then refresh Gmail so the list
-  rebundles. `keepStarredUnbundled` (default `true`) is a bundling key: when on,
+  `Bundler`, `StarHandler`, `DateGrouper`, and `MessagePageUtils`
+  (`bundleOtherViews`), then refresh Gmail so the list rebundles. The refresh
+  also runs when the current page bundled *before* the change and no longer
+  does (option turned off on a search), so Gmail repaints the plain list. `keepStarredUnbundled` (default `true`) is a bundling key: when on,
   starred messages stay outside bundles (Inbox-style pinning); when off,
   `StarHandler` skips scroll compensation because starring no longer changes
   layout.

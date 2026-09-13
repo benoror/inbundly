@@ -12,7 +12,7 @@
 //   node .cursor/skills/verify-inbundly/scripts/drive.js <feature> --evidence <dir>
 //
 // Features: core-bundling, bundle-actions, sender-bundles,
-//           remember-open-bundle, keyboard-nav, options-autosave
+//           remember-open-bundle, keyboard-nav, other-views, options-autosave
 
 const fs = require('fs');
 const path = require('path');
@@ -23,6 +23,7 @@ const {
     launchWithExtension,
     serveInbox,
     openInbox,
+    openView,
     setSyncOptions,
 } = require(path.join(ROOT, 'e2e', 'helpers', 'gmail'));
 
@@ -721,6 +722,135 @@ const FEATURES = {
                 eq('Gmail\'s mark on News 1', gmailCursor, 'News 1'),
             ],
             shots,
+        });
+    },
+
+    async 'other-views'({ context, rec }) {
+        // The same list for every view, with the Inbox chip Gmail shows
+        // outside the Inbox; the URL hash decides the view.
+        await serveInbox(context, inboxPage({
+            tab: null,
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Work update 1', labels: ['Inbox', 'Work'] },
+                { email: 'b@corp-two.com', subject: 'Work update 2', labels: ['Inbox', 'Work'], unread: true },
+                { email: 'c@corp-three.com', subject: 'Urgent work A', labels: ['Inbox', 'Work', 'Urgent'] },
+                { email: 'd@corp-four.com', subject: 'Urgent work B', labels: ['Inbox', 'Work', 'Urgent'] },
+                { email: 'x@acme.com', subject: 'Acme 1', labels: ['Inbox'] },
+                { email: 'y@acme.com', subject: 'Acme 2', labels: ['Inbox'], daysAgo: 3 },
+                { email: 'f@corp-six.com', subject: 'Just a message', daysAgo: 40 },
+            ],
+        }));
+        let page;
+        const P = () => page;
+        const shots = tag => () => [{ page, tag, ariaRoot: '[role="main"]' }];
+        const titles = () => page.locator('.bundle-row .bundle-and-count > span:first-child')
+            .allInnerTexts().then(list => list.sort());
+        const viewAllHref = name => () => page.locator('.bundle-row', { hasText: name })
+            .locator('.view-all-link').getAttribute('href');
+        const refreshes = () => page.evaluate(() => window.__gmail.refreshes);
+        const rowIsPlain = subject => falsy(`${subject} stays a plain row`,
+            hasClass(() => page.locator('tr.zA', { hasText: subject }), 'bundled-message'));
+        const open = async hash => {
+            if (page) {
+                await page.close();
+            }
+            page = await openView(context, hash);
+            rec.watch(page, hash);
+        };
+
+        await rec.step('search-plain-by-default', {
+            action: async () => {
+                page = await openView(context, 'search/newsletters', { expectBundles: null });
+                rec.watch(page, 'search');
+            },
+            checks: [
+                eq('no bundle rows on the search page', count(P, '.bundle-row'), 0),
+                eq('list not stamped as bundled', count(P, '.is-bundled'), 0),
+            ],
+            shots: shots('search'),
+        });
+
+        await rec.step('option-on-rebundles-the-search-live', {
+            action: async () => {
+                await setSyncOptions(context, { bundleOtherViews: true });
+                await page.waitForSelector('.bundle-row', { timeout: 10000 });
+            },
+            checks: [
+                eq('Gmail asked to refresh once', refreshes, 1),
+                eq('bundles: Work, Work + Urgent, acme.com (Inbox chip ignored)', titles, ['Work', 'Work + Urgent', 'acme.com']),
+                eq('six rows hidden behind bundles', count(P, '.bundled-message'), 6),
+                rowIsPlain('Just a message'),
+                eq('View all stays inside the search', viewAllHref('Urgent'),
+                    'https://mail.google.com/mail/u/0/#search/newsletters+label%3AWork+label%3AUrgent'),
+            ],
+            shots: shots('search'),
+        });
+
+        await rec.step('open-and-collapse-in-the-search', {
+            action: async () => {
+                const work = page.locator('.bundle-row', { hasText: 'Work' })
+                    .filter({ hasNot: page.locator('text=Urgent') });
+                await work.click();
+                await page.locator('.bundled-message.visible').first().waitFor();
+                await work.click();
+            },
+            checks: [eq('collapsed again', visibleBundledMessages(P), 0)],
+            shots: shots('search'),
+        });
+
+        await rec.step('label-view-does-not-bundle-its-own-label', {
+            action: () => open('label/Work'),
+            checks: [
+                eq('bundles: Urgent and acme.com, no Work', titles, ['Urgent', 'acme.com']),
+                rowIsPlain('Work update 1'),
+                rowIsPlain('Work update 2'),
+                eq('View all scoped to the label', viewAllHref('Urgent'),
+                    'https://mail.google.com/mail/u/0/#search/label%3AWork+label%3AUrgent'),
+            ],
+            shots: shots('label'),
+        });
+
+        await rec.step('view-all-search-does-not-refold-the-bundle', {
+            action: () => open('search/label%3AInbox+label%3AWork'),
+            checks: [
+                eq('bundles: Urgent and acme.com', titles, ['Urgent', 'acme.com']),
+                rowIsPlain('Work update 1'),
+            ],
+            shots: shots('view-all'),
+        });
+
+        await rec.step('snoozed-bundles', {
+            action: () => open('snoozed'),
+            checks: [
+                eq('bundles as in the search', titles, ['Work', 'Work + Urgent', 'acme.com']),
+                eq('View all scoped to in:snoozed', viewAllHref('acme.com'),
+                    'https://mail.google.com/mail/u/0/#search/in%3Asnoozed+from%3A%40acme.com'),
+            ],
+            shots: shots('snoozed'),
+        });
+
+        await rec.step('conversation-left-alone', {
+            action: async () => {
+                await page.close();
+                page = await openView(context, 'search/newsletters/FMfcgzQbfVjhKLmnpQrsTuvWxyz',
+                    { expectBundles: null });
+                rec.watch(page, 'conversation');
+            },
+            checks: [eq('no bundle rows', count(P, '.bundle-row'), 0)],
+            shots: shots('conversation'),
+        });
+
+        await rec.step('option-off-leaves-the-search-plain', {
+            action: async () => {
+                await open('search/newsletters');
+                await setSyncOptions(context, { bundleOtherViews: false });
+                await page.waitForFunction(() => !document.querySelector('.bundle-row'));
+            },
+            checks: [
+                eq('no bundle rows', count(P, '.bundle-row'), 0),
+                eq('Gmail asked to refresh once', refreshes, 1),
+            ],
+            shots: shots('search'),
         });
     },
 

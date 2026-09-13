@@ -78,6 +78,11 @@ your inbox.
   bundle row `Enter` opens it, `x` selects it, `e` / `b` / `#` archive,
   snooze, or delete all of it; `Escape` collapses from inside; opening a
   bundle puts the cursor on its first thread so `e` archives what you see
+* Bundles outside the Inbox too (off by default; Options → Bundling): search
+  results, label views, Snoozed, Starred, Important, and All Mail bundle like
+  the Inbox. The label or sender a view is already filtered by is not bundled
+  again there, and "View all" keeps you inside the view; conversations, Sent,
+  Drafts, Spam, and Trash are left alone
 * Optional Stylus userstyle color-matching: when enabled, bundle colors are
   snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
   default)

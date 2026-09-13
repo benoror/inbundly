@@ -20,7 +20,7 @@ import BundleCheckbox from './BundleCheckbox';
 import BundleDeleteButton from './BundleDeleteButton';
 import BundleSnoozeButton from './BundleSnoozeButton';
 
-import MessagePageUtils from '../util/MessagePageUtils';
+import { getCurrentViewSearchScope, labelSearchTerm } from '../util/MessagePageUtils';
 import DomUtils from '../util/DomUtils';
 import { formatLabelSetTitle } from '../util/LabelSet';
 import { isCustomBundleKey, customBundleName } from '../util/CustomBundleKey';
@@ -114,13 +114,11 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     const searchQuery = isSender
         ? 'from%3A' + encodeURIComponent(
             senderId.includes('@') ? senderId : '@' + senderId)
-        : labels
-            .map(l => 'label%3A' + l
-                .split(' ').join('-')
-                .split('/').join('%2F')
-                .split('&').join('-'))
-            .join('+');
-    const url = `${baseUrl}#search/label%3AInbox+${searchQuery}`;
+        : labels.map(labelSearchTerm).join('+');
+    // Scoped to what the current view shows: label:Inbox in the Inbox, the
+    // view's own query on a search page, in:snoozed in Snoozed, and so on.
+    const scope = getCurrentViewSearchScope();
+    const url = `${baseUrl}#search/${scope ? scope + '+' : ''}${searchQuery}`;
     const viewAllButtonHtml = `
         <td class="${GmailClasses.CELL}">
             <a 

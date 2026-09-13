@@ -1,6 +1,6 @@
 ---
 name: verify-inbundly
-description: "Drive Inbundly (the Gmail bundles browser extension) the way a user does and capture proof: the built extension loaded into Playwright Chromium against the repo's Gmail-shaped fixture page, plus the extension's Options page. Use it to prove a bundling, bundle-action, sender-bundle, remember-open-bundle, keyboard-navigation, or options change works before opening or reviewing a PR, or whenever the e2e suite is red and you need evidence of what the user would see."
+description: "Drive Inbundly (the Gmail bundles browser extension) the way a user does and capture proof: the built extension loaded into Playwright Chromium against the repo's Gmail-shaped fixture page, plus the extension's Options page. Use it to prove a bundling, bundle-action, sender-bundle, remember-open-bundle, keyboard-navigation, outside-the-Inbox views, or options change works before opening or reviewing a PR, or whenever the e2e suite is red and you need evidence of what the user would see."
 ---
 
 # Verify Inbundly
@@ -65,7 +65,7 @@ Pick the feature from the map, then:
 
 ```bash
 .cursor/skills/verify-inbundly/scripts/verify.sh drive <feature>
-# features: core-bundling bundle-actions sender-bundles remember-open-bundle keyboard-nav options-autosave
+# features: core-bundling bundle-actions sender-bundles remember-open-bundle keyboard-nav other-views options-autosave
 ```
 
 `drive` does two things and fails if either fails:
@@ -83,10 +83,12 @@ Pick the feature from the map, then:
 For an ad hoc drive, write a throwaway script under `/tmp` that requires
 `e2e/helpers/gmail.js` and `e2e/fixture/inbox.js` (set `NODE_PATH=<repo>/node_modules`)
 and follow the recipe bullets in the feature file: `launchWithExtension()` then
-`serveInbox(context, inboxPage({ threads: [...] }))` then `openInbox(context)`. The stable
+`serveInbox(context, inboxPage({ threads: [...] }))` then `openInbox(context)` (or
+`openView(context, 'label/Work')` for another list view; the hash decides the view). The stable
 handles are the extension's own classes and ARIA names, listed per feature; the fixture's
 Gmail emulation records toolbar clicks on `window.__gmail.clicks` and toggles row selection
-(`tr.zA.x7`) and the toolbar cluster `.G-Ni` like Gmail does. Do not add a second browser
+(`tr.zA.x7`) and the toolbar cluster `.G-Ni` like Gmail does, and rebuilds the list on Refresh
+(`window.__gmail.refreshes`). Do not add a second browser
 stack, and do not drive live Gmail from here.
 
 ## Evidence
@@ -111,7 +113,8 @@ Options page), not internal setters; the one sanctioned shortcut is
 through the extension's own service worker, the same boundary a second device would cross.
 Verify side effects next to what is visible: `sessionStorage['inbundly:openBundle:v1']`
 for the remembered bundle, `chrome.storage.sync` contents for options, `window.__gmail.clicks`
-for toolbar actions. A `PASS` from `drive` with all artifacts present is the proof; quote
+for toolbar actions, `window.__gmail.refreshes` for the rebundle Gmail is asked for after an
+option changes. A `PASS` from `drive` with all artifacts present is the proof; quote
 the evidence path and the feature id when reporting. Skips are reported as skips with the
 unmet precondition, never as passes through another path.
 
