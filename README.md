@@ -73,6 +73,10 @@ your inbox.
 * The pinned-messages toggle and delete-all button (hidden by default)
   and the archive-all and snooze buttons (shown by default) toggle under
   Options → Features
+* Archive-all and the date sweep, your way (all off by default; Options →
+  Features): leave starred (pinned) messages in place like Inbox's sweep did,
+  mark messages as read as they are archived, and remove their stars so done
+  messages leave Starred too. Gmail's own archive is not changed
 * Gmail keyboard shortcuts that know about bundles: `j` / `k` step through
   the rows you see (bundle rows included, hidden threads skipped); on a
   bundle row `Enter` opens it, `x` selects it, `e` / `b` / `#` archive,

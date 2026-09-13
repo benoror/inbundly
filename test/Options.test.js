@@ -20,6 +20,7 @@ import {
     OPTION_KEYS,
     BUNDLING_OPTION_KEYS,
     UI_OPTION_KEYS,
+    ARCHIVE_OPTION_KEYS,
     changesInclude,
     optionsFromChanges,
 } from '../src/util/Options';
@@ -34,9 +35,26 @@ test('OPTION_KEYS covers every default', () => {
     expect(BUNDLING_OPTION_KEYS).toContain('bundleOtherViews');
 });
 
-test('bundling and UI key groups partition the option keys', () => {
-    const combined = [...BUNDLING_OPTION_KEYS, ...UI_OPTION_KEYS].sort();
+test('the archive policy defaults to the archive users already have', () => {
+    // Off by default: archive-all keeps sweeping every thread it always did,
+    // and touches neither read state nor stars, until the user opts in.
+    expect(OPTION_DEFAULTS.skipStarredOnArchive).toBe(false);
+    expect(OPTION_DEFAULTS.markReadOnArchive).toBe(false);
+    expect(OPTION_DEFAULTS.unstarOnArchive).toBe(false);
+    expect([...ARCHIVE_OPTION_KEYS].sort()).toEqual([
+        'markReadOnArchive',
+        'skipStarredOnArchive',
+        'unstarOnArchive',
+    ]);
+});
+
+test('bundling, UI, and archive key groups partition the option keys', () => {
+    const combined = [...BUNDLING_OPTION_KEYS, ...UI_OPTION_KEYS, ...ARCHIVE_OPTION_KEYS].sort();
     expect(combined).toEqual([...OPTION_KEYS].sort());
+    // An archive-policy change must not refresh Gmail (bundling keys do) nor
+    // toggle an <html> class (UI keys do).
+    expect(BUNDLING_OPTION_KEYS).not.toContain('skipStarredOnArchive');
+    expect(UI_OPTION_KEYS).not.toContain('markReadOnArchive');
 });
 
 test('changesInclude detects overlapping keys', () => {

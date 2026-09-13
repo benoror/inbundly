@@ -35,6 +35,7 @@ import MessageListWatcher from './handlers/MessageListWatcher';
 import StarHandler from './handlers/StarHandler';
 import ThemeChangeHandler from './handlers/ThemeChangeHandler';
 
+import ArchiveAction from './util/ArchiveAction';
 import { 
     InbundlyClasses,
     Selectors,
@@ -48,6 +49,7 @@ import {
 import {
     BUNDLING_OPTION_KEYS,
     UI_OPTION_KEYS,
+    ARCHIVE_OPTION_KEYS,
     changesInclude,
     optionsFromChanges,
 } from './util/Options';
@@ -317,6 +319,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
         applyUiOptions(optionsFromChanges(changes, UI_OPTION_KEYS));
     }
 
+    // The archive switches are read at click time; no refresh, no class.
+    if (changesInclude(changes, ARCHIVE_OPTION_KEYS)) {
+        ArchiveAction.applyOptions(optionsFromChanges(changes, ARCHIVE_OPTION_KEYS));
+    }
+
     // Master switch. Enabling and disabling need opposite mechanisms:
     //  - Disable: the list is currently bundled, so refreshInbox() makes Gmail
     //    rebuild it to a plain list (the gate then keeps it plain).
@@ -384,6 +391,7 @@ function handleContentLoaded() {
         starHandler.optionsReady,
         dateGrouper.optionsReady,
         customBundles.ready,
+        ArchiveAction.loadOptions(),
     ]).then(() => {
         logDebugMessage('Stored options ready; starting');
         tryStart(0);

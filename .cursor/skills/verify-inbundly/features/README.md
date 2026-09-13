@@ -12,7 +12,8 @@ drive end to end with the Playwright harness.
 - Every drive gets a fresh Chromium profile under `${TMPDIR:-/tmp}/inbundly-verify/<RUN_ID>/`,
   so `chrome.storage.sync` starts empty and every option is at its default
   (`bundlingEnabled`, `keepStarredUnbundled`, `senderBundling`, `rememberOpenBundle`,
-  `showBundleArchive`, `showBundleSnooze` on; `showBundleDelete` off).
+  `showBundleArchive`, `showBundleSnooze` on; `showBundleDelete`, `skipStarredOnArchive`,
+  `markReadOnArchive`, `unstarOnArchive` off).
 - The inbox is the fixture served at `https://mail.google.com/mail/u/0/#inbox` with the
   thread list named in each feature file; the walk in `scripts/drive.js` seeds it.
 - Never drive a Chrome you did not start; the harness's own `launchWithExtension()` is
@@ -87,6 +88,11 @@ required state, commands, and observable proof.
 - [Collapsed-row glance](./collapsed-glance.md) covers the newest thread's sender and date
   on a closed bundle row, the bold pair for an unread thread, the tooltips, the senders
   peek order, and the glance hiding while the bundle is open (`TESTING.md` 14.1 to 14.5).
+- [Archive-all and date sweep switches](./bulk-trust.md) covers the pin-aware sweep and
+  archive-all (`skipStarredOnArchive`), Gmail's `Mark as read` ahead of Archive
+  (`markReadOnArchive`), the star coming off archived threads (`unstarOnArchive`), the
+  switches applying live without a refresh, and the real Options page switches behind
+  them (`TESTING.md` 15.1 to 15.8).
 - [Options autosave and live sync](./options-autosave.md) covers flipping a switch on the
   real Options page, per-key auto-save, persistence across reload, and the Gmail tab
   reacting live (`TESTING.md` 10.3, 10.4, 10.7).

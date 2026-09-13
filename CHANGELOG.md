@@ -38,6 +38,18 @@ independent of upstream's versioning. The format is based on
   unread. Hover the sender for the address and the date for Gmail's full-date
   tooltip. The senders peek beside the title is unchanged: everyone inside,
   most recent first.
+- **Archive-all and date sweep switches** (#40 and #48, upstream inboxy#25,
+  inboxy#56, inboxy#66, inboxy#74, inboxy#81, and PR inboxy#84). Three
+  switches under Options, Features, "Archive-all and date sweep", all off by
+  default so archive-all keeps doing what it did: **leave starred (pinned)
+  messages in place**, the way Inbox's sweep left pins alone, including a
+  pinned message you had checked by hand; **mark messages as read** as they
+  are archived, through Gmail's own Mark as read, so a label shown only with
+  unread mail goes quiet once its bundle is done; and **remove their stars**,
+  so done messages leave Starred too. They apply to Inbundly's archive-all
+  icon on a bundle row (and its `e` shortcut) and to the check-all sweep on a
+  date heading, take effect on the next click without a reload, and leave
+  Gmail's own archive untouched.
 
 ### Fixed
 - Gmail's archive shortcut (and `x`, `#`, `b`, `Enter`) acting on a thread you

@@ -39,6 +39,9 @@ const OPTION_DEFAULTS = {
     showBundleArchive: true,
     showBundleSnooze: true,
     showBundleDelete: false,
+    skipStarredOnArchive: false,
+    markReadOnArchive: false,
+    unstarOnArchive: false,
 };
 
 const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);
@@ -70,6 +73,18 @@ const UI_OPTION_KEYS = [
 ];
 
 /**
+ * Options that shape what inbundly's own archive-all and date-section sweep
+ * do when clicked. They change no bundling and no chrome, so a change needs
+ * neither a Gmail refresh nor an <html> class: the next click reads them.
+ * All default off, so existing users see the archive they had.
+ */
+const ARCHIVE_OPTION_KEYS = [
+    'skipStarredOnArchive',
+    'markReadOnArchive',
+    'unstarOnArchive',
+];
+
+/**
  * True if `changes` (a chrome.storage.onChanged map) includes any of `keys`.
  */
 function changesInclude(changes, keys) {
@@ -97,6 +112,7 @@ export {
     OPTION_KEYS,
     BUNDLING_OPTION_KEYS,
     UI_OPTION_KEYS,
+    ARCHIVE_OPTION_KEYS,
     changesInclude,
     optionsFromChanges,
 };

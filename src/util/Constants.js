@@ -147,6 +147,12 @@ const Selectors = {
     TOOLBAR_DELETE_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[act="10"],
         .G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Delete"],
         .G-atb:not([style*="none"]) .T-I.J-J5-Ji[aria-label="Delete"]`,
+    // Gmail's envelope button reads "Mark as read" only while the selection
+    // holds an unread thread (it flips to "Mark as unread" otherwise), so this
+    // matches exactly when there is something to mark. Matched by tooltip /
+    // aria-label like snooze (English-only): its act code is not relied on.
+    TOOLBAR_MARK_READ_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"],
+        .G-atb:not([style*="none"]) .T-I.J-J5-Ji[aria-label="Mark as read"]`,
     // The snooze button carries no stable act code, so match its tooltip
     // (with an aria-label fallback). English-only, like the date headings.
     TOOLBAR_SNOOZE_BUTTON: `.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Snooze"],

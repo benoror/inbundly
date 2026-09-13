@@ -20,7 +20,7 @@ SCRATCH_ROOT="${TMPDIR:-/tmp}/inbundly-verify"
 CURRENT_RUN_FILE="$EVIDENCE_ROOT/.current-run"
 EXPECTED_EXTENSION_ID="cpggdbckpaoikhddngoeepdedfkleiab"
 
-FEATURES="core-bundling bundle-actions sender-bundles remember-open-bundle keyboard-nav other-views collapsed-glance options-autosave"
+FEATURES="core-bundling bundle-actions sender-bundles remember-open-bundle keyboard-nav other-views collapsed-glance bulk-trust options-autosave"
 
 # Run a command, mirror its output to the terminal and a log file (dropping
 # Node's NO_COLOR/FORCE_COLOR warning noise), and return the command's own
@@ -75,6 +75,7 @@ spec_for() {
         keyboard-nav)         echo "e2e/keyboard-nav.spec.js" ;;
         other-views)          echo "e2e/other-views.spec.js" ;;
         collapsed-glance)     echo "e2e/collapsed-glance.spec.js" ;;
+        bulk-trust)           echo "e2e/bulk-trust.spec.js" ;;
         options-autosave)     echo "e2e/bundle-actions.spec.js" ;;
         *) return 1 ;;
     esac

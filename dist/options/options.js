@@ -60,6 +60,12 @@ const OPTION_FIELDS = {
         read: () => document.getElementById('show-bundle-snooze-checkbox').checked },
     showBundleDelete: { controlIds: ['show-bundle-delete-checkbox'],
         read: () => document.getElementById('show-bundle-delete-checkbox').checked },
+    skipStarredOnArchive: { controlIds: ['skip-starred-on-archive-checkbox'],
+        read: () => document.getElementById('skip-starred-on-archive-checkbox').checked },
+    markReadOnArchive: { controlIds: ['mark-read-on-archive-checkbox'],
+        read: () => document.getElementById('mark-read-on-archive-checkbox').checked },
+    unstarOnArchive: { controlIds: ['unstar-on-archive-checkbox'],
+        read: () => document.getElementById('unstar-on-archive-checkbox').checked },
 };
 
 const OPTION_KEYS = Object.keys(OPTION_FIELDS);
@@ -140,6 +146,9 @@ function restoreOptionsForm() {
         showBundleArchive: true,
         showBundleSnooze: true,
         showBundleDelete: false,
+        skipStarredOnArchive: false,
+        markReadOnArchive: false,
+        unstarOnArchive: false,
     }, function(items) {
         document.getElementById('bundling-enabled-checkbox').checked = items.bundlingEnabled;
         document.getElementById('bundle-other-views-checkbox').checked = items.bundleOtherViews;
@@ -175,7 +184,10 @@ function restoreOptionsForm() {
         document.getElementById('show-bundle-archive-checkbox').checked = items.showBundleArchive;
         document.getElementById('show-bundle-snooze-checkbox').checked = items.showBundleSnooze;
         document.getElementById('show-bundle-delete-checkbox').checked = items.showBundleDelete;
-
+        document.getElementById('skip-starred-on-archive-checkbox').checked =
+            items.skipStarredOnArchive;
+        document.getElementById('mark-read-on-archive-checkbox').checked = items.markReadOnArchive;
+        document.getElementById('unstar-on-archive-checkbox').checked = items.unstarOnArchive;
     });
 }
 

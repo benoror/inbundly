@@ -28,8 +28,18 @@ import { Selectors } from './Constants';
  * Select the given messages, then click the toolbar button matched by
  * `toolbarButtonSelector` once it is clickable. No-op when no such button
  * exists (e.g. Gmail changed its markup).
+ *
+ * `precededBy` names another toolbar button to click first, on the same
+ * selection, when it is present and clickable at that moment (e.g. "Mark as
+ * read" ahead of Archive). It is looked up only once the toolbar has been
+ * revealed, since Gmail sets those buttons up for the selection; when Gmail
+ * shows no such button, the main action runs alone.
  */
-function triggerToolbarAction(toolbarButtonSelector, selectMessagesFunction) {
+function triggerToolbarAction(
+    toolbarButtonSelector,
+    selectMessagesFunction,
+    { precededBy = null } = {})
+{
     const toolbarButton = document.querySelector(toolbarButtonSelector);
     if (!toolbarButton || !toolbarButton.parentNode) {
         return;
@@ -52,7 +62,20 @@ function triggerToolbarAction(toolbarButtonSelector, selectMessagesFunction) {
         resolve();
     });
 
-    Promise.all([buttonIsVisible, selectMessages]).then(() => _simulateClick(toolbarButton));
+    Promise.all([buttonIsVisible, selectMessages]).then(() => {
+        const firstButton = precededBy ? document.querySelector(precededBy) : null;
+        if (!firstButton || !_isClickable(firstButton)) {
+            _simulateClick(toolbarButton);
+            return;
+        }
+        _simulateClick(firstButton);
+        // Gmail may redraw the toolbar for the first action (the envelope
+        // flips to "Mark as unread"), so the main action goes to the freshest
+        // copy of its button, on the next task.
+        setTimeout(() => {
+            _simulateClick(document.querySelector(toolbarButtonSelector) || toolbarButton);
+        }, 0);
+    });
 }
 
 /**
@@ -62,6 +85,19 @@ function selectMessages(messages) {
     for (let i = messages.length - 1; i >= 0; i--) {
         const checkboxNode = messages[i].querySelector(Selectors.MESSAGE_CHECKBOX);
         if (!DomUtils.isChecked(checkboxNode)) {
+            checkboxNode.click();
+        }
+    }
+}
+
+/**
+ * Deselect the given messages (those currently checked) via Gmail's own row
+ * checkboxes, so a following toolbar action leaves them out.
+ */
+function deselectMessages(messages) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+        const checkboxNode = messages[i].querySelector(Selectors.MESSAGE_CHECKBOX);
+        if (DomUtils.isChecked(checkboxNode)) {
             checkboxNode.click();
         }
     }
@@ -87,4 +123,4 @@ function _simulateClick(element) {
     dispatchMouseEvent(element, 'mouseup');
 }
 
-export default { triggerToolbarAction, selectMessages };
+export default { triggerToolbarAction, selectMessages, deselectMessages };

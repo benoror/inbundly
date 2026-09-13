@@ -13,7 +13,7 @@
 //
 // Features: core-bundling, bundle-actions, sender-bundles,
 //           remember-open-bundle, keyboard-nav, other-views, collapsed-glance,
-//           options-autosave
+//           bulk-trust, options-autosave
 
 const fs = require('fs');
 const path = require('path');
@@ -915,6 +915,206 @@ const FEATURES = {
                 eq('still Jane Doe', glanceSender(work), 'Jane Doe'),
             ],
             shots,
+        });
+    },
+
+    async 'bulk-trust'({ context, rec, info }) {
+        // All from today, so one "Today" sweep reaches every row. The pinned
+        // thread carries the Work label but sits outside the bundle (default
+        // keepStarredUnbundled), where the date sweep is what reaches it.
+        await serveInbox(context, inboxPage({
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Work 1', labels: ['Work'], unread: true },
+                { email: 'b@corp-two.com', subject: 'Work 2', labels: ['Work'] },
+                { email: 'c@corp-three.com', subject: 'Work pinned', labels: ['Work'], starred: true },
+                { email: 'd@corp-four.com', subject: 'Outside message' },
+            ],
+        }));
+        const optionsUrl = `chrome-extension://${info.extensionId}/options/options.html`;
+        let inbox;
+        let options;
+        const I = () => inbox;
+        const shots = () => [
+            { page: inbox, tag: 'inbox', ariaRoot: '[role="main"]' },
+            { page: options, tag: 'options', ariaRoot: 'body' },
+        ];
+        const inboxShot = () => [{ page: inbox, tag: 'inbox', ariaRoot: '[role="main"]' }];
+        const work = () => inbox.locator('.bundle-row', { hasText: 'Work' });
+        // By exact subject: a row's text also holds its label chip and date.
+        const row = subject => () => inbox.locator('tr.zA:not(.bundle-row)', {
+            has: inbox.locator('.y6 span span', { hasText: new RegExp(`^${subject}$`) }),
+        });
+        const pinnedStarred = () => row('Work pinned')().locator('.T-KT-Jp').count();
+        const gmailActions = () => inbox.evaluate(() => window.__gmail.actions);
+        const actionTypes = async () => (await gmailActions()).map(a => a.type);
+        const archived = async () => (await gmailActions()).filter(a => a.type === 'archive').map(a => a.subjects);
+        const refreshes = () => inbox.evaluate(() => window.__gmail.refreshes);
+        const storedSync = () => info.worker.evaluate(
+            () => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
+        const switchFor = id => options.locator(`label.switch:has(#${id}) .slider`);
+        const checked = id => () => options.locator(`#${id}`).isChecked();
+        const saveStatus = () => options.locator('#save-status');
+        // Gmail's toolbar action fires once the selection reveals the toolbar;
+        // the fixture does not take archived rows away, so each action starts
+        // from a fresh Gmail tab, as a user who reloads would.
+        const reopenInbox = async () => {
+            if (inbox) {
+                await inbox.close();
+            }
+            inbox = await openInbox(context);
+            rec.watch(inbox, 'inbox');
+        };
+        // The fixture ships no Gmail stylesheet, so the sweep icon (sized by
+        // Gmail's own .bqX class) has no box for a pointer click; the archive
+        // icon on a hovered bundle row can sit under a neighbouring cell for
+        // the same reason. Dispatch the click the way the specs do.
+        const clickSweep = () => inbox.locator('.date-row .archive-bundle').dispatchEvent('click');
+        const clickArchiveAll = async () => {
+            await work().hover();
+            await work().locator('.archive-bundle').dispatchEvent('click');
+        };
+
+        await rec.step('open-inbox-and-options', {
+            action: async () => {
+                await reopenInbox();
+                options = await context.newPage();
+                rec.watch(options, 'options');
+                await options.goto(optionsUrl);
+                await options.locator('#skip-starred-on-archive-checkbox').waitFor({ state: 'attached' });
+            },
+            checks: [
+                falsy('skip-starred switch off by default', checked('skip-starred-on-archive-checkbox')),
+                falsy('mark-read switch off by default', checked('mark-read-on-archive-checkbox')),
+                falsy('unstar switch off by default', checked('unstar-on-archive-checkbox')),
+                eq('sync storage empty in a fresh profile', storedSync, {}),
+                eq('one Today divider with its sweep icon', count(I, '.date-row .archive-bundle'), 1),
+                eq('pinned thread outside the bundle, starred', pinnedStarred, 1),
+                eq('Work bundle holds the two unpinned threads', () => work().locator('.bundle-count').textContent(), '(2)'),
+            ],
+            shots,
+        });
+
+        await rec.step('default-sweep-takes-the-pinned-thread-too', {
+            action: clickSweep,
+            checks: [
+                eq('all four rows selected', rowSelectedCount(I), 4),
+                eventually(eq('Gmail toolbar Archive clicked, nothing else', gmailClicks(I), ['act:7'])),
+                eventually(eq('archive of every thread, pinned included', archived,
+                    [['Work 1', 'Work 2', 'Work pinned', 'Outside message']])),
+                eq('no Mark as read, no unstar', actionTypes, ['archive']),
+                eq('star untouched', pinnedStarred, 1),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('flip-skip-starred-on', {
+            action: async () => {
+                await switchFor('skip-starred-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => document.getElementById('save-status').classList.contains('visible'));
+            },
+            checks: [
+                truthy('switch on', checked('skip-starred-on-archive-checkbox')),
+                truthy('Saved status shown', hasClass(saveStatus, 'visible')),
+                eq('only that key written to sync', storedSync, { skipStarredOnArchive: true }),
+                eq('Gmail tab not asked to refresh (read at click time)', refreshes, 0),
+            ],
+            shots,
+        });
+
+        await rec.step('sweep-leaves-the-pinned-thread-in-place', {
+            action: async () => {
+                await reopenInbox();
+                await clickSweep();
+            },
+            checks: [
+                eq('three rows selected', rowSelectedCount(I), 3),
+                falsy('pinned row not selected', hasClass(row('Work pinned'), 'x7')),
+                eventually(eq('archive without the pinned thread', archived,
+                    [['Work 1', 'Work 2', 'Outside message']])),
+                eq('star untouched', pinnedStarred, 1),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('flip-mark-read-on', {
+            action: async () => {
+                await switchFor('mark-read-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => document.getElementById('mark-read-on-archive-checkbox').checked);
+            },
+            checks: [
+                truthy('switch on', checked('mark-read-on-archive-checkbox')),
+                eq('sync holds both switches', storedSync,
+                    { markReadOnArchive: true, skipStarredOnArchive: true }),
+            ],
+            shots: [{ page: options, tag: 'options', ariaRoot: 'body' }],
+        });
+
+        await rec.step('archive-all-marks-the-bundle-read-first', {
+            action: async () => {
+                await reopenInbox();
+                await clickArchiveAll();
+            },
+            checks: [
+                eq('the two Work rows selected', rowSelectedCount(I), 2),
+                eventually(eq('Mark as read, then Archive', gmailClicks(I), ['Mark as read', 'act:7'])),
+                eventually(eq('Gmail marked read then archived the same two threads', gmailActions, [
+                    { type: 'markRead', subjects: ['Work 1', 'Work 2'] },
+                    { type: 'archive', subjects: ['Work 1', 'Work 2'] },
+                ])),
+                truthy('Work 1 now read (yO)', hasClass(row('Work 1'), 'yO')),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('flip-unstar-on-and-skip-starred-off', {
+            action: async () => {
+                await switchFor('unstar-on-archive-checkbox').click();
+                await switchFor('skip-starred-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => !document.getElementById('skip-starred-on-archive-checkbox').checked);
+            },
+            checks: [
+                truthy('unstar on', checked('unstar-on-archive-checkbox')),
+                falsy('skip-starred off', checked('skip-starred-on-archive-checkbox')),
+                eq('sync reflects the three switches', storedSync,
+                    { markReadOnArchive: true, skipStarredOnArchive: false, unstarOnArchive: true }),
+            ],
+            shots: [{ page: options, tag: 'options', ariaRoot: 'body' }],
+        });
+
+        await rec.step('sweep-unstars-the-pinned-thread-then-archives-it', {
+            action: async () => {
+                await reopenInbox();
+                await clickSweep();
+            },
+            checks: [
+                eq('all four rows selected', rowSelectedCount(I), 4),
+                eq('star clicked off before the toolbar', pinnedStarred, 0),
+                eventually(eq('Mark as read, then Archive', gmailClicks(I), ['Mark as read', 'act:7'])),
+                eventually(eq('unstar, mark read, archive, in that order', actionTypes,
+                    ['unstar', 'markRead', 'archive'])),
+                eventually(eq('archive of every thread', archived,
+                    [['Work 1', 'Work 2', 'Work pinned', 'Outside message']])),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('restore-defaults', {
+            action: async () => {
+                await switchFor('mark-read-on-archive-checkbox').click();
+                await switchFor('unstar-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => !document.getElementById('unstar-on-archive-checkbox').checked);
+            },
+            checks: [
+                falsy('mark-read off', checked('mark-read-on-archive-checkbox')),
+                falsy('unstar off', checked('unstar-on-archive-checkbox')),
+                eq('sync holds explicit falses', storedSync,
+                    { markReadOnArchive: false, skipStarredOnArchive: false, unstarOnArchive: false }),
+            ],
+            shots: [{ page: options, tag: 'options', ariaRoot: 'body' }],
         });
     },
 

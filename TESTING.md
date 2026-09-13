@@ -187,6 +187,20 @@ tags `v2.1.0` … `v4.4.0`.
 | 14.6 | The sender's display text is whatever Gmail shows (`me`, a name, or an address); a long name truncates with an ellipsis at 160px; the vertical-split reading pane (`.Zs`) hides the sender and keeps the date alone | edge | manual |
 | 14.7 | Newest thread is the bundle's first row in Gmail's list order (Gmail sorts every bundlable view newest first; Snoozed sorts by snooze time, so there the glance is the soonest-due thread) | contract | manual |
 
+## 15. Archive-all and date sweep switches (unreleased, PR #65, issues #40 and #48)
+
+| # | Scenario | Kind | Coverage |
+|---|----------|------|----------|
+| 15.1 | All three switches off (default): archive-all and the date sweep select every thread they always did, pinned included, and click Gmail's Archive and nothing else; flipping a switch asks Gmail for no refresh and rebundles nothing (read at click time) | happy | e2e `bulk-trust.spec` · unit `ArchiveAction`, `Options`, `OptionsPage` |
+| 15.2 | `skipStarredOnArchive` on: the date sweep leaves starred (pinned) threads unselected and in place; archive-all does the same for a pinned thread inside its bundle (`keepStarredUnbundled` off); a pinned thread the user checked by hand is deselected first so it never rides along | happy | e2e `bulk-trust.spec` · unit `ArchiveAction`, `GmailToolbar` (`deselectMessages`) |
+| 15.3 | `skipStarredOnArchive` on and every thread in the section starred: the icon is a no-op (no selection, Gmail untouched) | edge | unit `ArchiveAction` |
+| 15.4 | `markReadOnArchive` on: Gmail's toolbar `Mark as read` is clicked on the selection before `Archive`; an all-read selection (or a toolbar without that button) goes straight to `Archive`; unread is judged on the threads being archived, not the skipped ones | happy | e2e `bulk-trust.spec` · unit `ArchiveAction`, `GmailToolbar` (`precededBy`) |
+| 15.5 | `unstarOnArchive` on: the star is clicked off each starred thread being archived before the toolbar click; with skip-starred on too, a skipped pin keeps its star | happy | e2e `bulk-trust.spec` · unit `ArchiveAction` |
+| 15.6 | `e` / `y` on a bundle row runs archive-all under the same switches (it clicks the row's icon); Gmail's own archive paths (row hover icon, toolbar on a manual selection, `e` on a thread, the keyboard fallback for a single row) are not changed | happy | e2e `bulk-trust.spec` · unit `KeyboardNavHandler` |
+| 15.7 | Options page: the three switches under Features, Archive-all and date sweep, each auto-save their own key and restore from storage | happy | unit `OptionsPage` · verify-inbundly `bulk-trust` walk (real switch clicks) |
+| 15.8 | Live Gmail contract: with unread threads selected, `document.querySelector('.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"]')` is the envelope button and clicking it leaves the selection in place for the following Archive; clicking a row's `.T-KT.T-KT-Jp` unstars it. English-only tooltips, like snooze | contract | manual |
+| 15.9 | Known limitations: `Mark as read` and unstar go through Gmail's own controls, so what Gmail does after (server-side read state, the thread leaving Starred, undo) is Gmail's; a section of only pinned threads makes the icon a silent no-op rather than a disabled one; the pin-icon affordance in place of the star (#40) is not part of this layer | note | - |
+
 ## How the e2e suite works
 
 Playwright loads the **built extension** (`dist/`, so run `npm run build`
@@ -199,13 +213,18 @@ The fixture builds its DOM strictly from the selector contract in
 `src/util/Constants.js` (rows `tr.zA`, checkbox `.oZ-jc` in `td.oZ-x3`,
 senders `.yX.xY .yW .bA4 span[email]`, labels `.ar.as .at`, list
 `[role=main] .ae4 .Cp > div > table.F > tbody`, toolbar
-`.G-atb > .G-Ni[display:none] > [act="7"] / [act="10"] / [data-tooltip="Snooze"]`),
-verified against live Gmail on 2026-09-09. It also emulates the Gmail
-behaviors the extension depends on: clicking a row checkbox toggles
-`aria-checked` and the row's `x7` class, and reveals the toolbar's action
-cluster while any message row (`tr.zA.x7:not(.bundle-row)`, since the
-extension mirrors a full selection onto its bundle row too) is selected;
-toolbar clicks are recorded on `window.__gmail.clicks`. It also models
+`.G-atb > .G-Ni[display:none] > [act="7"] / [act="10"] / [data-tooltip="Snooze"] /
+[data-tooltip="Mark as read"]`), verified against live Gmail on 2026-09-09
+(the envelope button's tooltip is the contract row 15.8 checks). It also
+emulates the Gmail behaviors the extension depends on: clicking a row
+checkbox toggles `aria-checked` and the row's `x7` class, and reveals the
+toolbar's action cluster while any message row (`tr.zA.x7:not(.bundle-row)`,
+since the extension mirrors a full selection onto its bundle row too) is
+selected; toolbar clicks are recorded on `window.__gmail.clicks`, Archive
+and Mark as read also on `window.__gmail.actions` with the selected rows'
+subjects; Mark as read flips the selected rows to read and the envelope
+reads "Mark as read" only while the selection holds an unread row; clicking
+a row's star toggles it and records a star / unstar action. It also models
 Gmail's keyboard cursor the way the extension understands it (row 12.9 is
 the live canary): rows are focusable (`tabindex="-1"`), the cursor row
 carries `btb` and follows DOM focus, `j`/`k` walk Gmail's DOM-ordered list
@@ -263,6 +282,14 @@ spec. The feature recipes live in `.cursor/skills/verify-inbundly/features/`.
    (`document.querySelectorAll('.bundle-row').length > 0`) with no bundle
    titled `Inbox`, and "View all" on a bundle should keep you in that view.
    Turn the switch off afterwards; the lists refresh to plain.
+8. Archive-switch canary (row 15.8): select one unread thread in the Inbox
+   and confirm `document.querySelector('.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"]')`
+   is the envelope button. Then turn on Options, Features, "Mark messages as
+   read when archiving" and "Leave starred messages in place", star one
+   thread in a bundle of unread threads (with "Keep starred messages outside
+   bundles" off so it stays inside), and click the bundle's archive-all: the
+   unread threads are marked read and archived, the starred one stays.
+   Move the archived threads back from All Mail and unstar afterwards.
 
 Last full manual pass: **2026-09-09** (PR #32 features; all pass — snooze
 menu end-to-end with restore, remember-open-bundle across reloads, sender

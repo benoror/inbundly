@@ -12,7 +12,13 @@
 // The page also emulates the Gmail behaviors the extension depends on:
 //  - clicking a row checkbox toggles aria-checked and the row's `x7`
 //    (selected) class, and shows/hides the toolbar action cluster;
-//  - toolbar action clicks are recorded on window.__gmail.clicks;
+//  - toolbar action clicks are recorded on window.__gmail.clicks; Archive
+//    and Mark as read also land on window.__gmail.actions with the selected
+//    rows' subjects, Mark as read flips the selected rows to read (`yO`), and
+//    the envelope button reads "Mark as read" only while the selection holds
+//    an unread row, "Mark as unread" otherwise, as Gmail's does;
+//  - clicking a row's star toggles it between Gmail's starred and unstarred
+//    classes and records a star / unstar action;
 //  - the Refresh button (act="20") rebuilds the message list from pristine
 //    rows, the way Gmail repaints it (the extension clicks it after an
 //    option changes and rebundles from the rerender); counted on
@@ -153,6 +159,7 @@ function inboxPage({ threads = [], tab = 'Primary', cursorFollowsFocus = true } 
       <div class="G-Ni" style="display: none;">
         <div class="T-I J-J5-Ji" act="7" aria-label="Archive" role="button"></div>
         <div class="T-I J-J5-Ji" act="10" data-tooltip="Delete" aria-label="Delete" role="button"></div>
+        <div class="T-I J-J5-Ji" data-tooltip="Mark as read" aria-label="Mark as read" role="button" id="fixture-envelope"></div>
         <div class="T-I J-J5-Ji" data-tooltip="Snooze" aria-label="Snooze" role="button"></div>
       </div>
       <div class="T-I J-J5-Ji" act="20" aria-label="Refresh" role="button"></div>
@@ -179,6 +186,16 @@ ${rows}
 (function emulateGmail() {
     window.__gmail = { clicks: [], actions: [], refreshes: 0 };
 
+    // Gmail behavior: the envelope button offers "Mark as read" while the
+    // selection holds an unread row, "Mark as unread" once it is all read.
+    function updateEnvelope() {
+        const envelope = document.getElementById('fixture-envelope');
+        const anyUnread = messageRows().some(r => isSelected(r) && r.classList.contains('zE'));
+        const label = anyUnread ? 'Mark as read' : 'Mark as unread';
+        envelope.setAttribute('data-tooltip', label);
+        envelope.setAttribute('aria-label', label);
+    }
+
     // Gmail behavior: a row checkbox click toggles the row's selected state
     // and reveals the toolbar's action cluster while anything is selected.
     function wireCheckboxes() {
@@ -187,6 +204,7 @@ ${rows}
                 const on = cb.getAttribute('aria-checked') === 'true';
                 cb.setAttribute('aria-checked', on ? 'false' : 'true');
                 cb.closest('tr').classList.toggle('x7', !on);
+                updateEnvelope();
                 // Only message rows count as selected: the extension mirrors a
                 // full selection onto its bundle row as x7 too, and clears it
                 // asynchronously, so matching it here would keep the toolbar
@@ -198,18 +216,37 @@ ${rows}
     }
     wireCheckboxes();
 
-    // Record toolbar action clicks so tests can assert them. Archive also
-    // lands on the actions log, with the rows it would act on.
+    // Gmail behavior: clicking a row's star toggles it.
+    function wireStars() {
+        document.querySelectorAll('td.apU .T-KT').forEach(star => {
+            star.addEventListener('click', () => {
+                const starred = star.classList.contains('T-KT-Jp');
+                star.classList.toggle('T-KT-Jp', !starred);
+                star.classList.toggle('aXw', starred);
+                record(starred ? 'unstar' : 'star', [star.closest('tr')]);
+            });
+        });
+    }
+    wireStars();
+
+    // Record toolbar action clicks so tests can assert them. Archive and
+    // Mark as read also land on the actions log, with the rows they act on;
+    // Mark as read flips those rows to read and the envelope follows.
     document.querySelectorAll('.G-atb .T-I').forEach(button => {
         button.addEventListener('click', () => {
-            window.__gmail.clicks.push(
-                button.getAttribute('data-tooltip') ||
-                'act:' + button.getAttribute('act'));
+            const tooltip = button.getAttribute('data-tooltip');
+            window.__gmail.clicks.push(tooltip || 'act:' + button.getAttribute('act'));
+            const selected = messageRows().filter(isSelected);
             if (button.getAttribute('act') === '7') {
-                window.__gmail.actions.push({
-                    type: 'archive',
-                    subjects: messageRows().filter(isSelected).map(subjectOf),
+                record('archive', selected);
+            }
+            else if (tooltip === 'Mark as read') {
+                selected.forEach(r => {
+                    r.classList.remove('zE');
+                    r.classList.add('yO');
                 });
+                record('markRead', selected);
+                updateEnvelope();
             }
         });
     });
@@ -224,6 +261,7 @@ ${rows}
         window.__gmail.refreshes += 1;
         listContainer.innerHTML = pristineList;
         wireCheckboxes();
+        wireStars();
         wireRowClicks();
     });
 
