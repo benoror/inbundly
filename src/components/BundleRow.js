@@ -25,6 +25,7 @@ import DomUtils from '../util/DomUtils';
 import { formatLabelSetTitle } from '../util/LabelSet';
 import { isCustomBundleKey, customBundleName } from '../util/CustomBundleKey';
 import { isSenderBundleKey, senderBundleName } from '../util/SenderBundleKey';
+import { latestMessageGlance } from '../util/MessageGlance';
 import {
     GmailClasses,
     InbundlyClasses,
@@ -66,14 +67,6 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     }
 
     const sendersText = _generateSendersText(messages).join(', ');
-
-    const snoozedText = messages[0].querySelector(Selectors.MESSAGE_SNOOZED_TEXT);
-    const latestDate = snoozedText
-        ? snoozedText.innerText
-        : messages[0].querySelector(Selectors.MESSAGE_DATE_SPAN).innerText;
-
-    const latestIsUnreadClass = messages[0].classList.contains(GmailClasses.UNREAD) ? 'unread' : '';
-    const latestIsSnoozedClass = snoozedText ? GmailClasses.SNOOZED : '';
 
     const html = `
         <tr class="${GmailClasses.ROW} ${InbundlyClasses.BUNDLE_ROW} ${unreadClass}">
@@ -132,14 +125,6 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
         </td>
     `;
 
-    const bundleDateHtml = `
-        <td class="bundle-date-cell ${snoozedText ? '' : GmailClasses.DATE_CELL} ${GmailClasses.CELL}">
-            <span class="bundle-date ${latestIsUnreadClass} ${latestIsSnoozedClass}">
-                ${latestDate}
-            </span>
-        </td>
-    `;
-
     const el = DomUtils.htmlToElement(html);
     // The oZ-x3 cell is Gmail's checkbox column (PF is the 3px flag column), so
     // the select-all checkbox lines up with the per-message checkboxes when the
@@ -148,7 +133,7 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     el.appendChild(snoozeTd);
     el.appendChild(bulkArchiveTd);
     el.appendChild(deleteTd);
-    el.appendChild(DomUtils.htmlToElement(bundleDateHtml));
+    el.appendChild(_createGlanceCell(messages));
     // A custom bundle has no Gmail label to search, so it gets no "View all"
     // link — an empty cell keeps the row's column layout aligned.
     el.appendChild(DomUtils.htmlToElement(
@@ -183,6 +168,42 @@ function create(label, order, messages, hasUnread, toggleBundle, baseUrl, labelC
     }
 
     return el;
+}
+
+/**
+ * The right-hand cell of the collapsed row: who wrote last, then when, so the
+ * bundle can be read like a Gmail thread row without opening it. The sender's
+ * address and Gmail's full date sit in the tooltips. Both go bold when the
+ * latest thread is unread, as Gmail's own rows do. Built with DOM APIs since
+ * the text is Gmail's, not ours.
+ */
+function _createGlanceCell(messages) {
+    const glance = latestMessageGlance(messages);
+    const unreadClass = glance.isUnread ? ' unread' : '';
+
+    const cell = DomUtils.htmlToElement(`
+        <td class="bundle-date-cell ${glance.isSnoozed ? '' : GmailClasses.DATE_CELL} ${GmailClasses.CELL}"></td>
+    `);
+
+    if (glance.sender) {
+        const sender = document.createElement('span');
+        sender.className = 'bundle-latest-sender' + unreadClass;
+        sender.textContent = glance.sender.name;
+        if (glance.sender.email) {
+            sender.title = glance.sender.email;
+        }
+        cell.appendChild(sender);
+    }
+
+    const date = document.createElement('span');
+    date.className = 'bundle-date' + unreadClass + (glance.isSnoozed ? ` ${GmailClasses.SNOOZED}` : '');
+    date.textContent = glance.date;
+    if (glance.dateTitle) {
+        date.title = glance.dateTitle;
+    }
+    cell.appendChild(date);
+
+    return cell;
 }
 
 function _generateSendersText(messages) {
