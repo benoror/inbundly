@@ -18,61 +18,88 @@
 const PLACEHOLDER = 'Add the name of each bundle on a new line, for example:\n\nBank\nSchool\nNewsletters/*';
 const PRIORITY_PLACEHOLDER = 'Add a priority rule on each line, for example:\n\nBank\nSchool/*\nWork + Urgent';
 
-// Every option, keyed as in OPTION_DEFAULTS in src/util/Options.js (this page
-// is plain JS outside the webpack bundle, so the keys are duplicated here —
-// keep the two in sync). Each entry maps a storage key to the form control(s)
-// that edit it and a reader for the current form value. `list: true` marks the
-// free-text list textareas, which save debounced instead of per keystroke.
-const OPTION_FIELDS = {
-    bundlingEnabled: { controlIds: ['bundling-enabled-checkbox'],
-        read: () => document.getElementById('bundling-enabled-checkbox').checked },
-    bundleOtherViews: { controlIds: ['bundle-other-views-checkbox'],
-        read: () => document.getElementById('bundle-other-views-checkbox').checked },
-    exclude: { controlIds: ['exclude-radio', 'include-radio'],
-        read: () => document.getElementById('exclude-radio').checked },
-    labels: { controlIds: ['label-list'], list: true,
-        read: () => splitLines(document.getElementById('label-list').value) },
-    groupMessagesByDate: { controlIds: ['group-by-date-checkbox'],
-        read: () => document.getElementById('group-by-date-checkbox').checked },
-    combineLabels: { controlIds: ['combine-labels-checkbox'],
-        read: () => document.getElementById('combine-labels-checkbox').checked },
-    keepStarredUnbundled: { controlIds: ['keep-starred-unbundled-checkbox'],
-        read: () => document.getElementById('keep-starred-unbundled-checkbox').checked },
-    priorityBundles: { controlIds: ['priority-bundles-list'], list: true,
-        read: () => splitLines(document.getElementById('priority-bundles-list').value) },
-    senderBundling: { controlIds: ['sender-bundling-checkbox'],
-        read: () => document.getElementById('sender-bundling-checkbox').checked },
-    skipSingleItemBundles: { controlIds: ['skip-single-item-bundles-checkbox'],
-        read: () => document.getElementById('skip-single-item-bundles-checkbox').checked },
-    rememberOpenBundle: { controlIds: ['remember-open-bundle-checkbox'],
-        read: () => document.getElementById('remember-open-bundle-checkbox').checked },
-    colorBundlesByLabel: { controlIds: ['color-bundles-checkbox'],
-        read: () => document.getElementById('color-bundles-checkbox').checked },
-    bundleColorStyle: { controlIds: ['color-style-background', 'color-style-accent'],
-        read: () => document.querySelector('input[name="bundleColorStyle"]:checked').value },
-    matchStylusCatppuccin: { controlIds: ['catppuccin-matching-checkbox'],
-        read: () => document.getElementById('catppuccin-matching-checkbox').checked },
-    showPinnedToggle: { controlIds: ['show-pinned-toggle-checkbox'],
-        read: () => document.getElementById('show-pinned-toggle-checkbox').checked },
-    showBundleArchive: { controlIds: ['show-bundle-archive-checkbox'],
-        read: () => document.getElementById('show-bundle-archive-checkbox').checked },
-    showBundleSnooze: { controlIds: ['show-bundle-snooze-checkbox'],
-        read: () => document.getElementById('show-bundle-snooze-checkbox').checked },
-    showBundleDelete: { controlIds: ['show-bundle-delete-checkbox'],
-        read: () => document.getElementById('show-bundle-delete-checkbox').checked },
-    skipStarredOnArchive: { controlIds: ['skip-starred-on-archive-checkbox'],
-        read: () => document.getElementById('skip-starred-on-archive-checkbox').checked },
-    markReadOnArchive: { controlIds: ['mark-read-on-archive-checkbox'],
-        read: () => document.getElementById('mark-read-on-archive-checkbox').checked },
-    unstarOnArchive: { controlIds: ['unstar-on-archive-checkbox'],
-        read: () => document.getElementById('unstar-on-archive-checkbox').checked },
-};
-
-const OPTION_KEYS = Object.keys(OPTION_FIELDS);
+function byId(id) {
+    return document.getElementById(id);
+}
 
 function splitLines(value) {
     return value.split(/[\n]+/).map(s => s.trim()).filter(s => !!s);
 }
+
+/** A boolean option edited by one toggle switch. */
+function switchField(id, defaultValue) {
+    return {
+        controlIds: [id],
+        default: defaultValue,
+        read: () => byId(id).checked,
+        write: value => { byId(id).checked = value; },
+    };
+}
+
+/**
+ * A list option edited as one entry per line. `list: true` makes it save
+ * debounced instead of per keystroke.
+ */
+function listField(id, placeholder) {
+    return {
+        controlIds: [id],
+        list: true,
+        default: [],
+        read: () => splitLines(byId(id).value),
+        write: value => {
+            const textarea = byId(id);
+            textarea.value = value.join('\n');
+            textarea.placeholder = placeholder;
+        },
+    };
+}
+
+// Every option, keyed and defaulted as in OPTION_DEFAULTS in
+// src/util/Options.js (this page is plain JS outside the webpack bundle, so
+// the keys and defaults are duplicated here; test/OptionsPage.test.js pins
+// the two together). Each entry maps a storage key to the form control(s)
+// that edit it, a reader for the current form value, and a writer that puts
+// a stored value back into the form.
+const OPTION_FIELDS = {
+    bundlingEnabled: switchField('bundling-enabled-checkbox', true),
+    bundleOtherViews: switchField('bundle-other-views-checkbox', false),
+    exclude: {
+        controlIds: ['exclude-radio', 'include-radio'],
+        default: true,
+        read: () => byId('exclude-radio').checked,
+        write: value => { byId(value ? 'exclude-radio' : 'include-radio').checked = true; },
+    },
+    labels: listField('label-list', PLACEHOLDER),
+    groupMessagesByDate: switchField('group-by-date-checkbox', true),
+    combineLabels: switchField('combine-labels-checkbox', true),
+    keepStarredUnbundled: switchField('keep-starred-unbundled-checkbox', true),
+    priorityBundles: listField('priority-bundles-list', PRIORITY_PLACEHOLDER),
+    senderBundling: switchField('sender-bundling-checkbox', true),
+    skipSingleItemBundles: switchField('skip-single-item-bundles-checkbox', true),
+    rememberOpenBundle: switchField('remember-open-bundle-checkbox', true),
+    colorBundlesByLabel: switchField('color-bundles-checkbox', true),
+    bundleColorStyle: {
+        controlIds: ['color-style-background', 'color-style-accent'],
+        default: 'background',
+        read: () => document.querySelector('input[name="bundleColorStyle"]:checked').value,
+        write: value => {
+            byId(value === 'accent' ? 'color-style-accent' : 'color-style-background').checked = true;
+        },
+    },
+    matchStylusCatppuccin: switchField('catppuccin-matching-checkbox', false),
+    showPinnedToggle: switchField('show-pinned-toggle-checkbox', false),
+    showBundleArchive: switchField('show-bundle-archive-checkbox', true),
+    showBundleSnooze: switchField('show-bundle-snooze-checkbox', true),
+    showBundleDelete: switchField('show-bundle-delete-checkbox', false),
+    skipStarredOnArchive: switchField('skip-starred-on-archive-checkbox', false),
+    markReadOnArchive: switchField('mark-read-on-archive-checkbox', false),
+    unstarOnArchive: switchField('unstar-on-archive-checkbox', false),
+};
+
+const OPTION_KEYS = Object.keys(OPTION_FIELDS);
+
+const OPTION_DEFAULTS = Object.fromEntries(
+    OPTION_KEYS.map(key => [key, OPTION_FIELDS[key].default]));
 
 //
 // Auto-save
@@ -105,7 +132,7 @@ function saveOption(key) {
 
 for (const [key, field] of Object.entries(OPTION_FIELDS)) {
     for (const id of field.controlIds) {
-        const control = document.getElementById(id);
+        const control = byId(id);
         if (field.list) {
             let debounceTimer;
             control.addEventListener('input', () => {
@@ -127,67 +154,10 @@ for (const [key, field] of Object.entries(OPTION_FIELDS)) {
 }
 
 function restoreOptionsForm() {
-    chrome.storage.sync.get({
-        bundlingEnabled: true,
-        bundleOtherViews: false,
-        exclude: true,
-        labels: [],
-        groupMessagesByDate: true,
-        combineLabels: true,
-        keepStarredUnbundled: true,
-        priorityBundles: [],
-        senderBundling: true,
-        skipSingleItemBundles: true,
-        rememberOpenBundle: true,
-        colorBundlesByLabel: true,
-        bundleColorStyle: 'background',
-        matchStylusCatppuccin: false,
-        showPinnedToggle: false,
-        showBundleArchive: true,
-        showBundleSnooze: true,
-        showBundleDelete: false,
-        skipStarredOnArchive: false,
-        markReadOnArchive: false,
-        unstarOnArchive: false,
-    }, function(items) {
-        document.getElementById('bundling-enabled-checkbox').checked = items.bundlingEnabled;
-        document.getElementById('bundle-other-views-checkbox').checked = items.bundleOtherViews;
-
-        const id = items.exclude ? 'exclude-radio' : 'include-radio';
-        document.getElementById(id).checked = true;
-
-        const labelList = document.getElementById('label-list');
-        labelList.value = items.labels.join('\n');
-        if (!items.labels.length) {
-          labelList.placeholder = PLACEHOLDER;
+    chrome.storage.sync.get(OPTION_DEFAULTS, items => {
+        for (const [key, field] of Object.entries(OPTION_FIELDS)) {
+            field.write(items[key]);
         }
-
-        document.getElementById('group-by-date-checkbox').checked = items.groupMessagesByDate;
-        document.getElementById('combine-labels-checkbox').checked = items.combineLabels;
-        document.getElementById('keep-starred-unbundled-checkbox').checked =
-            items.keepStarredUnbundled;
-        const priorityList = document.getElementById('priority-bundles-list');
-        priorityList.value = items.priorityBundles.join('\n');
-        priorityList.placeholder = PRIORITY_PLACEHOLDER;
-        document.getElementById('sender-bundling-checkbox').checked = items.senderBundling;
-        document.getElementById('skip-single-item-bundles-checkbox').checked = items.skipSingleItemBundles;
-        document.getElementById('remember-open-bundle-checkbox').checked = items.rememberOpenBundle;
-        document.getElementById('color-bundles-checkbox').checked = items.colorBundlesByLabel;
-
-        const styleId = items.bundleColorStyle === 'accent'
-            ? 'color-style-accent'
-            : 'color-style-background';
-        document.getElementById(styleId).checked = true;
-
-        document.getElementById('catppuccin-matching-checkbox').checked = items.matchStylusCatppuccin;
-        document.getElementById('show-pinned-toggle-checkbox').checked = items.showPinnedToggle;
-        document.getElementById('show-bundle-archive-checkbox').checked = items.showBundleArchive;
-        document.getElementById('show-bundle-snooze-checkbox').checked = items.showBundleSnooze;
-        document.getElementById('show-bundle-delete-checkbox').checked = items.showBundleDelete;
-        document.getElementById('skip-starred-on-archive-checkbox').checked =
-            items.skipStarredOnArchive;
-        document.getElementById('mark-read-on-archive-checkbox').checked = items.markReadOnArchive;
-        document.getElementById('unstar-on-archive-checkbox').checked = items.unstarOnArchive;
     });
 }
 

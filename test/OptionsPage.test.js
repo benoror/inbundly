@@ -24,6 +24,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { OPTION_DEFAULTS } = require('../src/util/Options');
 
 const OPTIONS_DIR = path.join(__dirname, '..', 'dist', 'options');
 const HTML = fs.readFileSync(path.join(OPTIONS_DIR, 'options.html'), 'utf8');
@@ -75,6 +76,7 @@ function loadOptionsPage(initialStore = {}) {
 
     const exposed = `
         ;globalThis.__options = {
+            OPTION_DEFAULTS,
             OPTION_KEYS,
             pickImportableSettings,
             restoreOptionsForm,
@@ -210,6 +212,21 @@ test('every option key has an auto-save field', () => {
         'skipStarredOnArchive',
         'unstarOnArchive',
     ]);
+});
+
+test('the page restores with the same defaults the content script uses', () => {
+    // The page duplicates OPTION_DEFAULTS because it lives outside the webpack
+    // bundle; a default that drifts here would show one state on the page and
+    // another in Gmail.
+    expect(internals.OPTION_DEFAULTS).toEqual(OPTION_DEFAULTS);
+});
+
+test('radio and list options restore from storage too', () => {
+    loadOptionsPage({ exclude: false, bundleColorStyle: 'accent', labels: ['Work', 'Bank'] });
+
+    expect(document.getElementById('include-radio').checked).toBe(true);
+    expect(document.getElementById('color-style-accent').checked).toBe(true);
+    expect(document.getElementById('label-list').value).toBe('Work\nBank');
 });
 
 test('the options page groups settings and puts advanced options near the end', () => {
