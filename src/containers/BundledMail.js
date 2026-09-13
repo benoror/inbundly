@@ -18,20 +18,23 @@
 import { 
     getCurrentPageNumber,
     getCurrentTab,
+    getCurrentViewKey,
 } from '../util/MessagePageUtils';
 
 /**
- * The collection of bundled mail for the inbox.
+ * The collection of bundled mail for the current list view.
  *
- * Keeps track of bundles for each page/tab of messages, and the current open
- * bundle. A page/tab can contain several independent sections (Priority Inbox,
+ * Keeps track of bundles for each view/page/tab of messages, and the current
+ * open bundle. The view is the Inbox, a search, a label view, Snoozed, ...
+ * (see MessagePageUtils.getViewKey): two searches must not share bundles. A
+ * page/tab can contain several independent sections (Priority Inbox,
  * Multiple Inboxes, "X first" splits), so bundles are keyed by section id as
  * well — the same label may bundle separately in two sections, and the open
  * bundle is identified by (sectionId, label), not label alone.
  */
 class BundledMail {
     constructor() {
-        // Bundles map, keyed by pageNumber, tab name, sectionId, and label.
+        // Bundles map, keyed by view key, pageNumber, tab name, sectionId, and label.
         this._bundlesMap = {};
         // { sectionId, label } of the currently open bundle, or null.
         this._openedBundle = null;
@@ -118,15 +121,20 @@ class BundledMail {
      * Associate a section's bundlesByLabel with the given page number.
      */
     setBundles(bundlesByLabel, pageNumber, sectionId) {
-        if (!this._bundlesMap[pageNumber]) {
-            this._bundlesMap[pageNumber] = {};
+        const view = getCurrentViewKey();
+        if (!this._bundlesMap[view]) {
+            this._bundlesMap[view] = {};
+        }
+        const pages = this._bundlesMap[view];
+        if (!pages[pageNumber]) {
+            pages[pageNumber] = {};
         }
         const tab = getCurrentTab();
-        if (!this._bundlesMap[pageNumber][tab]) {
-            this._bundlesMap[pageNumber][tab] = {};
+        if (!pages[pageNumber][tab]) {
+            pages[pageNumber][tab] = {};
         }
 
-        this._bundlesMap[pageNumber][tab][sectionId] = bundlesByLabel;
+        pages[pageNumber][tab][sectionId] = bundlesByLabel;
     }
 
     /**
@@ -147,10 +155,11 @@ class BundledMail {
     }
 
     /**
-     * Map of sectionId -> (label -> bundle) for the current page/tab.
+     * Map of sectionId -> (label -> bundle) for the current view/page/tab.
      */
     _currentSections() {
-        const page = this._bundlesMap[getCurrentPageNumber()];
+        const pages = this._bundlesMap[getCurrentViewKey()];
+        const page = pages && pages[getCurrentPageNumber()];
         return (page && page[getCurrentTab()]) || {};
     }
 }
