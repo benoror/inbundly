@@ -159,6 +159,22 @@ tags `v2.1.0` … `v4.4.0`.
 | 12.9 | Gmail cursor model canary: in live Gmail with shortcuts on, press `j`, then in DevTools confirm `document.activeElement` is the `tr.zA.btb` row and `document.activeElement.tabIndex === -1`; then run `[...document.querySelectorAll('tr.zA')][3].focus()` and confirm `btb` moved to that row. If either fails, Gmail changed the model `GmailCursor` relies on (the 12.8 fallbacks still cover `e`/`x`/`#`/`b`/`Enter`) | contract | manual |
 | 12.10 | Known limitations: a bundle row loses the cursor when Gmail rerenders the list (next `j` resumes from Gmail's mark or the top); `j`/`k` are handled even when Gmail's own shortcuts are turned off; the 12.8 `Enter` fallback is a best-effort row click; no shortcut parity beyond the keys above (Simplify-style shortcuts are out of scope) | note | — |
 
+## 13. Bundles outside the Inbox (unreleased, PR #63, issue #43)
+
+| # | Scenario | Kind | Coverage |
+|---|----------|------|----------|
+| 13.1 | `bundleOtherViews` off (default): search results, label views, Snoozed stay plain Gmail lists; the Inbox bundles regardless | happy | e2e `other-views.spec` · unit `MessagePageUtils`, `Options` |
+| 13.2 | Flipping the option live (Options switch or sync) rebundles the view the user is on; flipping it off refreshes back to a plain list | happy | e2e `other-views.spec` (storage flip + fixture Refresh emulation) |
+| 13.3 | With the option on, a search bundles by label and by sender like the Inbox; Gmail's built-in chips (Inbox, Sent, Draft, Spam, Trash, ...) are never bundle keys | happy | e2e `other-views.spec` · unit `SelectiveBundling` |
+| 13.4 | The label a view is filtered by is not a bundle key there: `#label/Work`, the `label:` terms of a search (a bundle's own "View all"), and the `from:` sender of a search; threads group by their other labels or by sender instead | edge | e2e `other-views.spec` · unit `SelectiveBundling`, `MessagePageUtils` (`getViewFilters`) |
+| 13.5 | Snoozed, Starred, Important, All Mail, category views, and Multiple Inboxes `section_query` searches are bundlable; "View all" is scoped to the view (`in:snoozed`, the search's query, `label:<name>`, `is:starred`, `is:important`, none for All Mail) | happy | e2e `other-views.spec` (Snoozed) · unit `MessagePageUtils` (`getViewSearchScope`) · manual for the rest |
+| 13.6 | The pinned page (`#search/is:starred label:inbox`) keeps its flat, date-grouped list even with the option on | edge | e2e `other-views.spec` · unit `MessagePageUtils` |
+| 13.7 | Conversations in any view, Sent, Drafts, Spam, Trash, settings, contacts, advanced search never bundle | edge | e2e `other-views.spec` · unit `MessagePageUtils` |
+| 13.8 | Bundles and the remembered open bundle are kept per view (then page and tab): a Work bundle in the Inbox and one in a search never share state; pre-view sessionStorage records are ignored | edge | unit `BundledMail`, `OpenBundleStore` |
+| 13.9 | Paging in other views (`#search/q/p2`, `#label/Work/p2`, `#snoozed/p2`) is recognized like `#inbox/p2` | edge | unit `MessagePageUtils` |
+| 13.10 | Live Gmail contract: search results, label views, and Snoozed render the same `[role=main] .ae4 .Cp table.F tbody tr.zA` list as the Inbox; the pinned page already relied on this for `DateGrouper`, the rest is to be confirmed in live Gmail (open a search with the option on and check `document.querySelectorAll('.bundle-row').length`) | contract | manual |
+| 13.11 | Known limitations: the pinned toggle shows only on the Inbox and pinned page; Gmail's built-in label names are matched in English; `label:(A OR B)` searches drop only `A`; in a label view the threads that have no other label group by sender (2+ threads), which is by design; search results mixing Sent threads sender-bundle by recipient domain (Gmail lists the recipient where the sender goes); date dividers follow `groupMessagesByDate` in single-list views, so a search with mixed ages gets Today / Earlier headings | note | - |
+
 ## How the e2e suite works
 
 Playwright loads the **built extension** (`dist/`, so run `npm run build`
@@ -184,7 +200,15 @@ carries `btb` and follows DOM focus, `j`/`k` walk Gmail's DOM-ordered list
 (hidden rows included), and `e`/`x`/`Enter`/`s` act on the checked rows or
 the cursor row, logging to `window.__gmail.actions`.
 `inboxPage({ cursorFollowsFocus: false })` builds a Gmail whose cursor
-ignores focus, for the extension's fallback paths.
+ignores focus, for the extension's fallback paths. The Refresh button
+(`act="20"`) rebuilds the list from pristine rows, as Gmail's does, and counts
+on `window.__gmail.refreshes`; the extension clicks it after an option
+changes and rebundles from the repaint. The same fixture stands for every
+list view: `openView(context, hash)` (`e2e/helpers/gmail.js`) opens it at
+`#search/...`, `#label/...`, `#snoozed`, and so on, and the URL hash alone
+decides which view the extension believes it is on, as in Gmail;
+`inboxPage({ tab: null })` drops the category tablist Gmail shows only in the
+Inbox.
 
 **When Gmail changes markup**: update `src/util/Constants.js` AND the fixture
 together — the fixture is the executable record of what we believe Gmail's
@@ -221,6 +245,12 @@ spec. The feature recipes live in `.cursor/skills/verify-inbundly/features/`.
    with `.focus()` and confirm `btb` follows. Then, with a bundle open, put the
    cursor on one of its threads and press `e`: that thread (and only it) is
    archived. Move it back from All Mail afterwards.
+7. Other-views canary (row 13.10): turn on Options, Bundling, "Also bundle
+   outside the inbox"; run a search that returns labeled threads, open a
+   label from the left nav, and open Snoozed. Each should show bundle rows
+   (`document.querySelectorAll('.bundle-row').length > 0`) with no bundle
+   titled `Inbox`, and "View all" on a bundle should keep you in that view.
+   Turn the switch off afterwards; the lists refresh to plain.
 
 Last full manual pass: **2026-09-09** (PR #32 features; all pass — snooze
 menu end-to-end with restore, remember-open-bundle across reloads, sender
