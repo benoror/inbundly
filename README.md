@@ -37,13 +37,13 @@ your inbox.
 * Messages with the same label are bundled together in your inbox
 * Unlabeled messages that share a sender bundle by domain (or by exact
   address for personal-mail domains) — labels always win, and a sender
-  bundle needs 2+ threads (on by default; Options → Bundle setup)
+  bundle needs 2+ threads (on by default; Options → Inbox layout)
 * The open bundle is remembered across reloads, refreshes, and page
-  navigation for the browser session (on by default; Options → Features)
+  navigation for the browser session (on by default; Options → Inbox layout)
 * Snooze a whole bundle: a bundle-row button opens Gmail's own snooze
-  menu for all the bundle's threads (on by default; Options → Features)
+  menu for all the bundle's threads (on by default; Options → Bundle actions)
 * Delete/trash a whole bundle: a bundle-row button selects the threads
-  and clicks Gmail's own Delete (off by default; Options → Features)
+  and clicks Gmail's own Delete (off by default; Options → Bundle actions)
 * Optionally bundle by the whole *set* of labels, so threads sharing labels
   A + B form their own bundle, colored by the first label (enable in Options)
 * Priority bundles: force chosen labels (or label sets) to always group
@@ -60,7 +60,7 @@ your inbox.
 * Single-item bundles are skipped by default, shown as regular messages
 * Archive all bundled messages on the current page quickly
 * Star a message to pin it outside of its bundle (on by default and configurable
-  under Options → Bundle setup)
+  under Options → Pinned messages)
 * Intuitive date headings
 * Supports light and dark themes
 * Optionally color bundles to match their Gmail label color — either a subtle
@@ -70,11 +70,11 @@ your inbox.
   row: a Gmail-style select-all checkbox (Gmail's toolbar actions then
   apply to the selection) plus archive-all, snooze, and delete-all buttons
   shown on hover and while the bundle is open
-* The pinned-messages toggle and delete-all button (hidden by default)
-  and the archive-all and snooze buttons (shown by default) toggle under
-  Options → Features
+* The delete-all button (hidden by default) and the archive-all and snooze
+  buttons (shown by default) toggle under Options → Bundle actions; the
+  pinned-messages toggle (hidden by default) under Options → Pinned messages
 * Archive-all and the date sweep, your way (all off by default; Options →
-  Features): leave starred (pinned) messages in place like Inbox's sweep did,
+  Bundle actions, "When Inbundly archives"): leave starred (pinned) messages in place like Inbox's sweep did,
   mark messages as read as they are archived, and remove their stars so done
   messages leave Starred too. Gmail's own archive is not changed
 * Gmail keyboard shortcuts that know about bundles: `j` / `k` step through
@@ -91,8 +91,12 @@ your inbox.
   right, who wrote the newest thread and when, bold while that thread is
   unread; hover for the address and the full date
 * Optional Stylus userstyle color-matching: when enabled, bundle colors are
-  snapped to a detected Catppuccin theme's palette (Options → Advanced; off by
-  default)
+  snapped to a detected Catppuccin theme's palette (Options → Appearance →
+  Theme matching; off by default)
+* An Options page laid out by topic: eight named sections with jump links,
+  one row per setting with its explanation and its default, the less common
+  settings folded under Advanced, and a "Find a setting" box that narrows the
+  page as you type. Every change saves at once and syncs across your browsers
 
 Learn more at [inbundly.com](https://inbundly.com).
 

@@ -20,7 +20,7 @@ SCRATCH_ROOT="${TMPDIR:-/tmp}/inbundly-verify"
 CURRENT_RUN_FILE="$EVIDENCE_ROOT/.current-run"
 EXPECTED_EXTENSION_ID="cpggdbckpaoikhddngoeepdedfkleiab"
 
-FEATURES="core-bundling bundle-actions sender-bundles remember-open-bundle keyboard-nav other-views collapsed-glance bulk-trust options-autosave"
+FEATURES="core-bundling bundle-actions sender-bundles remember-open-bundle keyboard-nav other-views collapsed-glance bulk-trust options-autosave options-layout"
 
 # Run a command, mirror its output to the terminal and a log file (dropping
 # Node's NO_COLOR/FORCE_COLOR warning noise), and return the command's own
@@ -77,12 +77,13 @@ spec_for() {
         collapsed-glance)     echo "e2e/collapsed-glance.spec.js" ;;
         bulk-trust)           echo "e2e/bulk-trust.spec.js" ;;
         options-autosave)     echo "e2e/bundle-actions.spec.js" ;;
+        options-layout)       echo "e2e/options-page.spec.js" ;;
         *) return 1 ;;
     esac
 }
 
 # Extra filters/suites per feature. options-autosave narrows the spec to the
-# live storage flips and adds the jsdom options-page suite.
+# live storage flips; both options features add the jsdom options-page suite.
 grep_for() {
     case "$1" in
         options-autosave) echo "flips live|in storage" ;;
@@ -92,6 +93,7 @@ grep_for() {
 jest_for() {
     case "$1" in
         options-autosave) echo "test/OptionsPage.test.js test/Options.test.js" ;;
+        options-layout)   echo "test/OptionsPage.test.js" ;;
         *) echo "" ;;
     esac
 }

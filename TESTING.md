@@ -133,7 +133,7 @@ tags `v2.1.0` … `v4.4.0`.
 | 10.4 | Option changes sync live (other device / other tab) and rebundle | happy | e2e `bundle-actions.spec` (storage flip) · unit |
 | 10.5 | JSON export/import round-trip; unknown keys dropped | edge | unit `OptionsPage` |
 | 10.6 | Extension ID pinned via manifest `key` (sync depends on it) | contract | unit `ExtensionId` |
-| 10.7 | Options page UI itself | happy | unit `OptionsPage` (jsdom) · verify-inbundly `options-autosave` walk (Playwright Chromium loads and scripts `chrome-extension://…/options/options.html`; flips a real switch, reads `chrome.storage.sync` through the service worker, checks the Gmail tab reacts live) · manual for branded Chrome, where automation of `chrome-extension://` pages is blocked |
+| 10.7 | Options page UI itself (layout rows in section 16) | happy | unit `OptionsPage` (jsdom) · e2e `options-page.spec` · verify-inbundly `options-autosave` and `options-layout` walks (Playwright Chromium loads and scripts `chrome-extension://…/options/options.html`; flips a real switch, reads `chrome.storage.sync` through the service worker, checks the Gmail tab reacts live) · manual for branded Chrome, where automation of `chrome-extension://` pages is blocked |
 
 ## 11. Robustness
 
@@ -197,9 +197,22 @@ tags `v2.1.0` … `v4.4.0`.
 | 15.4 | `markReadOnArchive` on: Gmail's toolbar `Mark as read` is clicked on the selection before `Archive`; an all-read selection (or a toolbar without that button) goes straight to `Archive`; unread is judged on the threads being archived, not the skipped ones | happy | e2e `bulk-trust.spec` · unit `ArchiveAction`, `GmailToolbar` (`precededBy`) |
 | 15.5 | `unstarOnArchive` on: the star is clicked off each starred thread being archived before the toolbar click; with skip-starred on too, a skipped pin keeps its star | happy | e2e `bulk-trust.spec` · unit `ArchiveAction` |
 | 15.6 | `e` / `y` on a bundle row runs archive-all under the same switches (it clicks the row's icon); Gmail's own archive paths (row hover icon, toolbar on a manual selection, `e` on a thread, the keyboard fallback for a single row) are not changed | happy | e2e `bulk-trust.spec` · unit `KeyboardNavHandler` |
-| 15.7 | Options page: the three switches under Features, Archive-all and date sweep, each auto-save their own key and restore from storage | happy | unit `OptionsPage` · verify-inbundly `bulk-trust` walk (real switch clicks) |
+| 15.7 | Options page: the three switches under Bundle actions, "When Inbundly archives", each auto-save their own key and restore from storage | happy | unit `OptionsPage` · verify-inbundly `bulk-trust` walk (real switch clicks) |
 | 15.8 | Live Gmail contract: with unread threads selected, `document.querySelector('.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"]')` is the envelope button and clicking it leaves the selection in place for the following Archive; clicking a row's `.T-KT.T-KT-Jp` unstars it. English-only tooltips, like snooze | contract | manual |
 | 15.9 | Known limitations: `Mark as read` and unstar go through Gmail's own controls, so what Gmail does after (server-side read state, the thread leaving Starred, undo) is Gmail's; a section of only pinned threads makes the icon a silent no-op rather than a disabled one; the pin-icon affordance in place of the star (#40) is not part of this layer | note | - |
+
+## 16. Options page layout and find a setting (unreleased, PR #66, issue #57)
+
+| # | Scenario | Kind | Coverage |
+|---|----------|------|----------|
+| 16.1 | The Options tab is eight sections in this order: Bundling, Labels, Inbox layout, Pinned messages, Bundle actions, Appearance, Custom bundles, Sync & backup; each has an id, a one-line lead, and a jump link at the top in the same order | happy | unit `OptionsPage` · e2e `options-page.spec` · verify-inbundly `options-layout` walk |
+| 16.2 | Every option keeps its key, control id, and default: each switch sits in a row with a `label.option-title[for=id]`, an explanation, and a `Default: on` / `Default: off` chip that agrees with `src/util/Options.js`; radios and lists restore from storage; the `label.switch:has(#id) .slider` click handle is unchanged | contract | unit `OptionsPage` (defaults pinned to `OPTION_DEFAULTS`) · e2e `options-page.spec` |
+| 16.3 | A setting whose value differs from its default gets the `differs` mark on its row, live on change and on restore; an Advanced fold (`#label-rules`, `#theme-matching`) that holds a changed setting opens on load, otherwise stays closed | happy | unit `OptionsPage` · e2e `options-page.spec` |
+| 16.4 | The hash routes tabs: empty is Options, `#help` / `#get-started` their tabs, a section id (`#bundle-actions`) lands on Options and scrolls the section to the top, a Get started heading id lands on Get started; the active nav link is marked and the title reads `Inbundly - <tab>` | happy | unit `OptionsPage` · e2e `options-page.spec` |
+| 16.5 | Find a setting: typing narrows to rows whose text, subsection heading, or section heading matches; sections left empty hide and their jump links dim; a fold with a match opens and returns to its prior state when the search is cleared; no match shows the note quoting the query; Escape clears; `/` focuses the box from the Options tab | happy | unit `OptionsPage` · e2e `options-page.spec` · verify-inbundly `options-layout` walk |
+| 16.6 | Bundle actions section holds the archive-all, snooze, and delete-all switches followed by the three archive switches (the site groups these the same way); the Get started tab links `Options -> Bundle actions`, `Options -> Pinned messages`, `Options -> Labels`, `Options -> Appearance` | happy | unit `OptionsPage` · e2e `options-page.spec` |
+| 16.7 | Copy: no em dashes on the page; the Saved pill is fixed at the bottom right and lights on every save; the side nav becomes a top bar under 860px | contract / manual | unit `OptionsPage` (em dashes) · manual (visual) |
+| 16.8 | Known limitations: search is a plain substring match over the visible copy (a word that appears in another setting's explanation finds that row too); fold open state is not remembered across reloads beyond the changed-setting rule; the live Options page in branded Chrome remains a human check (row 10.7) | note | - |
 
 ## How the e2e suite works
 
@@ -284,8 +297,8 @@ spec. The feature recipes live in `.cursor/skills/verify-inbundly/features/`.
    Turn the switch off afterwards; the lists refresh to plain.
 8. Archive-switch canary (row 15.8): select one unread thread in the Inbox
    and confirm `document.querySelector('.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"]')`
-   is the envelope button. Then turn on Options, Features, "Mark messages as
-   read when archiving" and "Leave starred messages in place", star one
+   is the envelope button. Then turn on Options, Bundle actions, "Mark as
+   read first" and "Leave starred messages in place", star one
    thread in a bundle of unread threads (with "Keep starred messages outside
    bundles" off so it stays inside), and click the bundle's archive-all: the
    unread threads are marked read and archived, the starred one stays.

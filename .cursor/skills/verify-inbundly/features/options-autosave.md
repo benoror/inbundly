@@ -21,8 +21,8 @@ The page shows the pinned extension id that this sync depends on.
 
 - Click the Inbundly toolbar icon, then `Options`; or `chrome://extensions`, Inbundly,
   `Extension options`.
-- Flip any switch (for example `Show the delete-all button on bundles`); the `Saved` check
-  appears, and the Gmail tab updates without reloading.
+- Flip any switch (for example `Delete-all button` under Bundle actions); the `Saved`
+  pill lights up at the bottom right, and the Gmail tab updates without reloading.
 - Sync and backup, at the bottom, exports or imports the same settings as JSON.
 
 ## Driving it with Playwright

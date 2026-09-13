@@ -221,13 +221,34 @@ Flow for landing a feature branch and cutting a release:
  are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
  `BUNDLING_OPTION_KEYS`, `UI_OPTION_KEYS`, `ARCHIVE_OPTION_KEYS`; the three
  groups partition the keys, and `test/Options.test.js` checks that). The options page (`dist/options/`)
-  is plain JS outside the webpack bundle, so it duplicates the keys as the
-  `OPTION_FIELDS` map (key → form controls + reader; `OPTION_KEYS` derives
-  from it) — keep it in sync with `OPTION_DEFAULTS` when adding an option,
-  since it wires auto-save and gates the live-reload listener and JSON import.
-  The page **auto-saves per key** (no Save button): each control writes only
-  its own key on change (list textareas debounce), so an untouched option
-  keeps following its default when a later version changes that default.
+ is plain JS outside the webpack bundle, so it duplicates the keys as the
+ `OPTION_FIELDS` map (key → form controls, default, reader, writer; built
+ with `switchField` / `listField`; `OPTION_KEYS` and the page's own
+ `OPTION_DEFAULTS` derive from it). Keep it in sync with `OPTION_DEFAULTS`
+ in `src/util/Options.js` when adding an option: `test/OptionsPage.test.js`
+ asserts the two default maps are equal, and the map wires auto-save, the
+ restore path, the `Default: on/off` chips, the `differs` mark, and gates
+ the live-reload listener and JSON import.
+ The page **auto-saves per key** (no Save button): each control writes only
+ its own key on change (list textareas debounce), so an untouched option
+ keeps following its default when a later version changes that default.
+- **Options page layout.** The Options tab is eight `section.option-category`
+ blocks with ids (`bundling`, `labels`, `inbox-layout`, `pinned-messages`,
+ `bundle-actions`, `appearance`, `custom-bundles`, `sync-backup`), each with
+ an `.option-lead`, and one `.option-row` per switch (`.option-text` with a
+ `label.option-title[for=id]`, `.option-detail`, and the chip; `label.switch`
+ on the right; the `label.switch:has(#id) .slider` handle the e2e and
+ verify-inbundly walks click is unchanged). Radios and textareas sit in
+ `.option-block`s; `h3` subsections in `.option-group`s; less common settings
+ in `details.option-advanced` folds that open on load when a setting inside
+ differs from its default. New setting: add the row to its section (or a new
+ section plus a `.section-nav` link), the `OPTION_FIELDS` entry, and the
+ `OPTION_DEFAULTS` entry in `src/util/Options.js`; the chip, mark, search,
+ and restore come for free. The hash routes tabs (`tabForHash`): empty is
+ Options, `help` / `get-started` the tabs, any element id its containing tab
+ (so Get started links to `#bundle-actions` land on Options and scroll
+ there). `#options-search` filters `.option-row, .option-block` by visible
+ text plus the section `h2` and the group's `h3` / summary title.
 - Cross-device sync additionally depends on the pinned extension ID; see
   **Extension identity** above.
 - **Live sync.** `content.js` listens to `chrome.storage.onChanged` for the

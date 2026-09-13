@@ -96,3 +96,6 @@ required state, commands, and observable proof.
 - [Options autosave and live sync](./options-autosave.md) covers flipping a switch on the
   real Options page, per-key auto-save, persistence across reload, and the Gmail tab
   reacting live (`TESTING.md` 10.3, 10.4, 10.7).
+- [Options page layout and find a setting](./options-layout.md) covers the eight
+  sections and their jump links, the default chips and changed marks on each row, the
+  Advanced folds, and the search that narrows the page (`TESTING.md` 16.1 to 16.6).
