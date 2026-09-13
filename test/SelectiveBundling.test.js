@@ -208,3 +208,91 @@ test('a custom bundle wins over sender bundling', () => {
     expect(relevantForSender(bundling, [], 'news@acme.com'))
         .toEqual([customBundleKey('Trip')]);
 });
+
+//
+// Chips that are not the user's grouping: Gmail's built-in labels, and what
+// the current view is already filtered by (#43). The view is read from the
+// page URL; jsdom lets tests set the hash.
+//
+
+function atView(hash) {
+    window.history.replaceState(null, '', hash ? `/mail/u/0/#${hash}` : '/mail/u/0/');
+}
+
+afterEach(() => atView(''));
+
+test('Gmail system-label chips (Inbox, Sent, Draft, ...) are never bundle keys', () => {
+    const bundling = makeBundling({});
+    // A search result shows the Inbox chip on inbox threads.
+    expect(relevantLabels(bundling, ['Inbox', 'Work'])).toEqual(['Work']);
+    expect(relevantForSender(bundling, ['Inbox', 'Sent', 'Draft', 'Spam', 'Trash'], null))
+        .toEqual([]);
+    // With only system chips, a thread is unlabeled and sender-bundles.
+    expect(relevantForSender(bundling, ['Inbox'], 'news@acme.com'))
+        .toEqual([senderBundleKey('acme.com')]);
+});
+
+test('system labels are dropped before priority rules see the thread', () => {
+    const bundling = makeBundling({ priorityBundles: ['Inbox'] });
+    expect(relevantLabels(bundling, ['Inbox', 'Work'])).toEqual(['Work']);
+});
+
+test('in a label view, the viewed label is not a bundle key', () => {
+    atView('label/Work');
+    const bundling = makeBundling({});
+    expect(relevantLabels(bundling, ['Work', 'Urgent'])).toEqual(['Urgent']);
+    // Only that label: threads with no other chip group by sender, like the
+    // Inbox does for unlabeled threads.
+    expect(relevantForSender(bundling, ['Work'], 'news@acme.com'))
+        .toEqual([senderBundleKey('acme.com')]);
+});
+
+test('the label view match is case-insensitive and folds spaces to hyphens', () => {
+    atView('label/my+label');
+    const bundling = makeBundling({});
+    expect(relevantLabels(bundling, ['My Label', 'Other'])).toEqual(['Other']);
+});
+
+test('on a bundle\'s "View all" search, the searched label does not re-bundle the results', () => {
+    atView('search/label%3AInbox+label%3AWork');
+    const bundling = makeBundling({});
+    // Every result is Work: with no other chip the thread is unlabeled there,
+    // so it falls back to a sender bundle, as it would in the Inbox.
+    expect(relevantForSender(bundling, ['Inbox', 'Work'], 'news@acme.com'))
+        .toEqual([senderBundleKey('acme.com')]);
+    expect(relevantForSender(bundling, ['Inbox', 'Work'], null)).toEqual([]);
+    expect(relevantLabels(bundling, ['Inbox', 'Work', 'Urgent'])).toEqual(['Urgent']);
+});
+
+test('on a sender bundle\'s "View all" search, the searched sender does not re-bundle', () => {
+    atView('search/label%3AInbox+from%3A%40acme.com');
+    const bundling = makeBundling({});
+    expect(relevantForSender(bundling, ['Inbox'], 'news@acme.com')).toEqual([]);
+    // Another sender in the same results still bundles.
+    expect(relevantForSender(bundling, [], 'hi@other.com'))
+        .toEqual([senderBundleKey('other.com')]);
+
+    atView('search/from%3Ajane%40gmail.com');
+    expect(relevantForSender(bundling, [], 'jane@gmail.com')).toEqual([]);
+    expect(relevantForSender(bundling, [], 'john@gmail.com'))
+        .toEqual([senderBundleKey('john@gmail.com')]);
+});
+
+test('a free-text search filters nothing; a label view leaves other views alone', () => {
+    atView('search/newsletters');
+    const bundling = makeBundling({});
+    expect(relevantLabels(bundling, ['Work'])).toEqual(['Work']);
+
+    atView('snoozed');
+    expect(relevantLabels(bundling, ['Work'])).toEqual(['Work']);
+
+    atView('inbox');
+    expect(relevantLabels(bundling, ['Work'])).toEqual(['Work']);
+});
+
+test('custom bundles still win in any view', () => {
+    atView('label/Work');
+    const customBundles = withCustomBundle('t1', 'Trip');
+    const bundling = makeBundling({}, customBundles);
+    expect(relevantLabels(bundling, ['Work'])).toEqual([customBundleKey('Trip')]);
+});
