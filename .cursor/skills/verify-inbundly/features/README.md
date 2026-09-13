@@ -80,6 +80,10 @@ required state, commands, and observable proof.
 - [Keyboard navigation](./keyboard-nav.md) covers j/k stepping over bundle rows and the
   open bundle's threads, Enter/Escape on a bundle, the archive shortcut acting inside an
   open bundle, and bundle-row shortcuts (`TESTING.md` 12.1 to 12.8).
+- [Bundles outside the Inbox](./other-views.md) covers the opt-in bundling of search
+  results, label views, and Snoozed: off by default, the live flip, Gmail's own chips and
+  the view's own filter never becoming bundles, `View all` scoped to the view, and the
+  views that are left alone (`TESTING.md` 13.1 to 13.7).
 - [Options autosave and live sync](./options-autosave.md) covers flipping a switch on the
   real Options page, per-key auto-save, persistence across reload, and the Gmail tab
   reacting live (`TESTING.md` 10.3, 10.4, 10.7).
