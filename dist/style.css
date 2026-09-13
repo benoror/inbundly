@@ -78,6 +78,34 @@ html.inbundly .bundle-row .bundle-date.cL {
 /* Allow column to shrink so that archive-bundle is next to the bundle-date */
 html.inbundly .bundle-row .bundle-date-cell {
     flex-basis: auto;
+    white-space: nowrap;
+}
+
+/*
+ * Latest-message glance on the collapsed row: the newest thread's last sender
+ * sits just before its date, in the muted weight Gmail gives a snippet, and
+ * goes bold with the date when that thread is unread. Long names truncate so
+ * the senders peek keeps its room; the vertical-split reading pane (.Zs) is
+ * too narrow for it and shows the date alone.
+ */
+html.inbundly .bundle-row .bundle-latest-sender {
+    display: inline-block;
+    margin-right: 12px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+    white-space: nowrap;
+    opacity: 0.72;
+}
+
+html.inbundly .bundle-row .bundle-latest-sender.unread {
+    font-weight: bold;
+    opacity: 1;
+}
+
+html.inbundly .Zs .bundle-row .bundle-latest-sender {
+    display: none;
 }
 
 html.inbundly .bundle-row .unread-sender {
@@ -150,9 +178,10 @@ html.inbundly .bundle-area.label-colored {
     box-shadow: inset 5px 0 0 0 var(--inbundly-label-accent, var(--inbundly-label-fg, var(--inbundly-label-bg)));
 }
 
-/* -- Text: color the bundle title, count, senders and date (both styles) -- */
+/* -- Text: color the bundle title, count, senders, latest sender and date (both styles) -- */
 html.inbundly .bundle-row.label-colored .bundle-and-count,
 html.inbundly .bundle-row.label-colored .bundle-senders,
+html.inbundly .bundle-row.label-colored .bundle-latest-sender,
 html.inbundly .bundle-row.label-colored .bundle-date {
     color: var(--inbundly-label-accent, var(--inbundly-label-fg)) !important;
 }

@@ -1,7 +1,8 @@
 # Core bundling
 
 Threads that share a Gmail label collapse into one bundle row that shows the label, a
-message count, a senders preview, and the latest date. Clicking the row expands its
+message count, a senders preview, and the newest thread's sender and date (the
+[collapsed-row glance](./collapsed-glance.md)). Clicking the row expands its
 messages in place; clicking it again, or clicking outside any row, collapses it. Threads
 whose label has a single message, and unlabeled one-offs, stay plain Gmail rows. In the
 single-section Default inbox, date dividers (Today, This month, and so on) group the list.

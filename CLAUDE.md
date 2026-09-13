@@ -317,6 +317,17 @@ Flow for landing a feature branch and cutting a release:
   `_pruneSmallBundles` always prunes one-message sender bundles, whatever
   `skipSingleItemBundles` says. Sender bundle rows are uncolored (no label
   chip) and "View all" searches `from:`.
+- **Collapsed-row glance.** The closed bundle row's date cell (`BundleRow`
+  `_createGlanceCell`) shows the newest thread's most recent sender
+  (`.bundle-latest-sender`) before its date (`.bundle-date`), both `unread`
+  when that thread is unread; `util/MessageGlance.js` reads them from the
+  bundle's first row (Gmail's list order is newest first; the last
+  `span[email]` is the latest sender) with `textContent`, so it is unit-testable
+  under jsdom (`innerText` is not implemented there). The names are Gmail's
+  text, so the cell is built with DOM APIs, not an HTML template. Living in the
+  date cell means it inherits the open-row hiding and label-color rules for
+  free; `.Zs` (vertical-split reading pane) hides the sender. No option gates
+  it; if one is ever wanted it belongs with the UI keys (`show*`).
 - **Custom bundles** (ad-hoc groupings with no Gmail label) are keyed by Gmail's
   stable `data-legacy-thread-id` (read via `DomUtils.getThreadId`) and persisted
   in `chrome.storage.sync` by `containers/CustomBundles.js`. Their bundle key is

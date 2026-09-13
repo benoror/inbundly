@@ -42,6 +42,9 @@ test('threads sharing a label bundle into one row', async () => {
     await expect(workBundle.locator('.bundle-count')).toHaveText('(2)');
     // Senders preview shows the members' names.
     await expect(workBundle.locator('.bundle-senders')).toContainText('a');
+    // The newest thread's sender and date read as a glance on the right.
+    await expect(workBundle.locator('.bundle-latest-sender')).toHaveText('a');
+    await expect(workBundle.locator('.bundle-date')).toHaveText('10:00 AM');
     // Its messages are marked and hidden behind the bundle.
     await expect(page.locator('.bundled-message')).toHaveCount(4);
 

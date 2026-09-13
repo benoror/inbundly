@@ -31,6 +31,13 @@ independent of upstream's versioning. The format is based on
   by their other labels or by sender instead of folding into one Work row.
   "View all" links stay inside the view you are in. Conversations, Sent,
   Drafts, Spam, Trash, and the pinned (starred in inbox) page are left alone.
+- **Who and when, on the closed bundle row** (#56, upstream inboxy#4 and
+  inboxy#6). Next to the date at the right of a collapsed bundle, the row now
+  names the sender of its newest thread, so a bundle reads like a Gmail thread
+  row (sender, then date) without opening it. Both go bold while that thread is
+  unread. Hover the sender for the address and the date for Gmail's full-date
+  tooltip. The senders peek beside the title is unchanged: everyone inside,
+  most recent first.
 
 ### Fixed
 - Gmail's archive shortcut (and `x`, `#`, `b`, `Enter`) acting on a thread you
