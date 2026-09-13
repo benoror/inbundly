@@ -12,7 +12,8 @@
 //   node .cursor/skills/verify-inbundly/scripts/drive.js <feature> --evidence <dir>
 //
 // Features: core-bundling, bundle-actions, sender-bundles,
-//           remember-open-bundle, keyboard-nav, other-views, options-autosave
+//           remember-open-bundle, keyboard-nav, other-views, collapsed-glance,
+//           options-autosave
 
 const fs = require('fs');
 const path = require('path');
@@ -851,6 +852,69 @@ const FEATURES = {
                 eq('Gmail asked to refresh once', refreshes, 1),
             ],
             shots: shots('search'),
+        });
+    },
+
+    async 'collapsed-glance'({ context, rec }) {
+        await serveInbox(context, inboxPage({
+            threads: [
+                { sender: 'Jane Doe', email: 'jane@acme.com', subject: 'Q3 numbers', labels: ['Work'], daysAgo: 0, unread: true },
+                { sender: 'Bob', email: 'bob@acme.com', subject: 'Standup notes', labels: ['Work'], daysAgo: 3 },
+                { sender: 'Weekly Digest', email: 'digest@news.example', subject: 'Issue 41', labels: ['News'], daysAgo: 10 },
+                { sender: 'Weekly Digest', email: 'digest@news.example', subject: 'Issue 40', labels: ['News'], daysAgo: 17 },
+            ],
+        }));
+        let page;
+        const P = () => page;
+        const shots = () => [{ page, tag: 'inbox', ariaRoot: '[role="main"]' }];
+        const work = () => page.locator('.bundle-row', { hasText: 'Work' });
+        const news = () => page.locator('.bundle-row', { hasText: 'News' });
+        const glanceSender = bundle => text(() => bundle().locator('.bundle-latest-sender'));
+        const glanceDate = bundle => text(() => bundle().locator('.bundle-date'));
+        const senderTitle = bundle => () => bundle().locator('.bundle-latest-sender').getAttribute('title');
+        const fontWeight = bundle => () => bundle().locator('.bundle-latest-sender')
+            .evaluate(el => getComputedStyle(el).fontWeight);
+        const tenDaysAgo = new Date(Date.now() - 10 * 86400000)
+            .toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+        await rec.step('inbox-glance', {
+            action: async () => { page = await openInbox(context); rec.watch(page, 'inbox'); },
+            checks: [
+                eq('Work: newest thread\'s sender', glanceSender(work), 'Jane Doe'),
+                eq('Work: newest thread\'s date', glanceDate(work), '10:00 AM'),
+                eq('Work: sender tooltip is the address', senderTitle(work), 'jane@acme.com'),
+                truthy('Work: unread newest thread bolds the sender', hasClass(() => work().locator('.bundle-latest-sender'), 'unread')),
+                eq('Work: computed bold', fontWeight(work), '700'),
+                eq('Work: senders peek, most recent first', text(() => work().locator('.bundle-senders')), 'Jane Doe, Bob'),
+                eq('News: newest thread\'s sender', glanceSender(news), 'Weekly Digest'),
+                eq('News: newest thread\'s date (10 days ago)', glanceDate(news), tenDaysAgo),
+                falsy('News: read newest thread, not bold', hasClass(() => news().locator('.bundle-latest-sender'), 'unread')),
+                eq('News: computed normal weight', fontWeight(news), '400'),
+            ],
+            shots,
+        });
+
+        await rec.step('open-work-hides-glance', {
+            action: async () => {
+                await work().click();
+                await page.locator('.bundled-message.visible').first().waitFor();
+            },
+            checks: [
+                eq('two Work threads visible', visibleBundledMessages(P), 2),
+                falsy('latest sender hidden while open', () => work().locator('.bundle-latest-sender').isVisible()),
+                falsy('date hidden while open', () => work().locator('.bundle-date').isVisible()),
+            ],
+            shots,
+        });
+
+        await rec.step('collapse-work-shows-glance', {
+            action: () => work().click(),
+            checks: [
+                eq('collapsed again', visibleBundledMessages(P), 0),
+                truthy('latest sender visible again', () => work().locator('.bundle-latest-sender').isVisible()),
+                eq('still Jane Doe', glanceSender(work), 'Jane Doe'),
+            ],
+            shots,
         });
     },
 

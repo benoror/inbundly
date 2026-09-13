@@ -84,6 +84,9 @@ required state, commands, and observable proof.
   results, label views, and Snoozed: off by default, the live flip, Gmail's own chips and
   the view's own filter never becoming bundles, `View all` scoped to the view, and the
   views that are left alone (`TESTING.md` 13.1 to 13.7).
+- [Collapsed-row glance](./collapsed-glance.md) covers the newest thread's sender and date
+  on a closed bundle row, the bold pair for an unread thread, the tooltips, the senders
+  peek order, and the glance hiding while the bundle is open (`TESTING.md` 14.1 to 14.5).
 - [Options autosave and live sync](./options-autosave.md) covers flipping a switch on the
   real Options page, per-key auto-save, persistence across reload, and the Gmail tab
   reacting live (`TESTING.md` 10.3, 10.4, 10.7).
