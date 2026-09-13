@@ -21,7 +21,7 @@ The option `rememberOpenBundle` (default on) gates the restore.
 - In the Inbox, click a bundle to open it, then reload the tab: the bundle is open again.
 - Click the open bundle row (or anywhere outside the rows) to close it, reload: nothing is
   open.
-- Options, then `Remember the open bundle`, turns the restore off.
+- Options, then Inbox layout, then `Remember the open bundle`, turns the restore off.
 
 ## Driving it with Playwright
 

@@ -34,8 +34,8 @@ Which icons show is controlled by the `showBundleArchive`, `showBundleSnooze`, a
   delete icon appears too once enabled in Options.
 - Click the checkbox at the left of a bundle row to select all its messages, then use
   Gmail's toolbar as usual.
-- Options, then `Show the delete-all button on bundles` (and the archive and snooze
-  switches above it) control which icons exist.
+- Options, then Bundle actions: the `Delete-all button` switch (and the `Archive-all
+  button` and `Snooze button` switches above it) control which icons exist.
 
 ## Driving it with Playwright
 

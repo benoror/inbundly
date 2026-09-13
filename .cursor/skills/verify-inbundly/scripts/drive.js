@@ -13,7 +13,7 @@
 //
 // Features: core-bundling, bundle-actions, sender-bundles,
 //           remember-open-bundle, keyboard-nav, other-views, collapsed-glance,
-//           bulk-trust, options-autosave
+//           bulk-trust, options-autosave, options-layout
 
 const fs = require('fs');
 const path = require('path');
@@ -1193,6 +1193,137 @@ const FEATURES = {
                 falsy('switch off', deleteChecked),
                 eq('sync holds the explicit false, nothing else', storedSync, { showBundleDelete: false }),
                 truthy('Gmail tab hides delete-all again', inboxHidesDelete),
+            ],
+            shots,
+        });
+    },
+
+    async 'options-layout'({ context, rec, info }) {
+        await serveInbox(context, inboxPage({
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Work 1', labels: ['Work'] },
+                { email: 'b@corp-two.com', subject: 'Work 2', labels: ['Work'] },
+            ],
+        }));
+        const optionsUrl = `chrome-extension://${info.extensionId}/options/options.html`;
+        let options;
+        const shots = () => [{ page: options, tag: 'options', ariaRoot: 'body' }];
+        const O = () => options;
+        const SECTIONS = ['bundling', 'labels', 'inbox-layout', 'pinned-messages',
+            'bundle-actions', 'appearance', 'custom-bundles', 'sync-backup'];
+        const sectionIds = () => options.locator('.option-category:not(.search-hidden)')
+            .evaluateAll(sections => sections.map(s => s.id));
+        const jumpLinks = () => options.locator('.section-nav a')
+            .evaluateAll(anchors => anchors.map(a => a.getAttribute('href').slice(1)));
+        const deleteRow = () => options.locator('.option-row', {
+            has: options.locator('#show-bundle-delete-checkbox'),
+        });
+        const storedSync = () => info.worker.evaluate(
+            () => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
+        const foldOpen = id => () => options.locator(`#${id}`).evaluate(d => d.open);
+        const search = () => options.locator('#options-search');
+
+        await rec.step('open-options', {
+            action: async () => {
+                // The extension's service worker is up once the Gmail tab loaded.
+                const inbox = await openInbox(context);
+                await inbox.close();
+                options = await context.newPage();
+                rec.watch(options, 'options');
+                await options.goto(optionsUrl);
+                await options.locator('#bundling-enabled-checkbox').waitFor({ state: 'attached' });
+            },
+            checks: [
+                eq('title names the tab', () => options.title(), 'Inbundly - Options'),
+                eq('eight sections by topic', sectionIds, SECTIONS),
+                eq('a jump link per section, same order', jumpLinks, SECTIONS),
+                eq('every switch row states its default', () => options.locator('.option-row .option-default').count(), 17),
+                eq('delete-all row says Default: off', () => deleteRow().locator('.option-default').textContent(), 'Default: off'),
+                falsy('nothing marked as changed in a fresh profile', count(O, '.differs')),
+                falsy('Advanced label rules closed', foldOpen('label-rules')),
+                eq('sync storage empty in a fresh profile', storedSync, {}),
+            ],
+            shots,
+        });
+
+        await rec.step('jump-to-bundle-actions', {
+            action: async () => {
+                await options.locator('.section-nav a[href="#bundle-actions"]').click();
+                await options.waitForFunction(() => location.hash === '#bundle-actions');
+            },
+            checks: [
+                truthy('still on the Options tab', () => options.locator('.tab.options').isVisible()),
+                truthy('Bundle actions heading at the top of the view', async () => {
+                    const top = await options.locator('#bundle-actions').evaluate(el => el.getBoundingClientRect().top);
+                    return top >= 0 && top < 120;
+                }),
+                eq('buttons and archive switches share the section',
+                    () => options.locator('#bundle-actions input[type="checkbox"]').evaluateAll(i => i.map(x => x.id)),
+                    ['show-bundle-archive-checkbox', 'show-bundle-snooze-checkbox', 'show-bundle-delete-checkbox',
+                        'skip-starred-on-archive-checkbox', 'mark-read-on-archive-checkbox', 'unstar-on-archive-checkbox']),
+            ],
+            shots,
+        });
+
+        await rec.step('flip-delete-all-on', {
+            action: async () => {
+                await deleteRow().locator('label.switch .slider').click();
+                await options.locator('#save-status.visible').waitFor();
+            },
+            checks: [
+                truthy('switch on', () => options.locator('#show-bundle-delete-checkbox').isChecked()),
+                truthy('row marked as changed from its default', hasClass(deleteRow, 'differs')),
+                eq('only that key written to sync', storedSync, { showBundleDelete: true }),
+            ],
+            shots,
+        });
+
+        await rec.step('search-priority', {
+            action: async () => {
+                await search().fill('priority');
+                await options.locator('#label-rules[open]').waitFor();
+            },
+            checks: [
+                eq('only the Labels section left', sectionIds, ['labels']),
+                truthy('the fold holding the match opened', foldOpen('label-rules')),
+                truthy('priority rules visible', () => options.locator('#priority-bundles-list').isVisible()),
+                falsy('combine labels row folded away', () => options.locator('#combine-labels-checkbox').isVisible()),
+                truthy('other jump links dimmed', hasClass(() => options.locator('.section-nav a[href="#appearance"]'), 'dimmed')),
+            ],
+            shots,
+        });
+
+        await rec.step('search-no-match', {
+            action: () => search().fill('no such setting anywhere'),
+            checks: [
+                eq('no section left', sectionIds, []),
+                truthy('no-match note shown', () => options.locator('#options-no-matches').isVisible()),
+            ],
+            shots,
+        });
+
+        await rec.step('escape-clears-search', {
+            action: async () => {
+                await search().press('Escape');
+                await options.waitForFunction(() => !document.querySelector('.tab.options .search-hidden'));
+            },
+            checks: [
+                eq('search box empty', () => search().inputValue(), ''),
+                eq('all eight sections back', sectionIds, SECTIONS),
+                falsy('fold back to closed', foldOpen('label-rules')),
+                falsy('no-match note gone', () => options.locator('#options-no-matches').isVisible()),
+            ],
+            shots,
+        });
+
+        await rec.step('restore-delete-all-off', {
+            action: async () => {
+                await deleteRow().locator('label.switch .slider').click();
+                await options.waitForFunction(() => !document.getElementById('show-bundle-delete-checkbox').checked);
+            },
+            checks: [
+                falsy('row no longer marked as changed', hasClass(deleteRow, 'differs')),
+                eq('sync holds the explicit false', storedSync, { showBundleDelete: false }),
             ],
             shots,
         });
