@@ -217,9 +217,10 @@ Flow for landing a feature branch and cutting a release:
   query, `in:snoozed`, ...). The same Gmail list markup is assumed in every
   view; `TESTING.md` 13.10 is the live canary.
 - **Options storage.** Every Options-page setting and custom bundles live in
-  `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
-  are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
-  `BUNDLING_OPTION_KEYS`, `UI_OPTION_KEYS`). The options page (`dist/options/`)
+ `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
+ are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
+ `BUNDLING_OPTION_KEYS`, `UI_OPTION_KEYS`, `ARCHIVE_OPTION_KEYS`; the three
+ groups partition the keys, and `test/Options.test.js` checks that). The options page (`dist/options/`)
   is plain JS outside the webpack bundle, so it duplicates the keys as the
   `OPTION_FIELDS` map (key → form controls + reader; `OPTION_KEYS` derives
   from it) — keep it in sync with `OPTION_DEFAULTS` when adding an option,
@@ -309,6 +310,28 @@ Flow for landing a feature branch and cutting a release:
   the other bulk actions when a message outside the bundle is selected.
   UI key: `showBundleDelete` (default **off** — more destructive than
   archive; no Inbundly-side confirm).
+- **Archive switches (#40, #48).** `util/ArchiveAction.js` is the one path
+ for inbundly's own archive controls: the bundle row's archive-all icon (and
+ its `e` / `y` shortcut, which clicks that icon) and the date-divider sweep
+ both call `ArchiveAction.archive(messages)`. Three `ARCHIVE_OPTION_KEYS`,
+ all default **off**, shape it: `skipStarredOnArchive` leaves starred
+ (pinned) threads unselected (and deselects one the user checked by hand);
+ `markReadOnArchive` clicks Gmail's toolbar "Mark as read"
+ (`Selectors.TOOLBAR_MARK_READ_BUTTON`, tooltip / aria-label, English-only
+ like snooze) on the selection before Archive, via `GmailToolbar`'s
+ `precededBy` step, which looks the button up only once the toolbar is
+ revealed and clicks the freshest Archive button a task later;
+ `unstarOnArchive` clicks the star (`Selectors.STARRED`) off each thread
+ being archived before the toolbar click (a plain `.click()`, no mousedown,
+ so `StarHandler`'s scroll anchoring stays out of it). The switches are
+ read at click time: `content.js` awaits `ArchiveAction.loadOptions()` before
+ the first bundle pass and applies `onChanged` values with no refresh and no
+ `<html>` class. A section of only starred threads with skip on is a
+ silent no-op. Gmail's own archive paths (row hover icon, toolbar on a
+ manual selection, `e` on a thread, the keyboard single-row fallback) are
+ deliberately untouched. The e2e fixture emulates the envelope button (it
+ reads "Mark as read" only while the selection holds an unread row) and
+ star clicks; TESTING.md section 15.
 - **Sender bundles.** When `senderBundling` is on (default), a message with no
   labels falls back to a bundle keyed by its most recent sender
   (`DomUtils.getLatestSenderEmail`): the domain, or the full address on
