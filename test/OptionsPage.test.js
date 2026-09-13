@@ -96,6 +96,38 @@ test('the options page loads and restores stored values without throwing', () =>
     expect(document.getElementById('keep-starred-unbundled-checkbox').checked).toBe(true);
     expect(document.getElementById('show-bundle-delete-checkbox').checked).toBe(false);
     expect(document.getElementById('bundle-other-views-checkbox').checked).toBe(false);
+    // The archive switches start off: archive-all sweeps as it always has.
+    expect(document.getElementById('skip-starred-on-archive-checkbox').checked).toBe(false);
+    expect(document.getElementById('mark-read-on-archive-checkbox').checked).toBe(false);
+    expect(document.getElementById('unstar-on-archive-checkbox').checked).toBe(false);
+});
+
+test('each archive switch saves only its own key', () => {
+    const skip = document.getElementById('skip-starred-on-archive-checkbox');
+    skip.checked = true;
+    skip.dispatchEvent(new window.Event('change', { bubbles: true }));
+
+    expect(store.skipStarredOnArchive).toBe(true);
+    expect(store).not.toHaveProperty('markReadOnArchive');
+    expect(store).not.toHaveProperty('unstarOnArchive');
+
+    const markRead = document.getElementById('mark-read-on-archive-checkbox');
+    markRead.checked = true;
+    markRead.dispatchEvent(new window.Event('change', { bubbles: true }));
+    expect(store.markReadOnArchive).toBe(true);
+
+    const unstar = document.getElementById('unstar-on-archive-checkbox');
+    unstar.checked = true;
+    unstar.dispatchEvent(new window.Event('change', { bubbles: true }));
+    expect(store.unstarOnArchive).toBe(true);
+});
+
+test('stored archive switches are restored into the form', () => {
+    loadOptionsPage({ markReadOnArchive: true, unstarOnArchive: true });
+
+    expect(document.getElementById('skip-starred-on-archive-checkbox').checked).toBe(false);
+    expect(document.getElementById('mark-read-on-archive-checkbox').checked).toBe(true);
+    expect(document.getElementById('unstar-on-archive-checkbox').checked).toBe(true);
 });
 
 test('bundling outside the inbox is an opt-in switch that saves its own key', () => {
@@ -165,6 +197,7 @@ test('every option key has an auto-save field', () => {
         'groupMessagesByDate',
         'keepStarredUnbundled',
         'labels',
+        'markReadOnArchive',
         'matchStylusCatppuccin',
         'priorityBundles',
         'rememberOpenBundle',
@@ -174,6 +207,8 @@ test('every option key has an auto-save field', () => {
         'showBundleSnooze',
         'showPinnedToggle',
         'skipSingleItemBundles',
+        'skipStarredOnArchive',
+        'unstarOnArchive',
     ]);
 });
 

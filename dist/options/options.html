@@ -244,6 +244,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     because it is more destructive &mdash; turn each on or off under
                     <a href="#">Options &rarr; Features</a>.
                 </p>
+                <p>
+                    Three optional switches (all off by default, under
+                    <a href="#">Options &rarr; Features</a>) shape what archive-all and the date
+                    sweep do: leave starred (pinned) messages in place, the way Inbox's sweep
+                    left pins alone; mark the messages as read as they are archived; and remove
+                    their stars, so done messages leave Starred too. They apply only to
+                    Inbundly's own buttons; Gmail's archive keeps working as it always has.
+                </p>
                 <div>
                     <img 
                       src="assets/archiving@2x.png" 
@@ -425,6 +433,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         <span class="slider"></span>
                     </label>
                     <span class="switch-label">Remember the open bundle &mdash; reopen it after reloads, refreshes, and page navigation</span>
+                </div>
+
+                <h3 class="subsection-header">Archive-all and date sweep</h3>
+                <p class="subsection-note">
+                    What the archive-all button on a bundle row or a date section does beyond
+                    archiving. All off by default. Gmail's own archive (the hover icon, the
+                    toolbar on a selection, the <code>e</code> key on a thread) is not changed.
+                </p>
+
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="skip-starred-on-archive-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Leave starred (pinned) messages in place when archiving a bundle or sweeping a date section</span>
+                </div>
+
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="mark-read-on-archive-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Mark messages as read when archiving them this way (uses Gmail's own Mark as read first)</span>
+                </div>
+
+                <div class="option-row">
+                    <label class="switch">
+                        <input type="checkbox" id="unstar-on-archive-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">Remove the star from messages when archiving them this way, so done messages leave Starred too</span>
                 </div>
             </section>
 
