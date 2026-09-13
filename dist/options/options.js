@@ -26,6 +26,8 @@ const PRIORITY_PLACEHOLDER = 'Add a priority rule on each line, for example:\n\n
 const OPTION_FIELDS = {
     bundlingEnabled: { controlIds: ['bundling-enabled-checkbox'],
         read: () => document.getElementById('bundling-enabled-checkbox').checked },
+    bundleOtherViews: { controlIds: ['bundle-other-views-checkbox'],
+        read: () => document.getElementById('bundle-other-views-checkbox').checked },
     exclude: { controlIds: ['exclude-radio', 'include-radio'],
         read: () => document.getElementById('exclude-radio').checked },
     labels: { controlIds: ['label-list'], list: true,
@@ -121,6 +123,7 @@ for (const [key, field] of Object.entries(OPTION_FIELDS)) {
 function restoreOptionsForm() {
     chrome.storage.sync.get({
         bundlingEnabled: true,
+        bundleOtherViews: false,
         exclude: true,
         labels: [],
         groupMessagesByDate: true,
@@ -139,6 +142,7 @@ function restoreOptionsForm() {
         showBundleDelete: false,
     }, function(items) {
         document.getElementById('bundling-enabled-checkbox').checked = items.bundlingEnabled;
+        document.getElementById('bundle-other-views-checkbox').checked = items.bundleOtherViews;
 
         const id = items.exclude ? 'exclude-radio' : 'include-radio';
         document.getElementById(id).checked = true;

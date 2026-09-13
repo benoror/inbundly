@@ -95,6 +95,16 @@ test('the options page loads and restores stored values without throwing', () =>
         .toBe('Bank\nWork + Urgent');
     expect(document.getElementById('keep-starred-unbundled-checkbox').checked).toBe(true);
     expect(document.getElementById('show-bundle-delete-checkbox').checked).toBe(false);
+    expect(document.getElementById('bundle-other-views-checkbox').checked).toBe(false);
+});
+
+test('bundling outside the inbox is an opt-in switch that saves its own key', () => {
+    const checkbox = document.getElementById('bundle-other-views-checkbox');
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new window.Event('change', { bubbles: true }));
+
+    expect(store.bundleOtherViews).toBe(true);
+    expect(store).not.toHaveProperty('bundlingEnabled');
 });
 
 test('the extension id is displayed, since sync depends on it matching', () => {
@@ -147,6 +157,7 @@ test('every option key has an auto-save field', () => {
     // against src/util/Options.js OPTION_DEFAULTS.
     expect([...internals.OPTION_KEYS].sort()).toEqual([
         'bundleColorStyle',
+        'bundleOtherViews',
         'bundlingEnabled',
         'colorBundlesByLabel',
         'combineLabels',

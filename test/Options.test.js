@@ -28,6 +28,10 @@ test('OPTION_KEYS covers every default', () => {
     expect(OPTION_KEYS.sort()).toEqual(Object.keys(OPTION_DEFAULTS).sort());
     expect(OPTION_DEFAULTS.keepStarredUnbundled).toBe(true);
     expect(OPTION_DEFAULTS.showBundleDelete).toBe(false);
+    // Bundling outside the Inbox is opt-in: search results stay a plain list
+    // until the user asks for bundles there.
+    expect(OPTION_DEFAULTS.bundleOtherViews).toBe(false);
+    expect(BUNDLING_OPTION_KEYS).toContain('bundleOtherViews');
 });
 
 test('bundling and UI key groups partition the option keys', () => {

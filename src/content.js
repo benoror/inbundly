@@ -41,6 +41,7 @@ import {
 } from './util/Constants';
 import { createCoalescedRetry } from './util/CoalescedRetry';
 import { 
+    applyOptions as applyViewOptions,
     supportsBundling,
     isStarredPage,
 } from './util/MessagePageUtils';
@@ -86,6 +87,11 @@ if (html) {
     // the bulk-archive and snooze buttons are shown by default. All toggle
     // from the options page and sync across devices. Keep these fallbacks
     // equal to OPTION_DEFAULTS in util/Options.js.
+    //
+    // bundleOtherViews is read here too: it decides which pages bundle at
+    // all (supportsBundling), so like the master switch it must be known
+    // before the first bundle pass, or a search opened directly in a new tab
+    // would be judged by the default.
     chrome.storage.sync.get(
         {
             showPinnedToggle: false,
@@ -93,10 +99,12 @@ if (html) {
             showBundleSnooze: true,
             showBundleDelete: false,
             bundlingEnabled: true,
+            bundleOtherViews: false,
         },
         options => {
             applyUiOptions(options);
             applyBundlingEnabled(options.bundlingEnabled);
+            applyViewOptions(options);
             resolveBundlingEnabledReady();
         });
 }
@@ -327,12 +335,18 @@ chrome.storage.onChanged.addListener((changes, area) => {
         }
     }
 
+    // Whether this page bundled before the change: turning bundleOtherViews
+    // off while on a search must still refresh, so Gmail repaints the plain
+    // list, even though the page no longer supports bundling afterwards.
+    const supportedBefore = supportsBundling(window.location.href);
+
     if (changesInclude(changes, BUNDLING_OPTION_KEYS)) {
         const bundlingOptions = optionsFromChanges(changes, BUNDLING_OPTION_KEYS);
         selectiveBundling.applyOptions(bundlingOptions);
         bundler.applyOptions(bundlingOptions);
         starHandler.applyOptions(bundlingOptions);
         dateGrouper.applyOptions(bundlingOptions);
+        applyViewOptions(bundlingOptions);
         // bundlingEnabled is handled above; only real bundling-rule changes need
         // a Gmail refresh here (avoids a redundant refresh on enable/disable).
         if (changesInclude(changes, BUNDLING_RULE_KEYS)) {
@@ -341,7 +355,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
 
     if (needsRefresh) {
-        if (supportsBundling(window.location.href)) {
+        if (supportedBefore || supportsBundling(window.location.href)) {
             refreshInbox();
         }
         else if (isStarredPage(window.location.href) &&
