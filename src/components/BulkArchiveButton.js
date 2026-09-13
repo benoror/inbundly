@@ -15,15 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import ArchiveAction from '../util/ArchiveAction';
 import DomUtils from '../util/DomUtils';
-import GmailToolbar from '../util/GmailToolbar';
-import {
-    GmailClasses,
-    Selectors,
-} from '../util/Constants';
+import { GmailClasses } from '../util/Constants';
 
 /**
- * Create bulk archive button for archiving the given messages, which should be in the same bundle.
+ * Create bulk archive button for archiving the given messages, which should
+ * be in the same bundle or the same date section. The click goes through
+ * ArchiveAction, which applies the archive switches (skip starred, mark read,
+ * unstar) before driving Gmail's toolbar Archive.
  */
 function create(messages) {
     const html = `
@@ -38,9 +38,7 @@ function create(messages) {
             return;
         }
 
-        GmailToolbar.triggerToolbarAction(
-            Selectors.TOOLBAR_ARCHIVE_BUTTON,
-            () => GmailToolbar.selectMessages(messages));
+        ArchiveAction.archive(messages);
         e.stopPropagation();
     });
 
