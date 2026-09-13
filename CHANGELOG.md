@@ -40,7 +40,7 @@ independent of upstream's versioning. The format is based on
   most recent first.
 - **Archive-all and date sweep switches** (#40 and #48, upstream inboxy#25,
   inboxy#56, inboxy#66, inboxy#74, inboxy#81, and PR inboxy#84). Three
-  switches under Options, Features, "Archive-all and date sweep", all off by
+  switches under Options, Bundle actions, "When Inbundly archives", all off by
   default so archive-all keeps doing what it did: **leave starred (pinned)
   messages in place**, the way Inbox's sweep left pins alone, including a
   pinned message you had checked by hand; **mark messages as read** as they
@@ -50,6 +50,26 @@ independent of upstream's versioning. The format is based on
   icon on a bundle row (and its `e` shortcut) and to the check-all sweep on a
   date heading, take effect on the next click without a reload, and leave
   Gmail's own archive untouched.
+- **Find a setting** (#57). A search box at the top of the Options page
+  narrows it to the settings whose name, explanation, section, or subsection
+  matches what you type; sections with nothing left fold away, a fold that
+  holds a match opens, Escape clears, and `/` jumps to the box.
+
+### Changed
+- **Options page laid out by topic** (#57, upstream inboxy#72). The Options
+  tab is eight named sections, Bundling, Labels, Inbox layout, Pinned
+  messages, Bundle actions, Appearance, Custom bundles, and Sync & backup,
+  each with a one-line lead and jump links at the top. Every setting is one
+  row: its name and a short explanation on the left, the switch on the right,
+  and the default it ships with underneath; a setting you changed is marked.
+  The bulk buttons (archive-all, snooze, delete-all) and the archive switches
+  share the Bundle actions section. Combine labels, priority rules, and
+  Catppuccin matching fold under an Advanced disclosure inside their section,
+  open whenever one of them is changed. The Saved status is a small pill that
+  stays in view, and hover-only help icons became visible text. Narrow
+  windows put the navigation on top. No option key or default changed;
+  nothing to migrate. The layout patterns take a cue from settings pages such
+  as Simplify's; the look and copy are Inbundly's own.
 
 ### Fixed
 - Gmail's archive shortcut (and `x`, `#`, `b`, `Enter`) acting on a thread you
