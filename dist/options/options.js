@@ -449,6 +449,92 @@ function deleteCustomBundle(name) {
 
 
 //
+// Find a setting
+//
+// Typing in the search box narrows the page to the rows whose text matches,
+// together with their section heading and any subsection heading above them
+// (so "archive" finds the whole "When Inbundly archives" group, and a
+// section's name finds all of it). Sections left with no match fold away,
+// an Advanced fold that holds a match opens for the search and goes back to
+// how it was when the search is cleared.
+
+const SEARCH_INPUT = byId('options-search');
+const SEARCH_ITEMS = '.option-row, .option-block';
+
+let searchActive = false;
+
+function searchText(item, section) {
+    const group = item.closest('.option-group, details.option-advanced');
+    const heading = group && group.querySelector('h3, summary .option-title');
+    return [
+        item.textContent,
+        heading ? heading.textContent : '',
+        section.querySelector('h2').textContent,
+    ].join(' ').replace(/\s+/g, ' ').toLowerCase();
+}
+
+function filterOptions(rawQuery) {
+    const query = rawQuery.trim().replace(/\s+/g, ' ').toLowerCase();
+    const folds = document.querySelectorAll('.tab.options details.option-advanced');
+
+    if (query && !searchActive) {
+        for (const fold of folds) {
+            fold.dataset.openBeforeSearch = fold.open ? '1' : '';
+        }
+    }
+    if (!query && searchActive) {
+        for (const fold of folds) {
+            fold.open = fold.dataset.openBeforeSearch === '1';
+        }
+    }
+    searchActive = !!query;
+
+    let matches = 0;
+    for (const section of document.querySelectorAll('.tab.options .option-category')) {
+        let shown = 0;
+        for (const item of section.querySelectorAll(SEARCH_ITEMS)) {
+            const show = !query || searchText(item, section).includes(query);
+            item.classList.toggle('search-hidden', !show);
+            shown += show ? 1 : 0;
+        }
+        for (const group of section.querySelectorAll('.option-group, details.option-advanced')) {
+            const hasMatch = !!group.querySelector(`${SEARCH_ITEMS}:not(.search-hidden)`);
+            group.classList.toggle('search-hidden', !!query && !hasMatch);
+            if (query && hasMatch && group.tagName === 'DETAILS') {
+                group.open = true;
+            }
+        }
+        section.classList.toggle('search-hidden', !!query && shown === 0);
+        const link = document.querySelector(`.section-nav a[href="#${section.id}"]`);
+        if (link) {
+            link.classList.toggle('dimmed', !!query && shown === 0);
+        }
+        matches += shown;
+    }
+
+    byId('options-no-matches-query').textContent = rawQuery.trim();
+    byId('options-no-matches').hidden = !query || matches > 0;
+}
+
+SEARCH_INPUT.addEventListener('input', () => filterOptions(SEARCH_INPUT.value));
+SEARCH_INPUT.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        SEARCH_INPUT.value = '';
+        filterOptions('');
+    }
+});
+
+// "/" jumps to the search box from anywhere on the Options tab, as on GitHub.
+document.addEventListener('keydown', e => {
+    const typing = e.target.closest && e.target.closest('input, textarea, select, [contenteditable]');
+    if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey &&
+        currentTab === 'options') {
+        e.preventDefault();
+        SEARCH_INPUT.focus();
+    }
+});
+
+//
 // Tabs for options page
 //
 // The hash picks the tab: empty for Options, a tab's name, or the id of an

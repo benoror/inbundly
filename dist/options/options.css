@@ -307,6 +307,66 @@ h3.subsection-header {
  * explanation on the left, its control on the right, a hairline between rows.
  */
 
+/** Find a setting */
+
+.options-search {
+    align-items: center;
+    display: flex;
+    position: relative;
+}
+
+.options-search-icon {
+    color: var(--muted);
+    left: 12px;
+    pointer-events: none;
+    position: absolute;
+}
+
+.options-search input {
+    background-color: var(--raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 0.95rem;
+    padding: 0.6rem 2.6rem 0.6rem 2.4rem;
+    width: 100%;
+}
+
+.options-search input:focus-visible {
+    border-color: var(--accent);
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.options-search input::placeholder {
+    color: var(--muted);
+}
+
+.options-search-key {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 3px 6px;
+    pointer-events: none;
+    position: absolute;
+    right: 10px;
+}
+
+.options-search input:focus + .options-search-key,
+.options-search input:not(:placeholder-shown) + .options-search-key {
+    display: none;
+}
+
+.options-no-matches {
+    color: var(--muted);
+    margin: 1.5rem 0;
+}
+
 /** Section jump links */
 
 .section-nav {
@@ -331,7 +391,7 @@ h3.subsection-header {
     color: var(--link-hover);
 }
 
-.section-nav a.search-hidden {
+.section-nav a.dimmed {
     opacity: 0.4;
 }
 

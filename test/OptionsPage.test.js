@@ -325,6 +325,92 @@ test('the hash picks the tab, and a section id lands on Options', () => {
     expect(document.querySelector('.nav-links a.active').dataset.tab).toBe('get-started');
 });
 
+describe('find a setting', () => {
+    const search = text => {
+        const input = document.getElementById('options-search');
+        input.value = text;
+        input.dispatchEvent(new window.Event('input', { bubbles: true }));
+    };
+    const visibleRows = () => [...document.querySelectorAll('.tab.options .option-row')]
+        .filter(row => !row.classList.contains('search-hidden'))
+        .map(row => row.querySelector('input[type="checkbox"]').id);
+    const visibleSections = () => [...document.querySelectorAll('.option-category')]
+        .filter(section => !section.classList.contains('search-hidden'))
+        .map(section => section.id);
+    const hidden = el => el.classList.contains('search-hidden');
+
+    test('narrows the page to matching rows and hides sections left empty', () => {
+        search('delete-all');
+
+        expect(visibleRows()).toEqual(['show-bundle-delete-checkbox']);
+        expect(visibleSections()).toEqual(['bundle-actions']);
+        expect(document.getElementById('options-no-matches').hidden).toBe(true);
+        // Sections without a match stay in the jump links, dimmed, so the map is intact.
+        expect(document.querySelector('.section-nav a[href="#labels"]')
+            .classList.contains('dimmed')).toBe(true);
+        expect(document.querySelector('.section-nav a[href="#bundle-actions"]')
+            .classList.contains('dimmed')).toBe(false);
+    });
+
+    test('a subsection heading finds its whole group', () => {
+        search('when inbundly archives');
+
+        expect(visibleRows()).toEqual([
+            'skip-starred-on-archive-checkbox',
+            'mark-read-on-archive-checkbox',
+            'unstar-on-archive-checkbox',
+        ]);
+        expect(hidden(document.getElementById('archive-behavior'))).toBe(false);
+    });
+
+    test('a section name finds every setting in it, blocks included', () => {
+        search('Appearance');
+
+        expect(visibleSections()).toEqual(['appearance']);
+        expect(hidden(document.getElementById('color-style-accent').closest('.option-block')))
+            .toBe(false);
+        expect(visibleRows()).toEqual(['color-bundles-checkbox', 'catppuccin-matching-checkbox']);
+    });
+
+    test('opens a fold that holds a match and restores it when the search is cleared', () => {
+        // No stored rules, so the fold starts closed.
+        loadOptionsPage({});
+        const fold = document.getElementById('label-rules');
+        expect(fold.open).toBe(false);
+
+        search('priority');
+        expect(fold.open).toBe(true);
+        expect(hidden(document.getElementById('priority-bundles-list').closest('.option-block')))
+            .toBe(false);
+        expect(hidden(document.getElementById('combine-labels-checkbox').closest('.option-row')))
+            .toBe(true);
+
+        search('');
+        expect(fold.open).toBe(false);
+        expect(document.querySelectorAll('.tab.options .search-hidden')).toHaveLength(0);
+    });
+
+    test('says so when nothing matches, and Escape clears the box', () => {
+        search('zzzz nothing');
+
+        const note = document.getElementById('options-no-matches');
+        expect(note.hidden).toBe(false);
+        expect(document.getElementById('options-no-matches-query').textContent).toBe('zzzz nothing');
+        expect(visibleSections()).toEqual([]);
+
+        const input = document.getElementById('options-search');
+        input.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(input.value).toBe('');
+        expect(note.hidden).toBe(true);
+        expect(visibleSections()).toHaveLength(8);
+    });
+
+    test('the slash key focuses the search box from the Options tab', () => {
+        document.body.dispatchEvent(new window.KeyboardEvent('keydown', { key: '/', bubbles: true }));
+        expect(document.activeElement).toBe(document.getElementById('options-search'));
+    });
+});
+
 test('the page carries no em dashes in its copy', () => {
     expect(HTML).not.toMatch(/\u2014|&mdash;/);
 });
