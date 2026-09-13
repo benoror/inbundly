@@ -128,6 +128,52 @@ function flashSaved() {
 function saveOption(key) {
     lastOwnWriteAt = Date.now();
     chrome.storage.sync.set({ [key]: OPTION_FIELDS[key].read() }, flashSaved);
+    markChangedFromDefault(key);
+}
+
+//
+// Defaults on the page
+//
+// Every switch row says what its default is, and any setting whose value
+// differs from the default is marked, so a user can tell a choice they made
+// from a default they never touched.
+
+/** The row or block that holds an option's controls. */
+function containerFor(key) {
+    return byId(OPTION_FIELDS[key].controlIds[0]).closest('.option-row, .option-block');
+}
+
+function addDefaultChips() {
+    for (const [key, field] of Object.entries(OPTION_FIELDS)) {
+        const text = typeof field.default === 'boolean' && field.controlIds.length === 1
+            ? containerFor(key).querySelector('.option-text')
+            : null;
+        if (!text) {
+            continue;
+        }
+        const chip = document.createElement('span');
+        chip.className = 'option-default';
+        chip.textContent = field.default ? 'Default: on' : 'Default: off';
+        text.appendChild(chip);
+    }
+}
+
+function markChangedFromDefault(key) {
+    const field = OPTION_FIELDS[key];
+    const differs = JSON.stringify(field.read()) !== JSON.stringify(field.default);
+    containerFor(key).classList.toggle('differs', differs);
+}
+
+/**
+ * An "Advanced" fold that hides a setting the user changed would hide the
+ * very thing they came back for, so those open on load.
+ */
+function openAdvancedWithChanges() {
+    for (const details of document.querySelectorAll('details.option-advanced')) {
+        if (details.querySelector('.differs')) {
+            details.open = true;
+        }
+    }
 }
 
 for (const [key, field] of Object.entries(OPTION_FIELDS)) {
@@ -157,7 +203,9 @@ function restoreOptionsForm() {
     chrome.storage.sync.get(OPTION_DEFAULTS, items => {
         for (const [key, field] of Object.entries(OPTION_FIELDS)) {
             field.write(items[key]);
+            markChangedFromDefault(key);
         }
+        openAdvancedWithChanges();
     });
 }
 
@@ -403,39 +451,61 @@ function deleteCustomBundle(name) {
 //
 // Tabs for options page
 //
+// The hash picks the tab: empty for Options, a tab's name, or the id of an
+// element inside a tab (a Get started heading, an Options section), which
+// also scrolls there. Anything else lands on Get started.
 
-function selectTab(tabIndex, subtitle) {
-    const tabs = [...document.querySelectorAll('main .tab')];
-    for (let i = 0; i < tabs.length; i++) {
-        tabs[i].style.display = i === tabIndex ? 'block' : 'none';
+const TAB_TITLES = {
+    'get-started': 'Get started',
+    options: 'Options',
+    help: 'Help',
+};
+
+let currentTab = null;
+
+function tabForHash(hash) {
+    if (!hash) {
+        return 'options';
     }
-
-    const tabLinks = [...document.querySelectorAll('.nav-links li')];
-    for (let i = 0; i < tabLinks.length; i++) {
-        tabLinks[i].style.fontWeight = i === tabIndex ? '700' : '';
+    if (TAB_TITLES[hash]) {
+        return hash;
     }
-
-    document.querySelector('title').innerText = `Inbundly - `;
+    const target = byId(hash);
+    const tab = target && target.closest('.tab');
+    return tab
+        ? Object.keys(TAB_TITLES).find(name => tab.classList.contains(name))
+        : 'get-started';
 }
 
-document.querySelectorAll('.nav-links li').forEach((e, i) => {
-    e.addEventListener('click', () => selectTab(i, e.innerText));
-});
+function selectTab(name) {
+    for (const tab of document.querySelectorAll('main .tab')) {
+        tab.style.display = tab.classList.contains(name) ? 'block' : 'none';
+    }
+    for (const link of document.querySelectorAll('.nav-links a')) {
+        link.classList.toggle('active', link.dataset.tab === name);
+    }
+    document.title = `Inbundly - ${TAB_TITLES[name]}`;
 
-function initializeTab() {
-    // Set the initial tab, based on the hash
-    const parts = window.location.href.split('#');
-    if (parts.length < 2 || parts[1].length === 0) {
-        selectTab(1, 'Options');
+    if (name === 'options' && currentTab !== 'options') {
         restoreOptions();
     }
-    else if (parts[1] === 'help') {
-        selectTab(2, 'Help');
+    currentTab = name;
+}
+
+function showTabForHash() {
+    const hash = decodeURIComponent(window.location.hash.slice(1));
+    selectTab(tabForHash(hash));
+
+    // The browser skipped its own scroll if the target was still hidden.
+    const target = hash && !TAB_TITLES[hash] ? byId(hash) : null;
+    if (target) {
+        target.scrollIntoView({ block: 'start' });
     }
     else {
-        selectTab(0, 'Get started');
+        window.scrollTo(0, 0);
     }
 }
 
-initializeTab();
-window.addEventListener('hashchange', initializeTab);
+addDefaultChips();
+showTabForHash();
+window.addEventListener('hashchange', showTabForHash);

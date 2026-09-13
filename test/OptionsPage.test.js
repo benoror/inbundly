@@ -73,10 +73,15 @@ function loadOptionsPage(initialStore = {}) {
 
     document.head.innerHTML = '<title>Inbundly</title>';
     document.body.innerHTML = HTML.replace(/[\s\S]*<body>/, '').replace(/<\/body>[\s\S]*/, '');
+    // jsdom has no layout, so scrolling is a no-op here.
+    window.scrollTo = () => {};
+    window.Element.prototype.scrollIntoView = () => {};
+    window.location.hash = '';
 
     const exposed = `
         ;globalThis.__options = {
             OPTION_DEFAULTS,
+            OPTION_FIELDS,
             OPTION_KEYS,
             pickImportableSettings,
             restoreOptionsForm,
@@ -229,20 +234,107 @@ test('radio and list options restore from storage too', () => {
     expect(document.getElementById('label-list').value).toBe('Work\nBank');
 });
 
-test('the options page groups settings and puts advanced options near the end', () => {
-    const categories = [...document.querySelectorAll('.option-category > h2')]
-        .map(heading => heading.firstChild.textContent.trim());
+test('the options page groups settings by topic, in the order of the section links', () => {
+    const categories = [...document.querySelectorAll('.option-category')];
+    const headings = categories.map(section => section.querySelector('h2').textContent.trim());
 
-    expect(categories).toEqual([
+    expect(headings).toEqual([
         'Bundling',
-        'Bundle setup',
+        'Labels',
+        'Inbox layout',
+        'Pinned messages',
+        'Bundle actions',
         'Appearance',
-        'Features',
-        'Advanced',
         'Custom bundles',
         'Sync & backup',
     ]);
+
+    // Every section is reachable from the jump links, and each has a one-line lead.
+    const linked = [...document.querySelectorAll('.section-nav a')]
+        .map(link => link.getAttribute('href').slice(1));
+    expect(linked).toEqual(categories.map(section => section.id));
+    for (const section of categories) {
+        expect(section.querySelector('.option-lead').textContent.trim()).not.toBe('');
+    }
 });
+
+test('every switch sits in a row with a title, an explanation, and its default', () => {
+    for (const input of document.querySelectorAll('.tab.options input[type="checkbox"]')) {
+        const row = input.closest('.option-row');
+        expect(row).not.toBeNull();
+        expect(row.querySelector(`label.option-title[for="${input.id}"]`)).not.toBeNull();
+        expect(row.querySelector('.option-detail').textContent.trim()).not.toBe('');
+        expect(row.querySelector('.option-default').textContent)
+            .toBe(OPTION_DEFAULTS[keyForControl(input.id)] ? 'Default: on' : 'Default: off');
+    }
+});
+
+test('the bulk actions and their archive behavior share one section', () => {
+    const section = document.getElementById('bundle-actions');
+    const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
+
+    expect(ids).toEqual([
+        'show-bundle-archive-checkbox',
+        'show-bundle-snooze-checkbox',
+        'show-bundle-delete-checkbox',
+        'skip-starred-on-archive-checkbox',
+        'mark-read-on-archive-checkbox',
+        'unstar-on-archive-checkbox',
+    ]);
+});
+
+test('a setting that differs from its default is marked, and its fold opens', () => {
+    loadOptionsPage({ combineLabels: false, showBundleDelete: true });
+
+    const combine = document.getElementById('combine-labels-checkbox').closest('.option-row');
+    expect(combine.classList.contains('differs')).toBe(true);
+    expect(document.getElementById('label-rules').open).toBe(true);
+    expect(document.getElementById('theme-matching').open).toBe(false);
+
+    expect(document.getElementById('show-bundle-delete-checkbox').closest('.option-row')
+        .classList.contains('differs')).toBe(true);
+    expect(document.getElementById('show-bundle-snooze-checkbox').closest('.option-row')
+        .classList.contains('differs')).toBe(false);
+
+    // Flipping a switch back to its default clears the mark straight away.
+    const del = document.getElementById('show-bundle-delete-checkbox');
+    del.checked = false;
+    del.dispatchEvent(new window.Event('change', { bubbles: true }));
+    expect(del.closest('.option-row').classList.contains('differs')).toBe(false);
+});
+
+test('the hash picks the tab, and a section id lands on Options', () => {
+    const shown = () => [...document.querySelectorAll('main .tab')]
+        .filter(tab => tab.style.display !== 'none')
+        .map(tab => tab.classList[1]);
+
+    expect(shown()).toEqual(['options']);
+    expect(document.title).toBe('Inbundly - Options');
+
+    window.location.hash = '#help';
+    window.dispatchEvent(new window.Event('hashchange'));
+    expect(shown()).toEqual(['help']);
+
+    window.location.hash = '#bundle-actions';
+    window.dispatchEvent(new window.Event('hashchange'));
+    expect(shown()).toEqual(['options']);
+
+    window.location.hash = '#create-filters';
+    window.dispatchEvent(new window.Event('hashchange'));
+    expect(shown()).toEqual(['get-started']);
+    expect(document.querySelector('.nav-links a.active').dataset.tab).toBe('get-started');
+});
+
+test('the page carries no em dashes in its copy', () => {
+    expect(HTML).not.toMatch(/\u2014|&mdash;/);
+});
+
+function keyForControl(id) {
+    return Object.keys(OPTION_DEFAULTS).find(key => {
+        const field = internals.OPTION_FIELDS[key];
+        return field.controlIds.includes(id);
+    });
+}
 
 test('import keeps known keys and drops anything else', () => {
     const picked = internals.pickImportableSettings({
