@@ -27,7 +27,7 @@ search.
   named after the domain.
 - Click a sender bundle to expand it; click `View all` on the row to open Gmail's search
   for that sender.
-- Options, then the `Sender bundles` switch, turns the feature off; the inbox rebundles
+- Options, then Inbox layout, then the `Sender bundles` switch, turns the feature off; the inbox rebundles
   live.
 
 ## Driving it with Playwright

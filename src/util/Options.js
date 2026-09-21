@@ -22,6 +22,7 @@
  */
 const OPTION_DEFAULTS = {
     bundlingEnabled: true,
+    bundleOtherViews: false,
     exclude: true,
     labels: [],
     groupMessagesByDate: true,
@@ -38,6 +39,9 @@ const OPTION_DEFAULTS = {
     showBundleArchive: true,
     showBundleSnooze: true,
     showBundleDelete: false,
+    skipStarredOnArchive: false,
+    markReadOnArchive: false,
+    unstarOnArchive: false,
 };
 
 const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);
@@ -45,6 +49,7 @@ const OPTION_KEYS = Object.keys(OPTION_DEFAULTS);
 /** Options that affect how the message list is bundled / styled. */
 const BUNDLING_OPTION_KEYS = [
     'bundlingEnabled',
+    'bundleOtherViews',
     'exclude',
     'labels',
     'combineLabels',
@@ -65,6 +70,18 @@ const UI_OPTION_KEYS = [
     'showBundleArchive',
     'showBundleSnooze',
     'showBundleDelete',
+];
+
+/**
+ * Options that shape what inbundly's own archive-all and date-section sweep
+ * do when clicked. They change no bundling and no chrome, so a change needs
+ * neither a Gmail refresh nor an <html> class: the next click reads them.
+ * All default off, so existing users see the archive they had.
+ */
+const ARCHIVE_OPTION_KEYS = [
+    'skipStarredOnArchive',
+    'markReadOnArchive',
+    'unstarOnArchive',
 ];
 
 /**
@@ -95,6 +112,7 @@ export {
     OPTION_KEYS,
     BUNDLING_OPTION_KEYS,
     UI_OPTION_KEYS,
+    ARCHIVE_OPTION_KEYS,
     changesInclude,
     optionsFromChanges,
 };

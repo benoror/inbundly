@@ -31,6 +31,14 @@ test('selectMessages checks only the unchecked rows', () => {
     expect(checkedStates(messages)).toEqual([true, true, true]);
 });
 
+test('deselectMessages unchecks only the checked rows', () => {
+    const messages = [makeMessage(false), makeMessage(true), makeMessage(true)];
+
+    GmailToolbar.deselectMessages(messages);
+
+    expect(checkedStates(messages)).toEqual([false, false, false]);
+});
+
 test('triggerToolbarAction clicks the button once Gmail reveals the toolbar', async () => {
     document.body.innerHTML =
         '<div id="toolbar" style="display: none;"><div id="action"></div></div>';
@@ -50,6 +58,48 @@ test('triggerToolbarAction clicks the button once Gmail reveals the toolbar', as
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(clicks).toEqual(['click']);
+});
+
+test('precededBy clicks the first button, then the freshest copy of the target', async () => {
+    document.body.innerHTML = `
+        <div id="toolbar" style="display: none;">
+            <div id="first"></div><div id="action"></div>
+        </div>`;
+    const clicks = [];
+    document.getElementById('first').addEventListener('click', () => {
+        clicks.push('first');
+        // Gmail redraws the toolbar for the first action; the old target
+        // node is gone and a new one stands in its place.
+        const stale = document.getElementById('action');
+        const fresh = stale.cloneNode();
+        fresh.addEventListener('click', () => clicks.push('action:fresh'));
+        stale.replaceWith(fresh);
+    });
+    document.getElementById('action').addEventListener('click', () => clicks.push('action:stale'));
+
+    GmailToolbar.triggerToolbarAction('#action', () => {}, { precededBy: '#first' });
+    document.getElementById('toolbar').style.display = 'block';
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(clicks).toEqual(['first', 'action:fresh']);
+});
+
+test('precededBy is skipped when that button is absent or not clickable', async () => {
+    document.body.innerHTML = `
+        <div id="toolbar" style="display: none;">
+            <div id="first" aria-disabled="true"></div><div id="action"></div>
+        </div>`;
+    const clicks = [];
+    document.getElementById('first').addEventListener('click', () => clicks.push('first'));
+    document.getElementById('action').addEventListener('click', () => clicks.push('action'));
+
+    GmailToolbar.triggerToolbarAction('#action', () => {}, { precededBy: '#first' });
+    GmailToolbar.triggerToolbarAction('#action', () => {}, { precededBy: '#missing' });
+    document.getElementById('toolbar').style.display = 'block';
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(clicks).toEqual(['action', 'action']);
 });
 
 test('triggerToolbarAction is a no-op when the button is missing', () => {

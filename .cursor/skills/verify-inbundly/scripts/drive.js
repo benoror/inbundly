@@ -12,7 +12,8 @@
 //   node .cursor/skills/verify-inbundly/scripts/drive.js <feature> --evidence <dir>
 //
 // Features: core-bundling, bundle-actions, sender-bundles,
-//           remember-open-bundle, options-autosave
+//           remember-open-bundle, keyboard-nav, other-views, collapsed-glance,
+//           bulk-trust, options-autosave, options-layout
 
 const fs = require('fs');
 const path = require('path');
@@ -23,6 +24,7 @@ const {
     launchWithExtension,
     serveInbox,
     openInbox,
+    openView,
     setSyncOptions,
 } = require(path.join(ROOT, 'e2e', 'helpers', 'gmail'));
 
@@ -580,6 +582,542 @@ const FEATURES = {
         });
     },
 
+    async 'keyboard-nav'({ context, rec }) {
+        // DOM (Gmail) order: Loose A, Work 1, Loose B, Work 2, News 1, News 2.
+        // Display order: Loose A, [Work], Loose B, [News].
+        await serveInbox(context, inboxPage({
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Loose A' },
+                { email: 'b@corp-two.com', subject: 'Work 1', labels: ['Work'] },
+                { email: 'c@corp-three.com', subject: 'Loose B' },
+                { email: 'd@corp-four.com', subject: 'Work 2', labels: ['Work'] },
+                { email: 'e@corp-five.com', subject: 'News 1', labels: ['News'] },
+                { email: 'f@corp-six.com', subject: 'News 2', labels: ['News'] },
+            ],
+        }));
+        let page;
+        const P = () => page;
+        const shots = () => [{ page, tag: 'inbox', ariaRoot: '[role="main"]' }];
+        const press = async (...keys) => {
+            for (const key of keys) {
+                await page.keyboard.press(key);
+            }
+        };
+        const cursor = () => page.evaluate(() => {
+            const active = document.activeElement;
+            const row = active && active.closest ? active.closest('tr.zA') : null;
+            if (!row) {
+                return active ? active.tagName.toLowerCase() : null;
+            }
+            return row.classList.contains('bundle-row')
+                ? row.querySelector('.bundle-and-count span').textContent.trim()
+                : row.querySelector('.y6 span span').textContent;
+        });
+        const gmailCursor = () => page.evaluate(() => {
+            const row = document.querySelector('tr.zA.btb:not(.bundle-row)');
+            return row ? row.querySelector('.y6 span span').textContent : null;
+        });
+        const gmailActions = () => page.evaluate(() => window.__gmail.actions);
+
+        await rec.step('inbox-bundled-no-cursor', {
+            action: async () => { page = await openInbox(context); rec.watch(page, 'inbox'); },
+            checks: [
+                eq('Work and News bundles', count(P, '.bundle-row'), 2),
+                eq('focus starts outside the list', cursor, 'body'),
+                eq('Gmail has no cursor row yet', gmailCursor, null),
+            ],
+            shots,
+        });
+
+        await rec.step('j-walks-onto-the-work-bundle-row', {
+            action: () => press('j', 'j'),
+            checks: [
+                eq('cursor on the Work bundle row', cursor, 'Work'),
+                eq('bundle row carries the cursor ring', count(P, '.bundle-row.inbundly-cursor:has-text("Work")'), 1),
+                eq('Gmail\'s own mark is not left on a thread', gmailCursor, null),
+            ],
+            shots,
+        });
+
+        await rec.step('j-skips-the-hidden-work-threads', {
+            action: () => press('j', 'j'),
+            checks: [
+                eq('cursor on the News bundle row (Loose B was the stop between)', cursor, 'News'),
+                eq('no hidden thread became visible', visibleBundledMessages(P), 0),
+            ],
+            shots,
+        });
+
+        await rec.step('k-back-to-loose-b', {
+            action: () => press('k'),
+            checks: [
+                eq('cursor on Loose B', cursor, 'Loose B'),
+                eq('Gmail\'s cursor mark followed onto the thread', gmailCursor, 'Loose B'),
+                eq('no bundle row rings', count(P, '.inbundly-cursor'), 0),
+            ],
+            shots,
+        });
+
+        await rec.step('enter-opens-work-and-lands-on-its-first-thread', {
+            action: () => press('k', 'Enter'),
+            checks: [
+                eq('two Work threads visible', visibleBundledMessages(P), 2),
+                eq('cursor on Work 1', cursor, 'Work 1'),
+                eq('Gmail agrees: its mark is on Work 1', gmailCursor, 'Work 1'),
+            ],
+            shots,
+        });
+
+        await rec.step('e-archives-the-thread-inside-the-bundle', {
+            action: () => press('e'),
+            checks: [
+                eq('Gmail archived Work 1, nothing else', gmailActions, [{ type: 'archive', subjects: ['Work 1'] }]),
+            ],
+            shots,
+        });
+
+        await rec.step('j-through-the-open-bundle-and-out', {
+            action: () => press('j', 'j'),
+            checks: [eq('cursor on Loose B after Work 2', cursor, 'Loose B')],
+            shots,
+        });
+
+        await rec.step('escape-from-inside-collapses-onto-the-row', {
+            action: () => press('k', 'Escape'),
+            checks: [
+                eq('bundle collapsed', visibleBundledMessages(P), 0),
+                eq('cursor on the Work bundle row', cursor, 'Work'),
+                eq('remembered bundle forgotten (a user close)', openBundleStore(P), null),
+            ],
+            shots,
+        });
+
+        await rec.step('s-on-the-bundle-row-is-inert', {
+            action: () => press('s'),
+            checks: [eq('no star action reached Gmail', gmailActions, [{ type: 'archive', subjects: ['Work 1'] }])],
+            shots,
+        });
+
+        await rec.step('e-on-the-bundle-row-archives-the-whole-bundle', {
+            action: () => press('e'),
+            checks: [
+                eq('both Work rows selected', rowSelectedCount(P), 2),
+                eventually(includes('Gmail toolbar Archive clicked', gmailClicks(P), 'act:7')),
+                eventually(eq('archive of both threads recorded', gmailActions, [
+                    { type: 'archive', subjects: ['Work 1'] },
+                    { type: 'archive', subjects: ['Work 1', 'Work 2'] },
+                ])),
+            ],
+            shots,
+        });
+
+        await rec.step('click-open-moves-the-cursor-into-the-bundle', {
+            action: async () => {
+                await bundleCheckbox(page.locator('.bundle-row', { hasText: 'Work' })).click();
+                await page.locator('.bundle-row', { hasText: 'News' }).click();
+            },
+            checks: [
+                eq('selection cleared first', rowSelectedCount(P), 0),
+                eq('two News threads visible', visibleBundledMessages(P), 2),
+                eq('cursor on News 1 after a mouse open', cursor, 'News 1'),
+                eq('Gmail\'s mark on News 1', gmailCursor, 'News 1'),
+            ],
+            shots,
+        });
+    },
+
+    async 'other-views'({ context, rec }) {
+        // The same list for every view, with the Inbox chip Gmail shows
+        // outside the Inbox; the URL hash decides the view.
+        await serveInbox(context, inboxPage({
+            tab: null,
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Work update 1', labels: ['Inbox', 'Work'] },
+                { email: 'b@corp-two.com', subject: 'Work update 2', labels: ['Inbox', 'Work'], unread: true },
+                { email: 'c@corp-three.com', subject: 'Urgent work A', labels: ['Inbox', 'Work', 'Urgent'] },
+                { email: 'd@corp-four.com', subject: 'Urgent work B', labels: ['Inbox', 'Work', 'Urgent'] },
+                { email: 'x@acme.com', subject: 'Acme 1', labels: ['Inbox'] },
+                { email: 'y@acme.com', subject: 'Acme 2', labels: ['Inbox'], daysAgo: 3 },
+                { email: 'f@corp-six.com', subject: 'Just a message', daysAgo: 40 },
+            ],
+        }));
+        let page;
+        const P = () => page;
+        const shots = tag => () => [{ page, tag, ariaRoot: '[role="main"]' }];
+        const titles = () => page.locator('.bundle-row .bundle-and-count > span:first-child')
+            .allInnerTexts().then(list => list.sort());
+        const viewAllHref = name => () => page.locator('.bundle-row', { hasText: name })
+            .locator('.view-all-link').getAttribute('href');
+        const refreshes = () => page.evaluate(() => window.__gmail.refreshes);
+        const rowIsPlain = subject => falsy(`${subject} stays a plain row`,
+            hasClass(() => page.locator('tr.zA', { hasText: subject }), 'bundled-message'));
+        const open = async hash => {
+            if (page) {
+                await page.close();
+            }
+            page = await openView(context, hash);
+            rec.watch(page, hash);
+        };
+
+        await rec.step('search-plain-by-default', {
+            action: async () => {
+                page = await openView(context, 'search/newsletters', { expectBundles: null });
+                rec.watch(page, 'search');
+            },
+            checks: [
+                eq('no bundle rows on the search page', count(P, '.bundle-row'), 0),
+                eq('list not stamped as bundled', count(P, '.is-bundled'), 0),
+            ],
+            shots: shots('search'),
+        });
+
+        await rec.step('option-on-rebundles-the-search-live', {
+            action: async () => {
+                await setSyncOptions(context, { bundleOtherViews: true });
+                await page.waitForSelector('.bundle-row', { timeout: 10000 });
+            },
+            checks: [
+                eq('Gmail asked to refresh once', refreshes, 1),
+                eq('bundles: Work, Work + Urgent, acme.com (Inbox chip ignored)', titles, ['Work', 'Work + Urgent', 'acme.com']),
+                eq('six rows hidden behind bundles', count(P, '.bundled-message'), 6),
+                rowIsPlain('Just a message'),
+                eq('View all stays inside the search', viewAllHref('Urgent'),
+                    'https://mail.google.com/mail/u/0/#search/newsletters+label%3AWork+label%3AUrgent'),
+            ],
+            shots: shots('search'),
+        });
+
+        await rec.step('open-and-collapse-in-the-search', {
+            action: async () => {
+                const work = page.locator('.bundle-row', { hasText: 'Work' })
+                    .filter({ hasNot: page.locator('text=Urgent') });
+                await work.click();
+                await page.locator('.bundled-message.visible').first().waitFor();
+                await work.click();
+            },
+            checks: [eq('collapsed again', visibleBundledMessages(P), 0)],
+            shots: shots('search'),
+        });
+
+        await rec.step('label-view-does-not-bundle-its-own-label', {
+            action: () => open('label/Work'),
+            checks: [
+                eq('bundles: Urgent and acme.com, no Work', titles, ['Urgent', 'acme.com']),
+                rowIsPlain('Work update 1'),
+                rowIsPlain('Work update 2'),
+                eq('View all scoped to the label', viewAllHref('Urgent'),
+                    'https://mail.google.com/mail/u/0/#search/label%3AWork+label%3AUrgent'),
+            ],
+            shots: shots('label'),
+        });
+
+        await rec.step('view-all-search-does-not-refold-the-bundle', {
+            action: () => open('search/label%3AInbox+label%3AWork'),
+            checks: [
+                eq('bundles: Urgent and acme.com', titles, ['Urgent', 'acme.com']),
+                rowIsPlain('Work update 1'),
+            ],
+            shots: shots('view-all'),
+        });
+
+        await rec.step('snoozed-bundles', {
+            action: () => open('snoozed'),
+            checks: [
+                eq('bundles as in the search', titles, ['Work', 'Work + Urgent', 'acme.com']),
+                eq('View all scoped to in:snoozed', viewAllHref('acme.com'),
+                    'https://mail.google.com/mail/u/0/#search/in%3Asnoozed+from%3A%40acme.com'),
+            ],
+            shots: shots('snoozed'),
+        });
+
+        await rec.step('conversation-left-alone', {
+            action: async () => {
+                await page.close();
+                page = await openView(context, 'search/newsletters/FMfcgzQbfVjhKLmnpQrsTuvWxyz',
+                    { expectBundles: null });
+                rec.watch(page, 'conversation');
+            },
+            checks: [eq('no bundle rows', count(P, '.bundle-row'), 0)],
+            shots: shots('conversation'),
+        });
+
+        await rec.step('option-off-leaves-the-search-plain', {
+            action: async () => {
+                await open('search/newsletters');
+                await setSyncOptions(context, { bundleOtherViews: false });
+                await page.waitForFunction(() => !document.querySelector('.bundle-row'));
+            },
+            checks: [
+                eq('no bundle rows', count(P, '.bundle-row'), 0),
+                eq('Gmail asked to refresh once', refreshes, 1),
+            ],
+            shots: shots('search'),
+        });
+    },
+
+    async 'collapsed-glance'({ context, rec }) {
+        await serveInbox(context, inboxPage({
+            threads: [
+                { sender: 'Jane Doe', email: 'jane@acme.com', subject: 'Q3 numbers', labels: ['Work'], daysAgo: 0, unread: true },
+                { sender: 'Bob', email: 'bob@acme.com', subject: 'Standup notes', labels: ['Work'], daysAgo: 3 },
+                { sender: 'Weekly Digest', email: 'digest@news.example', subject: 'Issue 41', labels: ['News'], daysAgo: 10 },
+                { sender: 'Weekly Digest', email: 'digest@news.example', subject: 'Issue 40', labels: ['News'], daysAgo: 17 },
+            ],
+        }));
+        let page;
+        const P = () => page;
+        const shots = () => [{ page, tag: 'inbox', ariaRoot: '[role="main"]' }];
+        const work = () => page.locator('.bundle-row', { hasText: 'Work' });
+        const news = () => page.locator('.bundle-row', { hasText: 'News' });
+        const glanceSender = bundle => text(() => bundle().locator('.bundle-latest-sender'));
+        const glanceDate = bundle => text(() => bundle().locator('.bundle-date'));
+        const senderTitle = bundle => () => bundle().locator('.bundle-latest-sender').getAttribute('title');
+        const fontWeight = bundle => () => bundle().locator('.bundle-latest-sender')
+            .evaluate(el => getComputedStyle(el).fontWeight);
+        const tenDaysAgo = new Date(Date.now() - 10 * 86400000)
+            .toLocaleString('en-US', { month: 'short', day: 'numeric' });
+
+        await rec.step('inbox-glance', {
+            action: async () => { page = await openInbox(context); rec.watch(page, 'inbox'); },
+            checks: [
+                eq('Work: newest thread\'s sender', glanceSender(work), 'Jane Doe'),
+                eq('Work: newest thread\'s date', glanceDate(work), '10:00 AM'),
+                eq('Work: sender tooltip is the address', senderTitle(work), 'jane@acme.com'),
+                truthy('Work: unread newest thread bolds the sender', hasClass(() => work().locator('.bundle-latest-sender'), 'unread')),
+                eq('Work: computed bold', fontWeight(work), '700'),
+                eq('Work: senders peek, most recent first', text(() => work().locator('.bundle-senders')), 'Jane Doe, Bob'),
+                eq('News: newest thread\'s sender', glanceSender(news), 'Weekly Digest'),
+                eq('News: newest thread\'s date (10 days ago)', glanceDate(news), tenDaysAgo),
+                falsy('News: read newest thread, not bold', hasClass(() => news().locator('.bundle-latest-sender'), 'unread')),
+                eq('News: computed normal weight', fontWeight(news), '400'),
+            ],
+            shots,
+        });
+
+        await rec.step('open-work-hides-glance', {
+            action: async () => {
+                await work().click();
+                await page.locator('.bundled-message.visible').first().waitFor();
+            },
+            checks: [
+                eq('two Work threads visible', visibleBundledMessages(P), 2),
+                falsy('latest sender hidden while open', () => work().locator('.bundle-latest-sender').isVisible()),
+                falsy('date hidden while open', () => work().locator('.bundle-date').isVisible()),
+            ],
+            shots,
+        });
+
+        await rec.step('collapse-work-shows-glance', {
+            action: () => work().click(),
+            checks: [
+                eq('collapsed again', visibleBundledMessages(P), 0),
+                truthy('latest sender visible again', () => work().locator('.bundle-latest-sender').isVisible()),
+                eq('still Jane Doe', glanceSender(work), 'Jane Doe'),
+            ],
+            shots,
+        });
+    },
+
+    async 'bulk-trust'({ context, rec, info }) {
+        // All from today, so one "Today" sweep reaches every row. The pinned
+        // thread carries the Work label but sits outside the bundle (default
+        // keepStarredUnbundled), where the date sweep is what reaches it.
+        await serveInbox(context, inboxPage({
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Work 1', labels: ['Work'], unread: true },
+                { email: 'b@corp-two.com', subject: 'Work 2', labels: ['Work'] },
+                { email: 'c@corp-three.com', subject: 'Work pinned', labels: ['Work'], starred: true },
+                { email: 'd@corp-four.com', subject: 'Outside message' },
+            ],
+        }));
+        const optionsUrl = `chrome-extension://${info.extensionId}/options/options.html`;
+        let inbox;
+        let options;
+        const I = () => inbox;
+        const shots = () => [
+            { page: inbox, tag: 'inbox', ariaRoot: '[role="main"]' },
+            { page: options, tag: 'options', ariaRoot: 'body' },
+        ];
+        const inboxShot = () => [{ page: inbox, tag: 'inbox', ariaRoot: '[role="main"]' }];
+        const work = () => inbox.locator('.bundle-row', { hasText: 'Work' });
+        // By exact subject: a row's text also holds its label chip and date.
+        const row = subject => () => inbox.locator('tr.zA:not(.bundle-row)', {
+            has: inbox.locator('.y6 span span', { hasText: new RegExp(`^${subject}$`) }),
+        });
+        const pinnedStarred = () => row('Work pinned')().locator('.T-KT-Jp').count();
+        const gmailActions = () => inbox.evaluate(() => window.__gmail.actions);
+        const actionTypes = async () => (await gmailActions()).map(a => a.type);
+        const archived = async () => (await gmailActions()).filter(a => a.type === 'archive').map(a => a.subjects);
+        const refreshes = () => inbox.evaluate(() => window.__gmail.refreshes);
+        const storedSync = () => info.worker.evaluate(
+            () => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
+        const switchFor = id => options.locator(`label.switch:has(#${id}) .slider`);
+        const checked = id => () => options.locator(`#${id}`).isChecked();
+        const saveStatus = () => options.locator('#save-status');
+        // Gmail's toolbar action fires once the selection reveals the toolbar;
+        // the fixture does not take archived rows away, so each action starts
+        // from a fresh Gmail tab, as a user who reloads would.
+        const reopenInbox = async () => {
+            if (inbox) {
+                await inbox.close();
+            }
+            inbox = await openInbox(context);
+            rec.watch(inbox, 'inbox');
+        };
+        // The fixture ships no Gmail stylesheet, so the sweep icon (sized by
+        // Gmail's own .bqX class) has no box for a pointer click; the archive
+        // icon on a hovered bundle row can sit under a neighbouring cell for
+        // the same reason. Dispatch the click the way the specs do.
+        const clickSweep = () => inbox.locator('.date-row .archive-bundle').dispatchEvent('click');
+        const clickArchiveAll = async () => {
+            await work().hover();
+            await work().locator('.archive-bundle').dispatchEvent('click');
+        };
+
+        await rec.step('open-inbox-and-options', {
+            action: async () => {
+                await reopenInbox();
+                options = await context.newPage();
+                rec.watch(options, 'options');
+                await options.goto(optionsUrl);
+                await options.locator('#skip-starred-on-archive-checkbox').waitFor({ state: 'attached' });
+            },
+            checks: [
+                falsy('skip-starred switch off by default', checked('skip-starred-on-archive-checkbox')),
+                falsy('mark-read switch off by default', checked('mark-read-on-archive-checkbox')),
+                falsy('unstar switch off by default', checked('unstar-on-archive-checkbox')),
+                eq('sync storage empty in a fresh profile', storedSync, {}),
+                eq('one Today divider with its sweep icon', count(I, '.date-row .archive-bundle'), 1),
+                eq('pinned thread outside the bundle, starred', pinnedStarred, 1),
+                eq('Work bundle holds the two unpinned threads', () => work().locator('.bundle-count').textContent(), '(2)'),
+            ],
+            shots,
+        });
+
+        await rec.step('default-sweep-takes-the-pinned-thread-too', {
+            action: clickSweep,
+            checks: [
+                eq('all four rows selected', rowSelectedCount(I), 4),
+                eventually(eq('Gmail toolbar Archive clicked, nothing else', gmailClicks(I), ['act:7'])),
+                eventually(eq('archive of every thread, pinned included', archived,
+                    [['Work 1', 'Work 2', 'Work pinned', 'Outside message']])),
+                eq('no Mark as read, no unstar', actionTypes, ['archive']),
+                eq('star untouched', pinnedStarred, 1),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('flip-skip-starred-on', {
+            action: async () => {
+                await switchFor('skip-starred-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => document.getElementById('save-status').classList.contains('visible'));
+            },
+            checks: [
+                truthy('switch on', checked('skip-starred-on-archive-checkbox')),
+                truthy('Saved status shown', hasClass(saveStatus, 'visible')),
+                eq('only that key written to sync', storedSync, { skipStarredOnArchive: true }),
+                eq('Gmail tab not asked to refresh (read at click time)', refreshes, 0),
+            ],
+            shots,
+        });
+
+        await rec.step('sweep-leaves-the-pinned-thread-in-place', {
+            action: async () => {
+                await reopenInbox();
+                await clickSweep();
+            },
+            checks: [
+                eq('three rows selected', rowSelectedCount(I), 3),
+                falsy('pinned row not selected', hasClass(row('Work pinned'), 'x7')),
+                eventually(eq('archive without the pinned thread', archived,
+                    [['Work 1', 'Work 2', 'Outside message']])),
+                eq('star untouched', pinnedStarred, 1),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('flip-mark-read-on', {
+            action: async () => {
+                await switchFor('mark-read-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => document.getElementById('mark-read-on-archive-checkbox').checked);
+            },
+            checks: [
+                truthy('switch on', checked('mark-read-on-archive-checkbox')),
+                eq('sync holds both switches', storedSync,
+                    { markReadOnArchive: true, skipStarredOnArchive: true }),
+            ],
+            shots: [{ page: options, tag: 'options', ariaRoot: 'body' }],
+        });
+
+        await rec.step('archive-all-marks-the-bundle-read-first', {
+            action: async () => {
+                await reopenInbox();
+                await clickArchiveAll();
+            },
+            checks: [
+                eq('the two Work rows selected', rowSelectedCount(I), 2),
+                eventually(eq('Mark as read, then Archive', gmailClicks(I), ['Mark as read', 'act:7'])),
+                eventually(eq('Gmail marked read then archived the same two threads', gmailActions, [
+                    { type: 'markRead', subjects: ['Work 1', 'Work 2'] },
+                    { type: 'archive', subjects: ['Work 1', 'Work 2'] },
+                ])),
+                truthy('Work 1 now read (yO)', hasClass(row('Work 1'), 'yO')),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('flip-unstar-on-and-skip-starred-off', {
+            action: async () => {
+                await switchFor('unstar-on-archive-checkbox').click();
+                await switchFor('skip-starred-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => !document.getElementById('skip-starred-on-archive-checkbox').checked);
+            },
+            checks: [
+                truthy('unstar on', checked('unstar-on-archive-checkbox')),
+                falsy('skip-starred off', checked('skip-starred-on-archive-checkbox')),
+                eq('sync reflects the three switches', storedSync,
+                    { markReadOnArchive: true, skipStarredOnArchive: false, unstarOnArchive: true }),
+            ],
+            shots: [{ page: options, tag: 'options', ariaRoot: 'body' }],
+        });
+
+        await rec.step('sweep-unstars-the-pinned-thread-then-archives-it', {
+            action: async () => {
+                await reopenInbox();
+                await clickSweep();
+            },
+            checks: [
+                eq('all four rows selected', rowSelectedCount(I), 4),
+                eq('star clicked off before the toolbar', pinnedStarred, 0),
+                eventually(eq('Mark as read, then Archive', gmailClicks(I), ['Mark as read', 'act:7'])),
+                eventually(eq('unstar, mark read, archive, in that order', actionTypes,
+                    ['unstar', 'markRead', 'archive'])),
+                eventually(eq('archive of every thread', archived,
+                    [['Work 1', 'Work 2', 'Work pinned', 'Outside message']])),
+            ],
+            shots: inboxShot,
+        });
+
+        await rec.step('restore-defaults', {
+            action: async () => {
+                await switchFor('mark-read-on-archive-checkbox').click();
+                await switchFor('unstar-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => !document.getElementById('unstar-on-archive-checkbox').checked);
+            },
+            checks: [
+                falsy('mark-read off', checked('mark-read-on-archive-checkbox')),
+                falsy('unstar off', checked('unstar-on-archive-checkbox')),
+                eq('sync holds explicit falses', storedSync,
+                    { markReadOnArchive: false, skipStarredOnArchive: false, unstarOnArchive: false }),
+            ],
+            shots: [{ page: options, tag: 'options', ariaRoot: 'body' }],
+        });
+    },
+
     async 'options-autosave'({ context, rec, info }) {
         await serveInbox(context, inboxPage({
             threads: [
@@ -655,6 +1193,137 @@ const FEATURES = {
                 falsy('switch off', deleteChecked),
                 eq('sync holds the explicit false, nothing else', storedSync, { showBundleDelete: false }),
                 truthy('Gmail tab hides delete-all again', inboxHidesDelete),
+            ],
+            shots,
+        });
+    },
+
+    async 'options-layout'({ context, rec, info }) {
+        await serveInbox(context, inboxPage({
+            threads: [
+                { email: 'a@corp-one.com', subject: 'Work 1', labels: ['Work'] },
+                { email: 'b@corp-two.com', subject: 'Work 2', labels: ['Work'] },
+            ],
+        }));
+        const optionsUrl = `chrome-extension://${info.extensionId}/options/options.html`;
+        let options;
+        const shots = () => [{ page: options, tag: 'options', ariaRoot: 'body' }];
+        const O = () => options;
+        const SECTIONS = ['bundling', 'labels', 'inbox-layout', 'pinned-messages',
+            'bundle-actions', 'appearance', 'custom-bundles', 'sync-backup'];
+        const sectionIds = () => options.locator('.option-category:not(.search-hidden)')
+            .evaluateAll(sections => sections.map(s => s.id));
+        const jumpLinks = () => options.locator('.section-nav a')
+            .evaluateAll(anchors => anchors.map(a => a.getAttribute('href').slice(1)));
+        const deleteRow = () => options.locator('.option-row', {
+            has: options.locator('#show-bundle-delete-checkbox'),
+        });
+        const storedSync = () => info.worker.evaluate(
+            () => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
+        const foldOpen = id => () => options.locator(`#${id}`).evaluate(d => d.open);
+        const search = () => options.locator('#options-search');
+
+        await rec.step('open-options', {
+            action: async () => {
+                // The extension's service worker is up once the Gmail tab loaded.
+                const inbox = await openInbox(context);
+                await inbox.close();
+                options = await context.newPage();
+                rec.watch(options, 'options');
+                await options.goto(optionsUrl);
+                await options.locator('#bundling-enabled-checkbox').waitFor({ state: 'attached' });
+            },
+            checks: [
+                eq('title names the tab', () => options.title(), 'Inbundly - Options'),
+                eq('eight sections by topic', sectionIds, SECTIONS),
+                eq('a jump link per section, same order', jumpLinks, SECTIONS),
+                eq('every switch row states its default', () => options.locator('.option-row .option-default').count(), 17),
+                eq('delete-all row says Default: off', () => deleteRow().locator('.option-default').textContent(), 'Default: off'),
+                falsy('nothing marked as changed in a fresh profile', count(O, '.differs')),
+                falsy('Advanced label rules closed', foldOpen('label-rules')),
+                eq('sync storage empty in a fresh profile', storedSync, {}),
+            ],
+            shots,
+        });
+
+        await rec.step('jump-to-bundle-actions', {
+            action: async () => {
+                await options.locator('.section-nav a[href="#bundle-actions"]').click();
+                await options.waitForFunction(() => location.hash === '#bundle-actions');
+            },
+            checks: [
+                truthy('still on the Options tab', () => options.locator('.tab.options').isVisible()),
+                truthy('Bundle actions heading at the top of the view', async () => {
+                    const top = await options.locator('#bundle-actions').evaluate(el => el.getBoundingClientRect().top);
+                    return top >= 0 && top < 120;
+                }),
+                eq('buttons and archive switches share the section',
+                    () => options.locator('#bundle-actions input[type="checkbox"]').evaluateAll(i => i.map(x => x.id)),
+                    ['show-bundle-archive-checkbox', 'show-bundle-snooze-checkbox', 'show-bundle-delete-checkbox',
+                        'skip-starred-on-archive-checkbox', 'mark-read-on-archive-checkbox', 'unstar-on-archive-checkbox']),
+            ],
+            shots,
+        });
+
+        await rec.step('flip-delete-all-on', {
+            action: async () => {
+                await deleteRow().locator('label.switch .slider').click();
+                await options.locator('#save-status.visible').waitFor();
+            },
+            checks: [
+                truthy('switch on', () => options.locator('#show-bundle-delete-checkbox').isChecked()),
+                truthy('row marked as changed from its default', hasClass(deleteRow, 'differs')),
+                eq('only that key written to sync', storedSync, { showBundleDelete: true }),
+            ],
+            shots,
+        });
+
+        await rec.step('search-priority', {
+            action: async () => {
+                await search().fill('priority');
+                await options.locator('#label-rules[open]').waitFor();
+            },
+            checks: [
+                eq('only the Labels section left', sectionIds, ['labels']),
+                truthy('the fold holding the match opened', foldOpen('label-rules')),
+                truthy('priority rules visible', () => options.locator('#priority-bundles-list').isVisible()),
+                falsy('combine labels row folded away', () => options.locator('#combine-labels-checkbox').isVisible()),
+                truthy('other jump links dimmed', hasClass(() => options.locator('.section-nav a[href="#appearance"]'), 'dimmed')),
+            ],
+            shots,
+        });
+
+        await rec.step('search-no-match', {
+            action: () => search().fill('no such setting anywhere'),
+            checks: [
+                eq('no section left', sectionIds, []),
+                truthy('no-match note shown', () => options.locator('#options-no-matches').isVisible()),
+            ],
+            shots,
+        });
+
+        await rec.step('escape-clears-search', {
+            action: async () => {
+                await search().press('Escape');
+                await options.waitForFunction(() => !document.querySelector('.tab.options .search-hidden'));
+            },
+            checks: [
+                eq('search box empty', () => search().inputValue(), ''),
+                eq('all eight sections back', sectionIds, SECTIONS),
+                falsy('fold back to closed', foldOpen('label-rules')),
+                falsy('no-match note gone', () => options.locator('#options-no-matches').isVisible()),
+            ],
+            shots,
+        });
+
+        await rec.step('restore-delete-all-off', {
+            action: async () => {
+                await deleteRow().locator('label.switch .slider').click();
+                await options.waitForFunction(() => !document.getElementById('show-bundle-delete-checkbox').checked);
+            },
+            checks: [
+                falsy('row no longer marked as changed', hasClass(deleteRow, 'differs')),
+                eq('sync holds the explicit false', storedSync, { showBundleDelete: false }),
             ],
             shots,
         });

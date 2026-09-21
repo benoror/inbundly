@@ -15,7 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { getCurrentPageNumber, getCurrentTab } from './MessagePageUtils';
+import {
+    getCurrentPageNumber,
+    getCurrentTab,
+    getCurrentViewKey,
+} from './MessagePageUtils';
 
 // Remembers the bundle the user last opened, so a rerender, navigation, or a
 // tab reload can restore it. Backed by sessionStorage (per tab, survives
@@ -24,16 +28,18 @@ import { getCurrentPageNumber, getCurrentTab } from './MessagePageUtils';
 //
 // Written only on explicit user intent (open/close clicks) — never from
 // render paths — so transient state like StarHandler's scroll-anchoring
-// openBundle() never leaks into it. The record is keyed by page + tab because
-// the in-memory open-bundle ref is not: a bare (sectionId, label) could match
-// a same-named bundle on another page.
+// openBundle() never leaks into it. The record is keyed by view + page + tab
+// because the in-memory open-bundle ref is not: a bare (sectionId, label)
+// could match a same-named bundle on another page or in another view (a
+// Work bundle in the Inbox and one in a search).
 const STORAGE_KEY = 'inbundly:openBundle:v1';
 
 /**
- * Remember the bundle the user opened on the current page/tab.
+ * Remember the bundle the user opened on the current view/page/tab.
  */
 function save(sectionId, label) {
     _try(() => window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+        view: getCurrentViewKey(),
         page: getCurrentPageNumber(),
         tab: getCurrentTab(),
         sectionId,
@@ -42,7 +48,7 @@ function save(sectionId, label) {
 }
 
 /**
- * The remembered open bundle for the current page/tab, as
+ * The remembered open bundle for the current view/page/tab, as
  * { sectionId, label }, or null when there is none.
  */
 function load() {
@@ -55,6 +61,7 @@ function load() {
         if (!stored ||
             typeof stored.label !== 'string' ||
             typeof stored.sectionId !== 'string' ||
+            stored.view !== getCurrentViewKey() ||
             stored.page !== getCurrentPageNumber() ||
             stored.tab !== getCurrentTab())
         {

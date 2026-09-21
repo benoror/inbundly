@@ -9,10 +9,27 @@
 // Gmail on 2026-09-09 (see TESTING.md, "How the e2e suite works"). When Gmail
 // markup changes, update Constants.js and this file together.
 //
-// The page also emulates the two Gmail behaviors the extension depends on:
+// The page also emulates the Gmail behaviors the extension depends on:
 //  - clicking a row checkbox toggles aria-checked and the row's `x7`
 //    (selected) class, and shows/hides the toolbar action cluster;
-//  - toolbar action clicks are recorded on window.__gmail.clicks.
+//  - toolbar action clicks are recorded on window.__gmail.clicks; Archive
+//    and Mark as read also land on window.__gmail.actions with the selected
+//    rows' subjects, Mark as read flips the selected rows to read (`yO`), and
+//    the envelope button reads "Mark as read" only while the selection holds
+//    an unread row, "Mark as unread" otherwise, as Gmail's does;
+//  - clicking a row's star toggles it between Gmail's starred and unstarred
+//    classes and records a star / unstar action;
+//  - the Refresh button (act="20") rebuilds the message list from pristine
+//    rows, the way Gmail repaints it (the extension clicks it after an
+//    option changes and rebundles from the rerender); counted on
+//    window.__gmail.refreshes;
+//  - the keyboard cursor: rows are focusable (tabindex=-1), the cursor row
+//    carries `btb`, j/k walk Gmail's own DOM-ordered list (hidden rows
+//    included), and e/x/Enter act on the checked rows or the cursor row.
+//    Thread actions land on window.__gmail.actions. By default the cursor
+//    follows DOM focus, the model the extension relies on (TESTING.md §12);
+//    `cursorFollowsFocus: false` builds a Gmail whose cursor ignores focus,
+//    for the extension's fallback paths.
 
 function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({
@@ -78,7 +95,7 @@ function threadRow({
     const starClasses = starred ? 'T-KT T-KT-Jp' : 'T-KT aXw';
 
     return `
-        <tr class="zA ${unread ? 'zE' : 'yO'}" role="row" id="${rowId}">
+        <tr class="zA ${unread ? 'zE' : 'yO'}" role="row" id="${rowId}" tabindex="-1">
             <td class="PF xY"></td>
             <td class="oZ-x3 xY" data-tooltip="Select">
                 <div class="oZ-jc T-Jo J-J5-Ji" role="checkbox" aria-checked="false" tabindex="-1"></div>
@@ -109,9 +126,18 @@ function threadRow({
 /**
  * A full Gmail-shaped inbox page holding the given thread rows.
  * `threads` is an array of threadRow() option objects.
+ *
+ * `tab` names the selected category tab (`null` renders no tablist, as Gmail
+ * does outside the Inbox: search results, label views, Snoozed). The list
+ * markup is the same in every view; which view the extension sees is decided
+ * by the URL hash the page is opened at (e2e/helpers/gmail.js openView).
  */
-function inboxPage({ threads = [], tab = 'Primary' } = {}) {
+function inboxPage({ threads = [], tab = 'Primary', cursorFollowsFocus = true } = {}) {
     const rows = threads.map(threadRow).join('\n');
+    const tablist = tab === null ? '' : `
+    <div role="tablist">
+      <div role="tab" aria-selected="true" aria-label="${escapeHtml(tab)}">${escapeHtml(tab)}</div>
+    </div>`;
 
     return `<!DOCTYPE html>
 <html>
@@ -126,19 +152,18 @@ function inboxPage({ threads = [], tab = 'Primary' } = {}) {
 </style>
 </head>
 <body>
+<input id="fixture-search" aria-label="Search mail">
 <div class="nH">
   <div class="BltHke nH oy8Mbf" role="main">
     <div class="G-atb" gh="tm">
       <div class="G-Ni" style="display: none;">
         <div class="T-I J-J5-Ji" act="7" aria-label="Archive" role="button"></div>
         <div class="T-I J-J5-Ji" act="10" data-tooltip="Delete" aria-label="Delete" role="button"></div>
+        <div class="T-I J-J5-Ji" data-tooltip="Mark as read" aria-label="Mark as read" role="button" id="fixture-envelope"></div>
         <div class="T-I J-J5-Ji" data-tooltip="Snooze" aria-label="Snooze" role="button"></div>
       </div>
       <div class="T-I J-J5-Ji" act="20" aria-label="Refresh" role="button"></div>
-    </div>
-    <div role="tablist">
-      <div role="tab" aria-selected="true" aria-label="${escapeHtml(tab)}">${escapeHtml(tab)}</div>
-    </div>
+    </div>${tablist}
     <div class="UI">
       <div class="aDP">
         <div class="ae4 aDM" role="tabpanel">
@@ -159,32 +184,182 @@ ${rows}
 </div>
 <script>
 (function emulateGmail() {
-    window.__gmail = { clicks: [] };
+    window.__gmail = { clicks: [], actions: [], refreshes: 0 };
+
+    // Gmail behavior: the envelope button offers "Mark as read" while the
+    // selection holds an unread row, "Mark as unread" once it is all read.
+    function updateEnvelope() {
+        const envelope = document.getElementById('fixture-envelope');
+        const anyUnread = messageRows().some(r => isSelected(r) && r.classList.contains('zE'));
+        const label = anyUnread ? 'Mark as read' : 'Mark as unread';
+        envelope.setAttribute('data-tooltip', label);
+        envelope.setAttribute('aria-label', label);
+    }
 
     // Gmail behavior: a row checkbox click toggles the row's selected state
     // and reveals the toolbar's action cluster while anything is selected.
-    document.querySelectorAll('td.oZ-x3 .oZ-jc').forEach(cb => {
-        cb.addEventListener('click', () => {
-            const on = cb.getAttribute('aria-checked') === 'true';
-            cb.setAttribute('aria-checked', on ? 'false' : 'true');
-            cb.closest('tr').classList.toggle('x7', !on);
-            // Only message rows count as selected: the extension mirrors a
-            // full selection onto its bundle row as x7 too, and clears it
-            // asynchronously, so matching it here would keep the toolbar
-            // revealed after a deselect-all (real Gmail uses its own model).
-            const anySelected = !!document.querySelector('tr.zA.x7:not(.bundle-row)');
-            document.querySelector('.G-Ni').style.display = anySelected ? '' : 'none';
+    function wireCheckboxes() {
+        document.querySelectorAll('td.oZ-x3 .oZ-jc').forEach(cb => {
+            cb.addEventListener('click', () => {
+                const on = cb.getAttribute('aria-checked') === 'true';
+                cb.setAttribute('aria-checked', on ? 'false' : 'true');
+                cb.closest('tr').classList.toggle('x7', !on);
+                updateEnvelope();
+                // Only message rows count as selected: the extension mirrors a
+                // full selection onto its bundle row as x7 too, and clears it
+                // asynchronously, so matching it here would keep the toolbar
+                // revealed after a deselect-all (real Gmail uses its own model).
+                const anySelected = !!document.querySelector('tr.zA.x7:not(.bundle-row)');
+                document.querySelector('.G-Ni').style.display = anySelected ? '' : 'none';
+            });
+        });
+    }
+    wireCheckboxes();
+
+    // Gmail behavior: clicking a row's star toggles it.
+    function wireStars() {
+        document.querySelectorAll('td.apU .T-KT').forEach(star => {
+            star.addEventListener('click', () => {
+                const starred = star.classList.contains('T-KT-Jp');
+                star.classList.toggle('T-KT-Jp', !starred);
+                star.classList.toggle('aXw', starred);
+                record(starred ? 'unstar' : 'star', [star.closest('tr')]);
+            });
+        });
+    }
+    wireStars();
+
+    // Record toolbar action clicks so tests can assert them. Archive and
+    // Mark as read also land on the actions log, with the rows they act on;
+    // Mark as read flips those rows to read and the envelope follows.
+    document.querySelectorAll('.G-atb .T-I').forEach(button => {
+        button.addEventListener('click', () => {
+            const tooltip = button.getAttribute('data-tooltip');
+            window.__gmail.clicks.push(tooltip || 'act:' + button.getAttribute('act'));
+            const selected = messageRows().filter(isSelected);
+            if (button.getAttribute('act') === '7') {
+                record('archive', selected);
+            }
+            else if (tooltip === 'Mark as read') {
+                selected.forEach(r => {
+                    r.classList.remove('zE');
+                    r.classList.add('yO');
+                });
+                record('markRead', selected);
+                updateEnvelope();
+            }
         });
     });
 
-    // Record toolbar action clicks so tests can assert them.
-    document.querySelectorAll('.G-atb .T-I').forEach(button => {
-        button.addEventListener('click', () => {
-            window.__gmail.clicks.push(
-                button.getAttribute('data-tooltip') ||
-                'act:' + button.getAttribute('act'));
-        });
+    // Gmail behavior: Refresh repaints the list from the server, i.e. fresh
+    // rows without anything the extension injected or stamped. This inline
+    // script runs before the content script, so the snapshot is pristine.
+    const listContainer = [...document.querySelectorAll('.Cp')]
+        .find(cp => cp.querySelector('table.F'));
+    const pristineList = listContainer.innerHTML;
+    document.querySelector('.G-atb .T-I[act="20"]').addEventListener('click', () => {
+        window.__gmail.refreshes += 1;
+        listContainer.innerHTML = pristineList;
+        wireCheckboxes();
+        wireStars();
+        wireRowClicks();
     });
+
+    // --- Keyboard cursor -------------------------------------------------
+    // Gmail's own list is the DOM order of its rows; bundle rows are not in
+    // it, and rows hidden inside a collapsed bundle are.
+    const CURSOR_FOLLOWS_FOCUS = ${cursorFollowsFocus ? 'true' : 'false'};
+
+    function messageRows() {
+        return [...document.querySelectorAll('tr.zA:not(.bundle-row)')];
+    }
+    function isSelected(row) {
+        return row.classList.contains('x7');
+    }
+    function subjectOf(row) {
+        const subject = row.querySelector('.y6 span span');
+        return subject ? subject.textContent : '';
+    }
+    function cursorRow() {
+        return document.querySelector('tr.zA.btb:not(.bundle-row)');
+    }
+    function markCursor(row) {
+        messageRows().forEach(r => r.classList.toggle('btb', r === row));
+    }
+    function record(type, rows) {
+        window.__gmail.actions.push({ type, subjects: rows.map(subjectOf) });
+    }
+
+    if (CURSOR_FOLLOWS_FOCUS) {
+        document.addEventListener('focusin', e => {
+            const row = e.target.closest && e.target.closest('tr.zA:not(.bundle-row)');
+            if (row) {
+                markCursor(row);
+            }
+        });
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.target.closest('input, textarea')) {
+            return;
+        }
+        const list = messageRows();
+        const current = cursorRow();
+        const index = list.indexOf(current);
+        const actOn = () => {
+            const selected = list.filter(isSelected);
+            return selected.length ? selected : (current ? [current] : []);
+        };
+        switch (e.key) {
+            case 'j':
+            case 'ArrowDown':
+            case 'k':
+            case 'ArrowUp': {
+                const forward = e.key === 'j' || e.key === 'ArrowDown';
+                const next = index === -1
+                    ? list[forward ? 0 : list.length - 1]
+                    : list[index + (forward ? 1 : -1)];
+                if (next) {
+                    markCursor(next);
+                    if (CURSOR_FOLLOWS_FOCUS) {
+                        // A display:none row cannot take focus; Gmail's
+                        // internal cursor still moves there.
+                        next.focus();
+                    }
+                }
+                break;
+            }
+            case 'e':
+                record('archive', actOn());
+                break;
+            case 's':
+                record('star', actOn());
+                break;
+            case 'x':
+                if (current) {
+                    current.querySelector('.oZ-jc').click();
+                }
+                break;
+            case 'Enter':
+            case 'o':
+                if (current) {
+                    record('open', [current]);
+                }
+                break;
+        }
+    });
+
+    // Clicking a row (not its checkbox or star) opens the thread.
+    function wireRowClicks() {
+        messageRows().forEach(row => {
+            row.addEventListener('click', e => {
+                if (!e.target.closest('.oZ-jc, .T-KT')) {
+                    record('open', [row]);
+                }
+            });
+        });
+    }
+    wireRowClicks();
 })();
 </script>
 </body>

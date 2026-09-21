@@ -94,7 +94,7 @@ a:hover {
     background-color: var(--tint);
 }
 
-nav {
+body > nav {
     position: fixed;
     left: 0;
     top: 0;
@@ -116,6 +116,11 @@ main {
     max-width: 596px;
     margin: auto;
     padding: 0 2rem;
+}
+
+.tab.options {
+    max-width: 720px;
+    padding-bottom: 5rem;
 }
 
 section {
@@ -165,6 +170,10 @@ p {
     color: var(--link);
 }
 
+.nav-links li a.active {
+    font-weight: 700;
+}
+
 h1 {
     font-size: 1.802rem;
     font-weight: 700;
@@ -178,15 +187,22 @@ h2 {
 }
 
 h3.subsection-header {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    margin: 1.25rem 0 0.25rem 0;
+    margin: 1.5rem 0 0.25rem 0;
 }
 
 .subsection-note {
-    margin: 0 0 0.75rem 0;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0 0 0.5rem 0;
     max-width: 42rem;
-    opacity: 0.8;
+}
+
+.tab-lead {
+    color: var(--muted);
+    margin-bottom: 1.5rem;
 }
 
 /**
@@ -286,47 +302,271 @@ h3.subsection-header {
 
 /**
  * Options tab
+ *
+ * One section per topic, one row per setting: the setting's name and a short
+ * explanation on the left, its control on the right, a hairline between rows.
  */
 
-.help-container {
-    display: inline-block;
+/** Find a setting */
+
+.options-search {
+    align-items: center;
+    display: flex;
     position: relative;
 }
 
-.help-icon {
-    cursor: pointer;
-    vertical-align: middle;
+.options-search-icon {
+    color: var(--muted);
+    left: 12px;
+    pointer-events: none;
+    position: absolute;
 }
 
-.tooltip {
+.options-search input {
     background-color: var(--raised);
     border: 1px solid var(--border);
     border-radius: 8px;
-    bottom: calc(100% - 8px);
-    box-shadow: var(--shadow);
-    display: none;
-    font: 0.8rem var(--font);
+    box-sizing: border-box;
     color: var(--ink);
-    font-weight: normal;
-    letter-spacing: normal;
-    line-height: 1.4;
-    padding: 1rem;
+    font-family: var(--font);
+    font-size: 0.95rem;
+    padding: 0.6rem 2.6rem 0.6rem 2.4rem;
+    width: 100%;
+}
+
+.options-search input:focus-visible {
+    border-color: var(--accent);
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.options-search input::placeholder {
+    color: var(--muted);
+}
+
+.options-search-key {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 3px 6px;
+    pointer-events: none;
     position: absolute;
-    text-transform: none;
-    width: 400px;
-    z-index: 2;
+    right: 10px;
 }
 
-.help-icon:hover + .tooltip {
-    display: block;
+.options-search input:focus + .options-search-key,
+.options-search input:not(:placeholder-shown) + .options-search-key {
+    display: none;
 }
 
-.list-type-options {
+.options-no-matches {
+    color: var(--muted);
     margin: 1.5rem 0;
 }
 
+/** Section jump links */
+
+.section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    margin: 1rem 0 0.5rem;
+}
+
+.section-nav a {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: 0.8rem;
+    padding: 4px 11px;
+    white-space: nowrap;
+}
+
+.section-nav a:hover {
+    background-color: var(--tint);
+    color: var(--link-hover);
+}
+
+.section-nav a.dimmed {
+    opacity: 0.4;
+}
+
+/** Sections */
+
+.option-category {
+    border-top: 1px solid var(--border);
+    margin: 0 0 2.5rem 0;
+    padding-top: 0.75rem;
+    scroll-margin-top: 1.5rem;
+}
+
+.option-category > h2 {
+    font-size: 1.2rem;
+    margin: 0.75rem 0 0.25rem 0;
+}
+
+.option-lead {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 0.75rem 0;
+}
+
+.option-lead a {
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 3px;
+}
+
+/** Rows: name and explanation left, control right */
+
+.option-row,
+.option-block {
+    border-top: 1px solid var(--border);
+    padding: 0.85rem 0;
+}
+
+.option-row {
+    align-items: center;
+    display: flex;
+    gap: 1.25rem;
+    justify-content: space-between;
+}
+
+.option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.option-title {
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+label.option-title {
+    cursor: pointer;
+}
+
+.option-detail {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.option-detail code,
+.option-lead code,
+.subsection-note code {
+    background-color: var(--tint);
+    border-radius: 3px;
+    font-size: 0.9em;
+    padding: 0 4px;
+}
+
+.option-default {
+    color: var(--muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    margin-top: 2px;
+    text-transform: uppercase;
+}
+
+.differs .option-default {
+    color: var(--link);
+}
+
+.differs .option-default::before {
+    content: 'Changed. ';
+}
+
+.option-block .option-text {
+    margin-bottom: 0.75rem;
+}
+
+.option-block-indented {
+    border-top: none;
+    padding-left: 1.5rem;
+    padding-top: 0;
+}
+
+.option-group {
+    margin-top: 0.75rem;
+}
+
+.option-group > .subsection-header + .subsection-note + .option-row {
+    border-top: none;
+}
+
+/** Advanced settings folded under a section */
+
+.option-advanced {
+    border-top: 1px solid var(--border);
+}
+
+.option-advanced > summary {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: 0.6rem;
+    list-style: none;
+    padding: 0.85rem 0;
+}
+
+.option-advanced > summary::-webkit-details-marker {
+    display: none;
+}
+
+.option-advanced > summary::before {
+    border-color: var(--muted);
+    border-style: solid;
+    border-width: 0 1.5px 1.5px 0;
+    content: '';
+    flex: none;
+    height: 6px;
+    margin: 0 4px 2px 2px;
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+    width: 6px;
+}
+
+.option-advanced[open] > summary::before {
+    transform: rotate(45deg);
+}
+
+.option-advanced > summary .option-detail {
+    margin-left: auto;
+    text-align: right;
+}
+
+.option-advanced > summary:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.option-advanced > .option-row,
+.option-advanced > .option-block {
+    padding-left: 1.25rem;
+}
+
+/** Search results: anything that does not match folds away */
+
+.search-hidden {
+    display: none !important;
+}
+
+/** Radios */
+
+.list-type-options {
+    margin: 0 0 0.75rem 0;
+}
+
 .list-type {
-    margin: 0.75rem 0;
+    margin: 0.6rem 0;
 }
 
 input[type="radio"] {
@@ -373,7 +613,7 @@ input[type="radio"]:checked + label::before {
     border-color: var(--link);
 }
 
-input[type="radio"](:checked) + label::after {
+input[type="radio"]:checked + label::after {
     transform: scale(1);
 }
 
@@ -381,6 +621,8 @@ input[type="radio"]:focus-visible + label::before {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
 }
+
+/** Lists */
 
 textarea {
     border: 1px solid var(--border);
@@ -390,9 +632,9 @@ textarea {
     color: var(--ink);
     font-family: var(--font);
     font-size: 0.875rem;
-    margin-bottom: 2rem;
+    margin: 0;
     padding: 8px;
-    resize: none;
+    resize: vertical;
     width: 100%;
 }
 
@@ -408,15 +650,22 @@ textarea::placeholder {
     font-style: italic;
 }
 
-/** Auto-save status (replaces the old Save button) */
+/** Auto-save status: a small pill that stays in view while scrolling */
 
 .save-status-row {
     align-items: center;
+    background-color: var(--raised);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    bottom: 1.25rem;
+    box-shadow: var(--shadow);
     display: flex;
-    float: right;
     gap: 12px;
-    margin: 20px 0px;
     min-height: 20px;
+    padding: 0.45rem 0.9rem;
+    position: fixed;
+    right: 1.5rem;
+    z-index: 3;
 }
 
 .autosave-hint {
@@ -425,7 +674,7 @@ textarea::placeholder {
 }
 
 .save-status {
-    color: var(--accent);
+    color: var(--link);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.03em;
@@ -447,20 +696,15 @@ textarea::placeholder {
 .switch {
   position: relative;
   display: inline-block;
-  width: 30px;
-  height: 17px;
+  flex: none;
+  width: 34px;
+  height: 20px;
 }
 
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
-}
-
-.switch-label {
-    position:relative;
-    bottom:3px;
-    left: 5px;
 }
 
 .slider {
@@ -471,21 +715,21 @@ textarea::placeholder {
   right: 0;
   bottom: 0;
   background-color: var(--border);
-  -webkit-transition: .5s;
-  transition: .5s;
-  border-radius: 17px;
+  -webkit-transition: .3s;
+  transition: .3s;
+  border-radius: 20px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 13px;
-  width: 13px;
+  height: 16px;
+  width: 16px;
   left: 2px;
   bottom: 2px;
   background-color: var(--raised);
-  -webkit-transition: .5s;
-  transition: .5s;
+  -webkit-transition: .3s;
+  transition: .3s;
   border-radius: 50%;
 }
 
@@ -498,10 +742,11 @@ input:focus-visible + .slider {
 }
 
 input:checked + .slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(13px);
+  -webkit-transform: translateX(14px);
+  -ms-transform: translateX(14px);
+  transform: translateX(14px);
 }
+
 /* Custom bundles management list */
 .custom-bundles-list {
     list-style: none;
@@ -558,31 +803,7 @@ input:checked + .slider:before {
 .custom-bundles-empty {
     color: var(--muted);
     font-style: italic;
-}
-
-/**
- * Option categories (added on the 3.x line)
- */
-.option-category {
-    border-top: 1px solid var(--border);
-    margin-bottom: 2.5rem;
-    padding-top: 0.5rem;
-}
-
-.option-category > h2 {
-    color: var(--link);
-    margin-top: 1rem;
-}
-
-.option-category-advanced {
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.5rem 1rem 1.25rem;
-}
-
-.option-row {
-    margin: 0.75rem 0;
+    margin: 0;
 }
 
 /**
@@ -604,8 +825,53 @@ input:checked + .slider:before {
     color: var(--link);
     font-size: 13px;
     min-height: 1rem;
+    margin: 0.5rem 0 0;
 }
 
 .backup-status.backup-error {
     color: var(--danger);
+}
+
+/**
+ * Narrow windows: the side nav becomes a top bar.
+ */
+@media (max-width: 860px) {
+    body > nav {
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+        border-right: none;
+        bottom: auto;
+        display: flex;
+        gap: 1.5rem;
+        padding: 0.75rem 1.25rem;
+        position: static;
+        width: auto;
+    }
+
+    .inbundly-logo {
+        margin: 0;
+    }
+
+    .inbundly-logo svg {
+        height: 32px;
+        width: auto;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .nav-links li {
+        margin: 0;
+    }
+
+    main {
+        margin-left: 0;
+        margin-top: 1.5rem;
+    }
+
+    .tab {
+        padding: 0 1.25rem;
+    }
 }

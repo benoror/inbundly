@@ -28,13 +28,16 @@ Gmail's DOM and restructuring the message list into collapsible bundles by label
 - `src/` — all editable JavaScript source (ES modules). Entry point: `src/content.js`.
   - `bundling/` — core logic that groups messages into bundles and toggles them
     (`Bundler`, `BundleToggler`, `DateGrouper`, `SelectiveBundling`, `InbundlyStyler`).
-  - `handlers/` — `MutationObserver`-based watchers that react to Gmail navigation,
-    rerenders, starring, and theme changes.
+ - `handlers/` — `MutationObserver`-based watchers that react to Gmail navigation,
+ rerenders, starring, and theme changes, plus `KeyboardNavHandler` (j/k and
+ thread shortcuts over the bundled list).
   - `components/` — DOM builders for injected UI (bundle rows, dividers, toggles, the
     bulk-archive button, the floating "Bundle selected" custom-bundle control).
   - `containers/` — in-memory models of the bundled mail state (`BundledMail`,
     `Bundle`, and `CustomBundles` — the persisted, thread-id-keyed custom bundles).
-  - `util/` — `Constants.js` (Gmail DOM selectors + Inbundly CSS classes) and DOM helpers.
+  - `util/` — `Constants.js` (Gmail DOM selectors + Inbundly CSS classes), DOM helpers,
+ `GmailToolbar` (drive Gmail's toolbar on a selection), `GmailCursor` (read/move
+ Gmail's keyboard cursor through row focus).
 - `dist/` — the loadable unpacked extension. Contains committed static assets
   (`manifest.json`, `style.css`, `background.js`, `popup/`, `options/`, `icons/`,
   `assets/`) plus the webpack-built `content.js`.
@@ -60,6 +63,8 @@ features add rows there, and unit/e2e tests spin off those rows. The e2e suite
 fixture page at mail.google.com via route interception; the fixture
 (`e2e/fixture/inbox.js`) mirrors the selector contract in
 `src/util/Constants.js` — when Gmail markup changes, update both together.
+One fixture serves every list view: `openView(context, hash)` opens it at
+`#search/...`, `#label/...`, `#snoozed`, and the hash decides the view.
 CI (`.github/workflows/ci.yml`) runs unit + build and the e2e suite on every
 push/PR.
 
@@ -191,25 +196,69 @@ Flow for landing a feature branch and cutting a release:
   de-facto grouping — so date dividers only render in the single-list Default
   inbox (and still honor `groupMessagesByDate` there). `DateGrouper` is unrelated:
   it only runs on the standalone starred **search** page, which is a single list.
+- **Views (which pages bundle).** `util/MessagePageUtils.js` parses the URL
+  hash into a list view (`parseView`: kind, argument, page, `key`). The Inbox
+  always bundles; search results (`#search/<q>`, `#section_query/<q>`), label
+  and category views, Snoozed, Starred, Important, and All Mail bundle only
+  when the `bundleOtherViews` option is on (default off, a bundling key; the
+  module holds the flag via `applyOptions`, read by `content.js` with the
+  master switch before the first pass). Conversations, Sent, Drafts, Spam,
+  Trash, settings, and the pinned page (`isStarredPage`, still `DateGrouper`'s)
+  never bundle. `supportsBundling(url)` is the one gate every handler asks;
+  `isInboxView` is for Inbox-only UI (the pinned toggle). `BundledMail` and
+  `OpenBundleStore` key state by view `key` ahead of page and tab, so two
+  searches never share bundles. Two rules make other views sane:
+  `LabelSet.isSystemLabel` drops Gmail's built-in chips (Inbox, Sent, Draft,
+  ...) that only show outside the Inbox, and `getViewFilters` names the label
+  (`#label/X`, `label:` terms) and sender (`from:`) the view is already
+  filtered by so `SelectiveBundling` does not bundle by them again (else a
+  bundle's "View all" search would fold into one row). `BundleRow`'s "View all"
+  takes its scope from `getViewSearchScope` (`label:Inbox`, the search's own
+  query, `in:snoozed`, ...). The same Gmail list markup is assumed in every
+  view; `TESTING.md` 13.10 is the live canary.
 - **Options storage.** Every Options-page setting and custom bundles live in
-  `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
-  are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
-  `BUNDLING_OPTION_KEYS`, `UI_OPTION_KEYS`). The options page (`dist/options/`)
-  is plain JS outside the webpack bundle, so it duplicates the keys as the
-  `OPTION_FIELDS` map (key → form controls + reader; `OPTION_KEYS` derives
-  from it) — keep it in sync with `OPTION_DEFAULTS` when adding an option,
-  since it wires auto-save and gates the live-reload listener and JSON import.
-  The page **auto-saves per key** (no Save button): each control writes only
-  its own key on change (list textareas debounce), so an untouched option
-  keeps following its default when a later version changes that default.
+ `chrome.storage.sync` (Firefox Sync via the same API). Key names and defaults
+ are centralized in `src/util/Options.js` (`OPTION_DEFAULTS`,
+ `BUNDLING_OPTION_KEYS`, `UI_OPTION_KEYS`, `ARCHIVE_OPTION_KEYS`; the three
+ groups partition the keys, and `test/Options.test.js` checks that). The options page (`dist/options/`)
+ is plain JS outside the webpack bundle, so it duplicates the keys as the
+ `OPTION_FIELDS` map (key → form controls, default, reader, writer; built
+ with `switchField` / `listField`; `OPTION_KEYS` and the page's own
+ `OPTION_DEFAULTS` derive from it). Keep it in sync with `OPTION_DEFAULTS`
+ in `src/util/Options.js` when adding an option: `test/OptionsPage.test.js`
+ asserts the two default maps are equal, and the map wires auto-save, the
+ restore path, the `Default: on/off` chips, the `differs` mark, and gates
+ the live-reload listener and JSON import.
+ The page **auto-saves per key** (no Save button): each control writes only
+ its own key on change (list textareas debounce), so an untouched option
+ keeps following its default when a later version changes that default.
+- **Options page layout.** The Options tab is eight `section.option-category`
+ blocks with ids (`bundling`, `labels`, `inbox-layout`, `pinned-messages`,
+ `bundle-actions`, `appearance`, `custom-bundles`, `sync-backup`), each with
+ an `.option-lead`, and one `.option-row` per switch (`.option-text` with a
+ `label.option-title[for=id]`, `.option-detail`, and the chip; `label.switch`
+ on the right; the `label.switch:has(#id) .slider` handle the e2e and
+ verify-inbundly walks click is unchanged). Radios and textareas sit in
+ `.option-block`s; `h3` subsections in `.option-group`s; less common settings
+ in `details.option-advanced` folds that open on load when a setting inside
+ differs from its default. New setting: add the row to its section (or a new
+ section plus a `.section-nav` link), the `OPTION_FIELDS` entry, and the
+ `OPTION_DEFAULTS` entry in `src/util/Options.js`; the chip, mark, search,
+ and restore come for free. The hash routes tabs (`tabForHash`): empty is
+ Options, `help` / `get-started` the tabs, any element id its containing tab
+ (so Get started links to `#bundle-actions` land on Options and scroll
+ there). `#options-search` filters `.option-row, .option-block` by visible
+ text plus the section `h2` and the group's `h3` / summary title.
 - Cross-device sync additionally depends on the pinned extension ID; see
   **Extension identity** above.
 - **Live sync.** `content.js` listens to `chrome.storage.onChanged` for the
   sync area. UI-only keys (`showPinnedToggle`, `showBundleArchive`,
   `showBundleSnooze`, `showBundleDelete`) toggle CSS
   classes on `<html>`; bundling keys call `applyOptions` on `SelectiveBundling`,
-  `Bundler`, `StarHandler`, and `DateGrouper`, then refresh Gmail so the list
-  rebundles. `keepStarredUnbundled` (default `true`) is a bundling key: when on,
+  `Bundler`, `StarHandler`, `DateGrouper`, and `MessagePageUtils`
+  (`bundleOtherViews`), then refresh Gmail so the list rebundles. The refresh
+  also runs when the current page bundled *before* the change and no longer
+  does (option turned off on a search), so Gmail repaints the plain list. `keepStarredUnbundled` (default `true`) is a bundling key: when on,
   starred messages stay outside bundles (Inbox-style pinning); when off,
   `StarHandler` skips scroll compensation because starring no longer changes
   layout.
@@ -226,6 +275,31 @@ Flow for landing a feature branch and cutting a release:
   written from three places that all sync: `components/BundlingToggle.js` (a
   switch in Gmail's search bar next to the pinned toggle), the Options page, and
   the toolbar popup (`dist/popup/`).
+- **Keyboard navigation.** `handlers/KeyboardNavHandler.js` owns list
+ navigation while bundling applies (capture-phase `keydown` on `window`,
+ trusted keys only, attached with the observers). Gmail's own `j`/`k` walk
+ its DOM-ordered thread list, which includes threads hidden in collapsed
+ bundles and knows nothing about bundle rows; the handler instead steps
+ through the visible rows in flex `order` (plain rows, bundle rows, the open
+ bundle's threads) and swallows the key so Gmail can't. Moving the cursor
+ goes through `util/GmailCursor.js`: Gmail's cursor row carries `btb`
+ (`GmailClasses.CURSOR`) and follows DOM focus (its list is an ARIA grid), so
+ `focusRow()` on a message row moves Gmail's cursor too, and Gmail's own
+ `e`/`x`/`Enter` then act on it. Bundle rows get inbundly's own ring
+ (`InbundlyClasses.CURSOR`, `inbundly-cursor`) and Gmail's lingering mark is
+ cleared; because Gmail's internal cursor is still elsewhere, thread
+ shortcuts on a bundle row are intercepted: `Enter`/`o` toggle, `x`
+ select-all, `e`/`y`/`b`/`#` run the row's archive/snooze/delete buttons
+ (only when shown and enabled), the rest are swallowed. `Escape` inside the
+ open bundle collapses it. `BundleToggler.toggleBundle` focuses the first
+ revealed thread on a user open (the #46 archive-in-bundle fix) and
+ `closeAllBundles(true)` (user closes only) moves a cursor sitting on a
+ hidden-again thread to the bundle row; render-path closes pass `false` and
+ never touch focus. When Gmail's mark does not follow focus and nothing is
+ checked, `e`/`#`/`b`/`x`/`Enter` on a visible row fall back to Gmail's
+ toolbar/checkbox/row click for that row (`GmailToolbar`). The focus-follows
+ model is an observation, not an API: TESTING.md 12.9 is its live canary,
+ and the e2e fixture emulates it (`cursorFollowsFocus`).
 - **Open-bundle stability.** The currently-open bundle holds its on-screen
   position while the user acts on its threads: `BundleToggler` captures its flex
   `order` on open (`BundledMail.freezeOrder`) and `Bundler` re-pins it on each
@@ -257,6 +331,28 @@ Flow for landing a feature branch and cutting a release:
   the other bulk actions when a message outside the bundle is selected.
   UI key: `showBundleDelete` (default **off** — more destructive than
   archive; no Inbundly-side confirm).
+- **Archive switches (#40, #48).** `util/ArchiveAction.js` is the one path
+ for inbundly's own archive controls: the bundle row's archive-all icon (and
+ its `e` / `y` shortcut, which clicks that icon) and the date-divider sweep
+ both call `ArchiveAction.archive(messages)`. Three `ARCHIVE_OPTION_KEYS`,
+ all default **off**, shape it: `skipStarredOnArchive` leaves starred
+ (pinned) threads unselected (and deselects one the user checked by hand);
+ `markReadOnArchive` clicks Gmail's toolbar "Mark as read"
+ (`Selectors.TOOLBAR_MARK_READ_BUTTON`, tooltip / aria-label, English-only
+ like snooze) on the selection before Archive, via `GmailToolbar`'s
+ `precededBy` step, which looks the button up only once the toolbar is
+ revealed and clicks the freshest Archive button a task later;
+ `unstarOnArchive` clicks the star (`Selectors.STARRED`) off each thread
+ being archived before the toolbar click (a plain `.click()`, no mousedown,
+ so `StarHandler`'s scroll anchoring stays out of it). The switches are
+ read at click time: `content.js` awaits `ArchiveAction.loadOptions()` before
+ the first bundle pass and applies `onChanged` values with no refresh and no
+ `<html>` class. A section of only starred threads with skip on is a
+ silent no-op. Gmail's own archive paths (row hover icon, toolbar on a
+ manual selection, `e` on a thread, the keyboard single-row fallback) are
+ deliberately untouched. The e2e fixture emulates the envelope button (it
+ reads "Mark as read" only while the selection holds an unread row) and
+ star clicks; TESTING.md section 15.
 - **Sender bundles.** When `senderBundling` is on (default), a message with no
   labels falls back to a bundle keyed by its most recent sender
   (`DomUtils.getLatestSenderEmail`): the domain, or the full address on
@@ -265,6 +361,17 @@ Flow for landing a feature branch and cutting a release:
   `_pruneSmallBundles` always prunes one-message sender bundles, whatever
   `skipSingleItemBundles` says. Sender bundle rows are uncolored (no label
   chip) and "View all" searches `from:`.
+- **Collapsed-row glance.** The closed bundle row's date cell (`BundleRow`
+  `_createGlanceCell`) shows the newest thread's most recent sender
+  (`.bundle-latest-sender`) before its date (`.bundle-date`), both `unread`
+  when that thread is unread; `util/MessageGlance.js` reads them from the
+  bundle's first row (Gmail's list order is newest first; the last
+  `span[email]` is the latest sender) with `textContent`, so it is unit-testable
+  under jsdom (`innerText` is not implemented there). The names are Gmail's
+  text, so the cell is built with DOM APIs, not an HTML template. Living in the
+  date cell means it inherits the open-row hiding and label-color rules for
+  free; `.Zs` (vertical-split reading pane) hides the sender. No option gates
+  it; if one is ever wanted it belongs with the UI keys (`show*`).
 - **Custom bundles** (ad-hoc groupings with no Gmail label) are keyed by Gmail's
   stable `data-legacy-thread-id` (read via `DomUtils.getThreadId`) and persisted
   in `chrome.storage.sync` by `containers/CustomBundles.js`. Their bundle key is

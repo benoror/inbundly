@@ -12,7 +12,8 @@ drive end to end with the Playwright harness.
 - Every drive gets a fresh Chromium profile under `${TMPDIR:-/tmp}/inbundly-verify/<RUN_ID>/`,
   so `chrome.storage.sync` starts empty and every option is at its default
   (`bundlingEnabled`, `keepStarredUnbundled`, `senderBundling`, `rememberOpenBundle`,
-  `showBundleArchive`, `showBundleSnooze` on; `showBundleDelete` off).
+  `showBundleArchive`, `showBundleSnooze` on; `showBundleDelete`, `skipStarredOnArchive`,
+  `markReadOnArchive`, `unstarOnArchive` off).
 - The inbox is the fixture served at `https://mail.google.com/mail/u/0/#inbox` with the
   thread list named in each feature file; the walk in `scripts/drive.js` seeds it.
 - Never drive a Chrome you did not start; the harness's own `launchWithExtension()` is
@@ -77,6 +78,24 @@ required state, commands, and observable proof.
 - [Remember the open bundle](./remember-open-bundle.md) covers reopening after a reload,
   forgetting on collapse or backdrop close, and the session store behind it
   (`TESTING.md` 4.1 to 4.3).
+- [Keyboard navigation](./keyboard-nav.md) covers j/k stepping over bundle rows and the
+  open bundle's threads, Enter/Escape on a bundle, the archive shortcut acting inside an
+  open bundle, and bundle-row shortcuts (`TESTING.md` 12.1 to 12.8).
+- [Bundles outside the Inbox](./other-views.md) covers the opt-in bundling of search
+  results, label views, and Snoozed: off by default, the live flip, Gmail's own chips and
+  the view's own filter never becoming bundles, `View all` scoped to the view, and the
+  views that are left alone (`TESTING.md` 13.1 to 13.7).
+- [Collapsed-row glance](./collapsed-glance.md) covers the newest thread's sender and date
+  on a closed bundle row, the bold pair for an unread thread, the tooltips, the senders
+  peek order, and the glance hiding while the bundle is open (`TESTING.md` 14.1 to 14.5).
+- [Archive-all and date sweep switches](./bulk-trust.md) covers the pin-aware sweep and
+  archive-all (`skipStarredOnArchive`), Gmail's `Mark as read` ahead of Archive
+  (`markReadOnArchive`), the star coming off archived threads (`unstarOnArchive`), the
+  switches applying live without a refresh, and the real Options page switches behind
+  them (`TESTING.md` 15.1 to 15.8).
 - [Options autosave and live sync](./options-autosave.md) covers flipping a switch on the
   real Options page, per-key auto-save, persistence across reload, and the Gmail tab
   reacting live (`TESTING.md` 10.3, 10.4, 10.7).
+- [Options page layout and find a setting](./options-layout.md) covers the eight
+  sections and their jump links, the default chips and changed marks on each row, the
+  Advanced folds, and the search that narrows the page (`TESTING.md` 16.1 to 16.6).

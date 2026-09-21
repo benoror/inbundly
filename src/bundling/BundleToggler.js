@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import GmailCursor from '../util/GmailCursor';
 import OpenBundleStore from '../util/OpenBundleStore';
 import {
     InbundlyClasses,
@@ -38,7 +39,7 @@ class BundleToggler {
         const opened = this.bundledMail.getOpenedBundleRef();
 
         if (opened) {
-            this.closeAllBundles();
+            this.closeAllBundles(true);
         }
 
         const sameBundle =
@@ -52,6 +53,11 @@ class BundleToggler {
             const bundle = this.bundledMail.getBundleInSection(sectionId, label);
             if (bundle) {
                 this.bundledMail.freezeOrder(bundle.getOrder());
+                // Put Gmail's keyboard cursor on the first thread the user just
+                // revealed, so e/x/Enter act inside the bundle instead of on
+                // whatever thread Gmail's cursor was left on (#46). User
+                // toggles only: reopen passes must not steal focus.
+                GmailCursor.focusRow(bundle.getMessages()[0]);
             }
         }
 
@@ -101,10 +107,22 @@ class BundleToggler {
         this._showBundleArea(bundle);
     }
 
-    closeAllBundles() {
+    /**
+     * Collapse the open bundle. `userClose` marks a close the user asked for
+     * (toggle, click outside, bundle-area click), as opposed to a rerender:
+     * then, if the keyboard cursor sits on one of the threads about to be
+     * hidden, it moves to the bundle row, so the next shortcut acts on
+     * something visible rather than on a thread that just disappeared.
+     */
+    closeAllBundles(userClose = false) {
         if (!this.bundledMail.getOpenedBundleRef()) {
             return;
         }
+
+        const closing = this.bundledMail.getOpenedBundle();
+        const focused = GmailCursor.getFocusedRow();
+        const rescueCursor = userClose && closing && focused &&
+            closing.getMessages().includes(focused);
 
         this.bundledMail.closeBundle();
 
@@ -131,6 +149,10 @@ class BundleToggler {
 
         document.querySelectorAll('.bundle-area')
             .forEach(bundleArea => bundleArea.style.display = '');
+
+        if (rescueCursor) {
+            GmailCursor.focusRow(closing.getBundleRow());
+        }
     }
 
     _showBundleArea(bundle) {

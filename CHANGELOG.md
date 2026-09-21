@@ -10,6 +10,71 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Keyboard navigation that knows about bundles** (#46). `j` / `k` (and the
+  arrow keys once focus is in the list) step through the rows you see: plain
+  threads, bundle rows, and the open bundle's threads, in display order. A
+  collapsed bundle is one stop instead of a detour through its hidden threads.
+  On a bundle row, `Enter` / `o` opens it, `x` selects all of it, `e` / `b` / `#`
+  run archive-all / snooze / delete-all (when that button is shown and enabled),
+  and `Escape` from inside collapses it. Opening a bundle, by key or by click,
+  puts Gmail's cursor on its first thread, so `e` archives the thread you are
+  looking at instead of whatever Gmail's cursor was left on.
+- **Bundles outside the Inbox** (#43, upstream inboxy#32 and inboxy#113). A new
+  switch under Options, Bundling ("Also bundle outside the inbox", off by
+  default) bundles search results, label views, Snoozed, Starred, Important,
+  and All Mail the way the Inbox is bundled, with the same open/close, bundle
+  actions, remembered open bundle, and keyboard navigation. Gmail's own chips
+  (the Inbox chip a search result shows, Sent, Draft) are never bundles, and
+  the label or sender a view is already filtered by is not bundled again there:
+  a label view of Work, or the Work bundle's own "View all", groups its threads
+  by their other labels or by sender instead of folding into one Work row.
+  "View all" links stay inside the view you are in. Conversations, Sent,
+  Drafts, Spam, Trash, and the pinned (starred in inbox) page are left alone.
+- **Who and when, on the closed bundle row** (#56, upstream inboxy#4 and
+  inboxy#6). Next to the date at the right of a collapsed bundle, the row now
+  names the sender of its newest thread, so a bundle reads like a Gmail thread
+  row (sender, then date) without opening it. Both go bold while that thread is
+  unread. Hover the sender for the address and the date for Gmail's full-date
+  tooltip. The senders peek beside the title is unchanged: everyone inside,
+  most recent first.
+- **Archive-all and date sweep switches** (#40 and #48, upstream inboxy#25,
+  inboxy#56, inboxy#66, inboxy#74, inboxy#81, and PR inboxy#84). Three
+  switches under Options, Bundle actions, "When Inbundly archives", all off by
+  default so archive-all keeps doing what it did: **leave starred (pinned)
+  messages in place**, the way Inbox's sweep left pins alone, including a
+  pinned message you had checked by hand; **mark messages as read** as they
+  are archived, through Gmail's own Mark as read, so a label shown only with
+  unread mail goes quiet once its bundle is done; and **remove their stars**,
+  so done messages leave Starred too. They apply to Inbundly's archive-all
+  icon on a bundle row (and its `e` shortcut) and to the check-all sweep on a
+  date heading, take effect on the next click without a reload, and leave
+  Gmail's own archive untouched.
+- **Find a setting** (#57). A search box at the top of the Options page
+  narrows it to the settings whose name, explanation, section, or subsection
+  matches what you type; sections with nothing left fold away, a fold that
+  holds a match opens, Escape clears, and `/` jumps to the box.
+
+### Changed
+- **Options page laid out by topic** (#57, upstream inboxy#72). The Options
+  tab is eight named sections, Bundling, Labels, Inbox layout, Pinned
+  messages, Bundle actions, Appearance, Custom bundles, and Sync & backup,
+  each with a one-line lead and jump links at the top. Every setting is one
+  row: its name and a short explanation on the left, the switch on the right,
+  and the default it ships with underneath; a setting you changed is marked.
+  The bulk buttons (archive-all, snooze, delete-all) and the archive switches
+  share the Bundle actions section. Combine labels, priority rules, and
+  Catppuccin matching fold under an Advanced disclosure inside their section,
+  open whenever one of them is changed. The Saved status is a small pill that
+  stays in view, and hover-only help icons became visible text. Narrow
+  windows put the navigation on top. No option key or default changed;
+  nothing to migrate. The layout patterns take a cue from settings pages such
+  as Simplify's; the look and copy are Inbundly's own.
+
+### Fixed
+- Gmail's archive shortcut (and `x`, `#`, `b`, `Enter`) acting on a thread you
+  could not see while a bundle was open (inboxy#50, #77, #82).
+
 ## [4.4.0] - 2026-09-10
 
 ### Added

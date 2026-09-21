@@ -17,6 +17,37 @@
 
 const NESTED_SEPARATOR = '/';
 
+// Gmail's built-in labels, as their chips read in the message list. Gmail
+// hides the chip of the view you are in (no Inbox chip in the Inbox), but
+// shows the others in search results, All Mail, and the like: an Inbox chip
+// on every inbox thread, Sent, Draft, Spam, Trash. None of them is a grouping
+// the user chose, so they are never bundle keys. Gmail reserves these names,
+// so a user label cannot collide. English-only, like Gmail's snooze tooltip
+// and date headings elsewhere in inbundly.
+const SYSTEM_LABELS = new Set([
+    'inbox',
+    'sent',
+    'draft',
+    'drafts',
+    'spam',
+    'trash',
+    'starred',
+    'important',
+    'snoozed',
+    'scheduled',
+    'chats',
+    'unread',
+    'all mail',
+]);
+
+/**
+ * Whether a label chip names one of Gmail's built-in labels rather than a
+ * user label.
+ */
+function isSystemLabel(label) {
+    return SYSTEM_LABELS.has(String(label).trim().toLowerCase());
+}
+
 /**
  * Build a trie of the labels' path segments. Each node is
  * { segment, isLabel, children } where isLabel marks a node at which a label
@@ -128,6 +159,7 @@ function ruleLabels(rule) {
 }
 
 export {
+    isSystemLabel,
     formatLabelSetTitle,
     matchLabelPattern,
     parsePriorityRules,
