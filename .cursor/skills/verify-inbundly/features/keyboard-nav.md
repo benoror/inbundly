@@ -14,6 +14,9 @@ thread too.
 
 - `nav-walk` `j` / `k` visit `Loose A`, the `Work` bundle row, `Loose B`, the `News` bundle
   row, and stop at the ends; the bundle row shows a cursor ring (`.inbundly-cursor`).
+- `nav-plain-ring` while the keyboard drives the list `<html>` carries `inbundly-keyboard`
+  and Gmail's cursor row on a plain thread (`tr.zA.btb`) gets the same ring (computed
+  outline `solid 2px rgb(26, 115, 232)`); the next mouse press clears it.
 - `nav-no-hidden-stop` Gmail's own cursor mark (`tr.zA.btb`) never lands on a thread hidden
   in a collapsed bundle; on a bundle row it is cleared.
 - `nav-enter-opens` `Enter` on a bundle row opens it; the cursor and Gmail's mark move to
@@ -59,7 +62,10 @@ Preconditions:
 - **Walk down.** `await page.keyboard.press('j')` twice. Cursor is the `Work` bundle row,
   `.bundle-row.inbundly-cursor` has text `Work`, Gmail's mark is `null`. Two more `j`:
   cursor is `News` (the stop between was `Loose B`); `.bundled-message.visible` stays `0`.
-- **Walk up.** `k`: cursor `Loose B`, Gmail's mark `Loose B`, `.inbundly-cursor` count `0`.
+- **Walk up.** `k`: cursor `Loose B`, Gmail's mark `Loose B`, `.inbundly-cursor` count `0`,
+  `<html>` has `inbundly-keyboard`, and the Loose B row's computed outline is
+  `solid 2px rgb(26, 115, 232)`. After the closing mouse open of News, `inbundly-keyboard`
+  is gone and the plain cursor row has no outline.
 - **Open with Enter.** `k` then `Enter`. `.bundled-message.visible` is `2`; cursor and
   Gmail's mark are both `Work 1`.
 - **Archive inside.** `e`. `window.__gmail.actions` equals

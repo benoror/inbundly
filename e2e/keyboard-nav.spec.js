@@ -228,6 +228,37 @@ test.describe('Gmail whose cursor follows focus', () => {
 
         await page.close();
     });
+    test('j draws the cursor ring on a plain row; a mouse press clears it', async () => {
+        const page = await openInbox(context);
+        const ring = () => page.evaluate(() => {
+            const row = document.querySelector('tr.zA.btb:not(.bundle-row)');
+            if (!row) {
+                return null;
+            }
+            const style = getComputedStyle(row);
+            return `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`;
+        });
+        const keyboardMode = () => page.evaluate(
+            () => document.documentElement.classList.contains('inbundly-keyboard'));
+
+        await page.keyboard.press('j');
+        expect(await cursor(page)).toBe('Loose A');
+        expect(await keyboardMode()).toBe(true);
+        expect(await ring()).toBe('solid 2px rgb(26, 115, 232)');
+
+        // Gmail's dark theme gets the lighter blue, as on bundle rows.
+        await page.evaluate(() => document.documentElement.classList.add('messages-dark-theme'));
+        expect(await ring()).toBe('solid 2px rgb(138, 180, 248)');
+        await page.evaluate(() => document.documentElement.classList.remove('messages-dark-theme'));
+
+        // A mouse user never sees it: the next press ends keyboard mode.
+        await page.mouse.down();
+        await page.mouse.up();
+        expect(await keyboardMode()).toBe(false);
+        const after = await ring();
+        expect(after === null || after.startsWith('none')).toBe(true);
+        await page.close();
+    });
 });
 
 test.describe('Gmail whose cursor ignores focus', () => {

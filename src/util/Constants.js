@@ -69,6 +69,10 @@ const InbundlyClasses = {
     HIDE_BUNDLE_DELETE: 'hide-bundle-delete',
     HIDE_BUNDLE_SNOOZE: 'hide-bundle-snooze',
     HIDE_PINNED_TOGGLE: 'hide-pinned-toggle',
+    // On <html> while the user drives the list from the keyboard (set on a
+    // key this handler takes, cleared on the next mouse press), so the
+    // cursor ring on plain rows shows for keyboard use only.
+    KEYBOARD_MODE: 'inbundly-keyboard',
     MESSAGES_DARK_THEME: 'messages-dark-theme',
     MESSAGES_DEFAULT_THEME: 'messages-default-theme',
     INBUNDLY: 'inbundly',
@@ -95,6 +99,10 @@ const LABELS = `.ar.as .at`;
 // Data attribute stamped on each section's table body so a message row can be
 // mapped back to the section it belongs to (used to scope bundle toggling).
 const SECTION_ATTR = 'data-inbundly-section';
+
+// Stamped on each message row by a bundle pass: '1' when the pass kept the row
+// out of its bundle for its star (keepStarredUnbundled), '0' otherwise.
+const PINNED_STAMP_ATTR = 'data-inbundly-pinned';
 const Selectors = {
     // Per-message checkboxes only: inbundly's own bundle select-all checkbox
     // carries the same Gmail classes (GmailClasses.CHECKBOX) so Gmail's
@@ -180,6 +188,7 @@ export {
     NO_TAB,
     LABEL_SET_SEPARATOR,
     SECTION_ATTR,
+    PINNED_STAMP_ATTR,
     GmailClasses,
     InbundlyClasses,
     Selectors, 

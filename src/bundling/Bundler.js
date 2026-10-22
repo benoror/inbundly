@@ -24,6 +24,7 @@ import QuickSelectHandler from '../handlers/QuickSelectHandler';
 import MessageSelectHandler from '../handlers/MessageSelectHandler';
 
 import InbundlyStyler from './InbundlyStyler';
+import { isDebugEnabled, logDebugMessage } from '../util/Debug';
 
 import { 
     getCurrentPageNumber, 
@@ -38,6 +39,7 @@ import {
     Element,
     LABEL_SET_SEPARATOR,
     SECTION_ATTR,
+    PINNED_STAMP_ATTR,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
 import OpenBundleStore from '../util/OpenBundleStore';
@@ -84,6 +86,13 @@ class Bundler {
                     resolve();
                 });
         });
+    }
+
+    /**
+     * Run `callback` when a message row's star flips (see MessageSelectHandler).
+     */
+    setStarToggleHandler(callback) {
+        this.messageSelectHandler.onStarToggle = callback;
     }
 
     /**
@@ -166,7 +175,11 @@ class Bundler {
             // those arrive without inbundly's stamps — leaving them unbundled
             // until a redraw.
             if (messageList.children[0].classList.contains('is-bundled')) {
-                if (!this._hasUnprocessedRows(messageList)) {
+                // A star flipped since the last pass (Gmail toggles the star in
+                // place, without repainting the list) also needs a redraw when
+                // starred threads stay outside bundles (TESTING.md 6.2).
+                if (!this._hasUnprocessedRows(messageList) &&
+                    !this._hasStaleStarLayout(messageList)) {
                     return;
                 }
                 // Redrawing a still-bundled table (unlike the usual redraw of a
@@ -268,6 +281,50 @@ class Bundler {
     }
 
     /**
+     * Debug aid: how the first few starred rows of a pass were classified.
+     * Only with the DEBUG flag (src/util/Debug.js) on; the sample is not even
+     * computed otherwise.
+     */
+    _logStarredSample(messageNodes) {
+        if (!isDebugEnabled()) {
+            return;
+        }
+        const starredSample = messageNodes
+            .filter(message => this._isStarred(message))
+            .slice(0, 3)
+            .map(message => ({
+                keepStarredUnbundled: this.keepStarredUnbundled,
+                skipSingleItemBundles: this.skipSingleItemBundles,
+                labels: DomUtils.getLabelStrings(message),
+                relevant: this.selectiveBundling.findRelevantLabels(message),
+                forceUnbundled: !!this._shouldKeepUnbundled(message),
+            }));
+        if (starredSample.length) {
+            logDebugMessage(`starred sample ${JSON.stringify(starredSample)}`);
+        }
+    }
+
+    /**
+     * True if keepStarredUnbundled is on and a row's star changed since the
+     * pass that laid it out: a thread starred inside a bundle must pop out,
+     * one unstarred outside must rejoin its bundle. Each pass stamps whether
+     * it kept the row out for its star (PINNED_STAMP_ATTR); rows without a
+     * stamp are new and caught by _hasUnprocessedRows instead.
+     */
+    _hasStaleStarLayout(messageList) {
+        if (!this.keepStarredUnbundled) {
+            return false;
+        }
+        const tableBody = messageList.querySelector(Selectors.TABLE_BODY);
+        if (!tableBody) {
+            return false;
+        }
+        return [...tableBody.querySelectorAll(TableBodySelectors.MESSAGE_NODES)]
+            .some(row => row.hasAttribute(PINNED_STAMP_ATTR) &&
+                (row.getAttribute(PINNED_STAMP_ATTR) === '1') !== !!this._isStarred(row));
+    }
+
+    /**
      * Remove the nodes a previous bundle pass injected into the section's
      * table (bundle rows, date dividers, the open-bundle backdrop), so a
      * redraw of a still-bundled table starts clean.
@@ -276,6 +333,14 @@ class Bundler {
         messageList.querySelectorAll(
             `.${InbundlyClasses.BUNDLE_ROW}, .date-row, .bundle-area`)
             .forEach(node => node.remove());
+        // A row laid out inside a bundle last pass may be loose now (its star
+        // flipped), so it starts this pass without the bundle classes; the
+        // pass and the open-bundle reopen add them back where they belong.
+        messageList.querySelectorAll(TableBodySelectors.MESSAGE_NODES)
+            .forEach(row => row.classList.remove(
+                InbundlyClasses.BUNDLED_MESSAGE,
+                InbundlyClasses.VISIBLE,
+                InbundlyClasses.LAST));
     }
 
     _bundleMessages(messageList, sectionId, groupByDate, reopenRecentBundle) {
@@ -290,19 +355,12 @@ class Bundler {
 
         const messageNodes = [...tableBody.querySelectorAll(TableBodySelectors.MESSAGE_NODES)];
 
-        const starredSample = messageNodes
-            .filter(message => this._isStarred(message))
-            .slice(0, 3)
-            .map(message => ({
-                keepStarredUnbundled: this.keepStarredUnbundled,
-                skipSingleItemBundles: this.skipSingleItemBundles,
-                labels: DomUtils.getLabelStrings(message),
-                relevant: this.selectiveBundling.findRelevantLabels(message),
-                forceUnbundled: !!this._shouldKeepUnbundled(message),
-            }));
-        if (starredSample.length) {
-            console.log(`inbundly-debug: starred sample ${JSON.stringify(starredSample)}`);
-        }
+        this._logStarredSample(messageNodes);
+
+        // Stamp which rows this pass keeps out of bundles for their star
+        // (_hasStaleStarLayout; MessageSelectHandler leaves those loose).
+        messageNodes.forEach(message => message.setAttribute(
+            PINNED_STAMP_ATTR, this._shouldKeepUnbundled(message) ? '1' : '0'));
 
         const bundlesByLabel = this._groupByLabel(messageNodes, sectionId);
 

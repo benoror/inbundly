@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-const PLACEHOLDER = 'Add the name of each bundle on a new line, for example:\n\nBank\nSchool\nNewsletters/*';
-const PRIORITY_PLACEHOLDER = 'Add a priority rule on each line, for example:\n\nBank\nSchool/*\nWork + Urgent';
+const PLACEHOLDER = 'One label per line, for example:\n\nBank\nSchool\nNewsletters/*';
+const PRIORITY_PLACEHOLDER = 'One rule per line, for example:\n\nBank\nSchool/*\nWork + Urgent';
 
 function byId(id) {
     return document.getElementById(id);
@@ -199,12 +199,43 @@ for (const [key, field] of Object.entries(OPTION_FIELDS)) {
     }
 }
 
+//
+// Settings that depend on another
+//
+// "Remove stars too" has no effect while "Archive buttons skip starred" is
+// on: skipped threads are never archived, so they keep their star. The
+// switch is greyed out then, with a note under it. Its stored value is left
+// as it is, so turning skip-starred off brings back what the user had.
+
+const DEPENDENT_SWITCHES = [
+    { id: 'unstar-on-archive-checkbox', disabledWhenOn: 'skip-starred-on-archive-checkbox' },
+];
+
+function syncDependentSwitches() {
+    for (const { id, disabledWhenOn } of DEPENDENT_SWITCHES) {
+        const input = byId(id);
+        const disabled = byId(disabledWhenOn).checked;
+        input.disabled = disabled;
+        const row = input.closest('.option-row');
+        row.classList.toggle('option-disabled', disabled);
+        const note = row.querySelector(`.option-note[data-note-for="${id}"]`);
+        if (note) {
+            note.hidden = !disabled;
+        }
+    }
+}
+
+for (const { disabledWhenOn } of DEPENDENT_SWITCHES) {
+    byId(disabledWhenOn).addEventListener('change', syncDependentSwitches);
+}
+
 function restoreOptionsForm() {
     chrome.storage.sync.get(OPTION_DEFAULTS, items => {
         for (const [key, field] of Object.entries(OPTION_FIELDS)) {
             field.write(items[key]);
             markChangedFromDefault(key);
         }
+        syncDependentSwitches();
         openAdvancedWithChanges();
     });
 }
@@ -256,10 +287,31 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // buckets and no sync. Showing the ID makes that visible, and export/import
 // moves settings across regardless.
 
+/**
+ * Firefox pins the add-on id (browser_specific_settings.gecko.id), so every
+ * install shares one sync bucket and the compare-the-ID step is noise there.
+ */
+function isFirefox() {
+    try {
+        if (typeof browser !== 'undefined' && browser.runtime && typeof browser.runtime.getBrowserInfo === 'function') {
+            return true;
+        }
+        return !!(chrome.runtime && chrome.runtime.getURL &&
+            chrome.runtime.getURL('').startsWith('moz-extension:'));
+    }
+    catch (e) {
+        return false;
+    }
+}
+
 function showExtensionId() {
     const el = document.getElementById('extension-id');
     if (el && chrome.runtime && chrome.runtime.id) {
         el.textContent = chrome.runtime.id;
+    }
+    const compare = document.getElementById('extension-id-compare');
+    if (compare) {
+        compare.hidden = isFirefox();
     }
 }
 
@@ -341,7 +393,7 @@ function importSettings(file) {
         chrome.storage.sync.set(settings, () => {
             const error = chrome.runtime.lastError;
             if (error) {
-                setBackupStatus(`Import failed: ${error.message}`, true);
+                setBackupStatus(`Couldn't import that file: ${error.message}`, true);
                 return;
             }
             restoreOptionsForm();
@@ -398,7 +450,7 @@ function renderCustomBundles() {
 
             const countSpan = document.createElement('span');
             countSpan.className = 'custom-bundle-count';
-            countSpan.textContent = `${count} message${count === 1 ? '' : 's'}`;
+            countSpan.textContent = `${count} thread${count === 1 ? '' : 's'}`;
 
             const renameButton = document.createElement('button');
             renameButton.className = 'custom-bundle-action';
@@ -420,7 +472,7 @@ function renderCustomBundles() {
 }
 
 function renameCustomBundle(name) {
-    const to = (window.prompt(`Rename custom bundle "${name}" to:`, name) || '').trim();
+    const to = (window.prompt(`New name for "${name}":`, name) || '').trim();
     if (!to || to === name) {
         return;
     }
@@ -438,7 +490,7 @@ function renameCustomBundle(name) {
 
 function deleteCustomBundle(name) {
     if (!window.confirm(
-        `Delete the custom bundle "${name}"? The messages themselves aren't affected.`)) {
+        `Delete the custom bundle "${name}"? Your emails stay where they are.`)) {
         return;
     }
     readCustomBundles(bundles => {

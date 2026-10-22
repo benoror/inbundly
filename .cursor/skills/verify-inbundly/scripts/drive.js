@@ -618,6 +618,16 @@ const FEATURES = {
             return row ? row.querySelector('.y6 span span').textContent : null;
         });
         const gmailActions = () => page.evaluate(() => window.__gmail.actions);
+        const keyboardMode = () => page.evaluate(
+            () => document.documentElement.classList.contains('inbundly-keyboard'));
+        const plainRowRing = () => page.evaluate(() => {
+            const row = document.querySelector('tr.zA.btb:not(.bundle-row)');
+            if (!row) {
+                return null;
+            }
+            const style = getComputedStyle(row);
+            return `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`;
+        });
 
         await rec.step('inbox-bundled-no-cursor', {
             action: async () => { page = await openInbox(context); rec.watch(page, 'inbox'); },
@@ -654,6 +664,8 @@ const FEATURES = {
                 eq('cursor on Loose B', cursor, 'Loose B'),
                 eq('Gmail\'s cursor mark followed onto the thread', gmailCursor, 'Loose B'),
                 eq('no bundle row rings', count(P, '.inbundly-cursor'), 0),
+                truthy('keyboard mode on (<html>.inbundly-keyboard)', keyboardMode),
+                eq('plain row carries the same blue ring', plainRowRing, 'solid 2px rgb(26, 115, 232)'),
             ],
             shots,
         });
@@ -721,6 +733,9 @@ const FEATURES = {
                 eq('two News threads visible', visibleBundledMessages(P), 2),
                 eq('cursor on News 1 after a mouse open', cursor, 'News 1'),
                 eq('Gmail\'s mark on News 1', gmailCursor, 'News 1'),
+                falsy('a mouse press ended keyboard mode', keyboardMode),
+                truthy('no ring on the plain cursor row for a mouse user',
+                    async () => ((await plainRowRing()) || 'none').startsWith('none')),
             ],
             shots,
         });
@@ -1070,10 +1085,14 @@ const FEATURES = {
 
         await rec.step('flip-unstar-on-and-skip-starred-off', {
             action: async () => {
-                await switchFor('unstar-on-archive-checkbox').click();
+                // Remove stars is greyed out while skip-starred is on (it would
+                // do nothing), so skip-starred goes off first.
                 await switchFor('skip-starred-on-archive-checkbox').click();
                 await options.waitForFunction(
-                    () => !document.getElementById('skip-starred-on-archive-checkbox').checked);
+                    () => !document.getElementById('unstar-on-archive-checkbox').disabled);
+                await switchFor('unstar-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => document.getElementById('unstar-on-archive-checkbox').checked);
             },
             checks: [
                 truthy('unstar on', checked('unstar-on-archive-checkbox')),
@@ -1240,7 +1259,7 @@ const FEATURES = {
                 eq('every switch row states its default', () => options.locator('.option-row .option-default').count(), 17),
                 eq('delete-all row says Default: off', () => deleteRow().locator('.option-default').textContent(), 'Default: off'),
                 falsy('nothing marked as changed in a fresh profile', count(O, '.differs')),
-                falsy('Advanced label rules closed', foldOpen('label-rules')),
+                falsy('Advanced bundle rules closed', foldOpen('label-rules')),
                 eq('sync storage empty in a fresh profile', storedSync, {}),
             ],
             shots,
@@ -1260,7 +1279,10 @@ const FEATURES = {
                 eq('buttons and archive switches share the section',
                     () => options.locator('#bundle-actions input[type="checkbox"]').evaluateAll(i => i.map(x => x.id)),
                     ['show-bundle-archive-checkbox', 'show-bundle-snooze-checkbox', 'show-bundle-delete-checkbox',
-                        'skip-starred-on-archive-checkbox', 'mark-read-on-archive-checkbox', 'unstar-on-archive-checkbox']),
+                        'mark-read-on-archive-checkbox', 'unstar-on-archive-checkbox']),
+                eq('both starred settings side by side in Pinned messages',
+                    () => options.locator('#pinned-messages input[type="checkbox"]').evaluateAll(i => i.map(x => x.id)),
+                    ['keep-starred-unbundled-checkbox', 'skip-starred-on-archive-checkbox', 'show-pinned-toggle-checkbox']),
             ],
             shots,
         });
@@ -1316,6 +1338,36 @@ const FEATURES = {
             shots,
         });
 
+        await rec.step('skip-starred-greys-out-remove-stars', {
+            action: async () => {
+                await options.locator('label.switch:has(#skip-starred-on-archive-checkbox) .slider').click();
+                await options.waitForFunction(
+                    () => document.getElementById('unstar-on-archive-checkbox').disabled);
+            },
+            checks: [
+                truthy('skip-starred on', () => options.locator('#skip-starred-on-archive-checkbox').isChecked()),
+                truthy('Remove stars disabled', () => options.locator('#unstar-on-archive-checkbox').isDisabled()),
+                truthy('Remove stars row greyed', hasClass(
+                    () => options.locator('.option-row', { has: options.locator('#unstar-on-archive-checkbox') }),
+                    'option-disabled')),
+                falsy('Remove stars stored value untouched',
+                    async () => Object.prototype.hasOwnProperty.call(await storedSync(), 'unstarOnArchive')),
+            ],
+            shots,
+        });
+
+        await rec.step('skip-starred-off-again', {
+            action: async () => {
+                await options.locator('label.switch:has(#skip-starred-on-archive-checkbox) .slider').click();
+                await options.waitForFunction(
+                    () => !document.getElementById('unstar-on-archive-checkbox').disabled);
+            },
+            checks: [
+                falsy('Remove stars enabled again', () => options.locator('#unstar-on-archive-checkbox').isDisabled()),
+            ],
+            shots,
+        });
+
         await rec.step('restore-delete-all-off', {
             action: async () => {
                 await deleteRow().locator('label.switch .slider').click();
@@ -1323,7 +1375,7 @@ const FEATURES = {
             },
             checks: [
                 falsy('row no longer marked as changed', hasClass(deleteRow, 'differs')),
-                eq('sync holds the explicit false', storedSync, { showBundleDelete: false }),
+                eq('sync holds the explicit falses', storedSync, { showBundleDelete: false, skipStarredOnArchive: false }),
             ],
             shots,
         });

@@ -156,9 +156,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <h2 id="bundles-and-colors">Bundles &amp; colors</h2>
                 <p>
                     A few options control how bundles are grouped (under
-                    <a href="#labels">Options &rarr; Labels</a> and
+                    <a href="#labels">Options &rarr; What becomes a bundle</a> and
                     <a href="#inbox-layout">Options &rarr; Inbox layout</a>) and colored (under
-                    <a href="#appearance">Options &rarr; Appearance</a>):
+                    <a href="#appearance">Options &rarr; Colors</a>):
                 </p>
                 <ul class="bulleted-list">
                     <li>
@@ -210,12 +210,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <p>
                     You can pin important bundled messages by starring them. By default, pinned messages
                     appear in their own row outside of their bundle. You can turn this behavior off under
-                    <a href="#pinned-messages">Options &rarr; Pinned messages</a> if you prefer starred
+                    <a href="#pinned-messages">Options &rarr; Starred threads</a> if you prefer starred
                     messages to remain bundled.
                 </p>
                 <p>
-                    The pinned-messages toggle is optional and hidden by default. Turn it on under
-                    <a href="#pinned-messages">Options &rarr; Pinned messages</a>.
+                    The starred switch in the search bar is optional and hidden by default. Turn it on under
+                    <a href="#pinned-messages">Options &rarr; Starred threads</a>.
                 </p>
                 <div>
                     <img 
@@ -244,15 +244,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <p>
                     The archive-all and snooze buttons are on by default; delete-all is off
                     because it is more destructive. Turn each on or off under
-                    <a href="#bundle-actions">Options &rarr; Bundle actions</a>.
+                    <a href="#bundle-actions">Options &rarr; Bundle buttons</a>.
                 </p>
                 <p>
-                    Three optional switches (all off by default, under
-                    <a href="#bundle-actions">Options &rarr; Bundle actions</a>) shape what archive-all
-                    and the date sweep do: leave starred (pinned) messages in place, the way Inbox's
-                    sweep left pins alone; mark the messages as read as they are archived; and remove
-                    their stars, so done messages leave Starred too. They apply only to
-                    Inbundly's own buttons; Gmail's archive keeps working as it always has.
+                    Three switches, all off by default, change what Inbundly's archive buttons do.
+                    <strong>Archive buttons skip starred</strong> (in
+                    <a href="#pinned-messages">Starred threads</a>) leaves starred threads in your
+                    inbox, like Inbox's sweep did with pins. <strong>Mark as read too</strong> and
+                    <strong>Remove stars too</strong> (in
+                    <a href="#archive-behavior">When Inbundly archives</a>) clean threads up as they
+                    go. Gmail's own archive isn't affected.
                 </p>
                 <div>
                     <img 
@@ -289,10 +290,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         </div>
 
         <div class="tab options">
+            <!--
+              Layout: one section card per topic (h2 + p.option-lead), then rows.
+              Each switch row: label.option-title (the setting's name),
+              span.option-detail (its help text), and an empty
+              div.option-media[hidden] slot for a short looping clip or still
+              (put a <video autoplay loop muted playsinline> or <img> inside and
+              drop `hidden` to show it). The Default chip is added by options.js.
+            -->
             <h1>Options</h1>
             <p class="tab-lead">
-                Every option here, and your custom bundles, saves the moment you change it and
-                syncs to your other browsers signed into the same Chrome or Firefox account.
+                Changes save as you make them and follow you to every browser signed into the
+                same Chrome or Firefox account.
             </p>
 
             <div class="options-search">
@@ -306,31 +315,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
             <nav class="section-nav" aria-label="Option sections">
                 <a href="#bundling">Bundling</a>
-                <a href="#labels">Labels</a>
+                <a href="#labels">What becomes a bundle</a>
                 <a href="#inbox-layout">Inbox layout</a>
-                <a href="#pinned-messages">Pinned messages</a>
-                <a href="#bundle-actions">Bundle actions</a>
-                <a href="#appearance">Appearance</a>
+                <a href="#pinned-messages">Starred threads</a>
+                <a href="#bundle-actions">Bundle buttons</a>
+                <a href="#appearance">Colors</a>
                 <a href="#custom-bundles">Custom bundles</a>
                 <a href="#sync-backup">Sync &amp; backup</a>
             </nav>
 
             <p id="options-no-matches" class="options-no-matches" hidden>
-                No setting matches <q id="options-no-matches-query"></q>. Try another word, or clear
-                the search to see every section again.
+                Nothing matches <q id="options-no-matches-query"></q>. Try another word, or clear
+                the search.
             </p>
 
             <section class="option-category" id="bundling">
                 <h2>Bundling</h2>
-                <p class="option-lead">The master switch, and where bundles appear.</p>
+                <p class="option-lead">Turn bundles on, and choose which Gmail pages get them.</p>
 
                 <div class="option-row">
                     <div class="option-text">
                         <label class="option-title" for="bundling-enabled-checkbox">Bundle my inbox</label>
                         <span class="option-detail">
-                            The same switch sits in Gmail's search bar and in the toolbar popup;
-                            all three stay in step.
+                            Groups your inbox into bundles; turn it off for plain Gmail (the same switch is
+                            in Gmail's search bar and the toolbar popup).
                         </span>
+                        <div class="option-media" data-media-for="bundling-enabled-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="bundling-enabled-checkbox">
@@ -340,12 +350,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
                 <div class="option-row">
                     <div class="option-text">
-                        <label class="option-title" for="bundle-other-views-checkbox">Also bundle outside the inbox</label>
+                        <label class="option-title" for="bundle-other-views-checkbox">Bundle other Gmail pages too</label>
                         <span class="option-detail">
-                            Search results, label views, Snoozed, Starred, Important, and All Mail.
-                            The label or sender a view is already filtered by is not bundled again
-                            there. Conversations, Sent, Drafts, Spam, and Trash never bundle.
+                            Search results, label pages, Snoozed, Starred, Important, and All Mail get
+                            bundles too (Sent, Drafts, Spam, and Trash never do).
                         </span>
+                        <div class="option-media" data-media-for="bundle-other-views-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="bundle-other-views-checkbox">
@@ -355,43 +365,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section class="option-category" id="labels">
-                <h2>Labels</h2>
+                <h2>What becomes a bundle</h2>
                 <p class="option-lead">
-                    Which labels become bundles. Threads that share a label bundle together, so
-                    <a href="#create-filters">Gmail filters that apply labels</a> are how you set
-                    bundles up.
+                    Threads that share a Gmail label bundle together, so
+                    <a href="#create-filters">Gmail filters that add labels</a> are how you make
+                    bundles.
                 </p>
 
                 <div class="option-block">
                     <div class="option-text">
-                        <span class="option-title">Labels to bundle</span>
+                        <span class="option-title">Your label list</span>
                         <span class="option-detail">
-                            One label per line. Nested labels use slashes (<code>Work/Clients</code>).
-                            Add a trailing <code>/*</code> to include a label's sub-labels:
-                            <code>Newsletters/*</code> matches Newsletters and everything under it.
-                            Matching is case-insensitive.
+                            One label per line, any capitalization: write <code>Work/Clients</code> for a
+                            nested label, or <code>Newsletters/*</code> to include everything under
+                            Newsletters.
                         </span>
                     </div>
                     <div class="list-type-options" role="radiogroup" aria-label="Which labels bundle">
                         <div class="list-type">
                             <input type="radio" name="listType" value="exclude" id="exclude-radio">
-                            <label for="exclude-radio">Bundle every label except the ones listed</label>
+                            <label for="exclude-radio">Bundle all labels except these</label>
                         </div>
                         <div class="list-type">
                             <input type="radio" name="listType" value="include" id="include-radio">
-                            <label for="include-radio">Only bundle the labels listed</label>
+                            <label for="include-radio">Bundle only these labels</label>
                         </div>
                     </div>
-                    <textarea id="label-list" rows="8" aria-label="Labels to bundle"></textarea>
+                    <textarea id="label-list" rows="8" aria-label="Your label list"></textarea>
                 </div>
 
                 <div class="option-row">
                     <div class="option-text">
-                        <label class="option-title" for="skip-single-item-bundles-checkbox">Skip single-item bundles</label>
+                        <label class="option-title" for="skip-single-item-bundles-checkbox">No bundles of one</label>
                         <span class="option-detail">
-                            Show a label with only one thread as a regular message instead of a
-                            one-row bundle.
+                            A label with only one thread shows as a normal row instead of a one-row bundle.
                         </span>
+                        <div class="option-media" data-media-for="skip-single-item-bundles-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="skip-single-item-bundles-checkbox">
@@ -399,56 +408,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     </label>
                 </div>
 
-                <details class="option-advanced" id="label-rules">
-                    <summary>
-                        <span class="option-title">Advanced label rules</span>
-                        <span class="option-detail">Combine labels, priority bundles</span>
-                    </summary>
-
-                    <div class="option-row">
-                        <div class="option-text">
-                            <label class="option-title" for="combine-labels-checkbox">Combine labels</label>
-                            <span class="option-detail">
-                                Each distinct set of labels forms its own bundle: threads labeled
-                                A&nbsp;+&nbsp;B group separately from threads labeled only A. The
-                                bundle title factors out any shared parent.
-                            </span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="combine-labels-checkbox">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="option-block">
-                        <div class="option-text">
-                            <span class="option-title">Priority bundles</span>
-                            <span class="option-detail">
-                                One rule per line. A rule captures every matching thread into a
-                                single bundle, whatever other labels the thread carries. Add a
-                                trailing <code>/*</code> to include a label's sub-labels, or join
-                                labels with <code>+</code> to capture threads that carry all of
-                                them (<code>Work + Urgent</code>). Rules are checked top to bottom;
-                                the first match wins.
-                            </span>
-                        </div>
-                        <textarea id="priority-bundles-list" rows="5" aria-label="Priority bundle rules"></textarea>
-                    </div>
-                </details>
-            </section>
-
-            <section class="option-category" id="inbox-layout">
-                <h2>Inbox layout</h2>
-                <p class="option-lead">How the list reads around its bundles.</p>
-
                 <div class="option-row">
                     <div class="option-text">
-                        <label class="option-title" for="sender-bundling-checkbox">Sender bundles</label>
+                        <label class="option-title" for="sender-bundling-checkbox">Bundle by sender</label>
                         <span class="option-detail">
-                            Unlabeled messages that share a sender bundle together: by domain, or
-                            by the exact address on personal-mail domains like gmail.com. Needs
-                            2+ threads; labels always win.
+                            Unlabeled threads from the same sender bundle together once there are 2 or more
+                            (by domain, like acme.com, or by exact address for gmail.com and similar).
                         </span>
+                        <div class="option-media" data-media-for="sender-bundling-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="sender-bundling-checkbox">
@@ -458,12 +425,51 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
                 <div class="option-row">
                     <div class="option-text">
+                        <label class="option-title" for="combine-labels-checkbox">Bundle label combinations</label>
+                        <span class="option-detail">
+                            Threads labeled Work&nbsp;+&nbsp;Clients get their own bundle, apart from threads
+                            labeled only Work.
+                        </span>
+                        <div class="option-media" data-media-for="combine-labels-checkbox" hidden></div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="combine-labels-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <details class="option-advanced" id="label-rules">
+                    <summary>
+                        <span class="option-title">Advanced bundle rules</span>
+                        <span class="option-detail">Priority rules</span>
+                    </summary>
+
+                    <div class="option-block">
+                        <div class="option-text">
+                            <span class="option-title">Priority bundles</span>
+                            <span class="option-detail">
+                                One rule per line: any thread that matches a rule goes into that
+                                rule's bundle, whatever other labels it has (the first matching rule
+                                wins).
+                            </span>
+                        </div>
+                        <textarea id="priority-bundles-list" rows="5" aria-label="Priority bundle rules"></textarea>
+                    </div>
+                </details>
+            </section>
+
+            <section class="option-category" id="inbox-layout">
+                <h2>Inbox layout</h2>
+                <p class="option-lead">How your inbox list looks around the bundles.</p>
+
+                <div class="option-row">
+                    <div class="option-text">
                         <label class="option-title" for="group-by-date-checkbox">Date headings</label>
                         <span class="option-detail">
-                            Today, Yesterday, This week, and so on between rows, each with a
-                            check-all sweep. Shown in the Default inbox type; sectioned inbox
-                            types already have Gmail's own headings.
+                            Adds Today, Yesterday, This week, and similar headings to the list, each with
+                            its own archive button (Default inbox type only).
                         </span>
+                        <div class="option-media" data-media-for="group-by-date-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="group-by-date-checkbox">
@@ -473,11 +479,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
                 <div class="option-row">
                     <div class="option-text">
-                        <label class="option-title" for="remember-open-bundle-checkbox">Remember the open bundle</label>
+                        <label class="option-title" for="remember-open-bundle-checkbox">Keep my bundle open</label>
                         <span class="option-detail">
-                            Reopen the bundle you had open after reloads, refreshes, and page
-                            navigation, for the browser session.
+                            Remembers which bundle you had open in this tab, even after a reload. Closing the
+                            tab resets it.
                         </span>
+                        <div class="option-media" data-media-for="remember-open-bundle-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="remember-open-bundle-checkbox">
@@ -487,30 +494,54 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section class="option-category" id="pinned-messages">
-                <h2>Pinned messages</h2>
-                <p class="option-lead">Starring a message pins it, the way Google Inbox did.</p>
+                <h2>Starred threads</h2>
+                <p class="option-lead">A star pins a thread, like in Google Inbox: it stays easy to see and safe from bulk archiving.</p>
 
-                <div class="option-row">
-                    <div class="option-text">
-                        <label class="option-title" for="keep-starred-unbundled-checkbox">Keep starred messages outside bundles</label>
-                        <span class="option-detail">
-                            A pinned message gets its own row in the list instead of sitting inside
-                            its bundle.
-                        </span>
+                <div class="option-group" id="starred-pair">
+                    <div class="option-row">
+                        <div class="option-text">
+                            <label class="option-title" for="keep-starred-unbundled-checkbox">Show starred on their own rows</label>
+                            <span class="option-detail">
+                                A starred thread moves out of its bundle onto its own row, and goes back in when
+                                you unstar it.
+                            </span>
+                            <div class="option-media" data-media-for="keep-starred-unbundled-checkbox" hidden></div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="keep-starred-unbundled-checkbox">
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="keep-starred-unbundled-checkbox">
-                        <span class="slider"></span>
-                    </label>
+
+                    <div class="option-row">
+                        <div class="option-text">
+                            <label class="option-title" for="skip-starred-on-archive-checkbox">Archive buttons skip starred</label>
+                            <span class="option-detail">
+                                Inbundly's archive buttons leave starred threads in your inbox and archive the
+                                rest.
+                            </span>
+                            <div class="option-media" data-media-for="skip-starred-on-archive-checkbox" hidden></div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="skip-starred-on-archive-checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <p class="subsection-note option-group-footnote">
+                        When starred threads have their own rows, they are never inside a bundle, so
+                        skipping them only matters for the archive button on date headings.
+                    </p>
                 </div>
 
                 <div class="option-row">
                     <div class="option-text">
-                        <label class="option-title" for="show-pinned-toggle-checkbox">Pinned-messages toggle in the search bar</label>
+                        <label class="option-title" for="show-pinned-toggle-checkbox">Starred switch in search bar</label>
                         <span class="option-detail">
-                            A switch next to Gmail's search box that flips between the Inbox and
-                            its pinned messages.
+                            Adds a switch next to Gmail's search box that flips between your inbox and just
+                            its starred threads.
                         </span>
+                        <div class="option-media" data-media-for="show-pinned-toggle-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-pinned-toggle-checkbox">
@@ -520,20 +551,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section class="option-category" id="bundle-actions">
-                <h2>Bundle actions</h2>
+                <h2>Bundle buttons</h2>
                 <p class="option-lead">
-                    Buttons on a bundle row, shown on hover and while the bundle is open. The
-                    select-all checkbox is always there; Gmail's toolbar actions then apply to
-                    the selection.
+                    Buttons that appear when you hover over or open a bundle (the checkbox that
+                    selects the whole bundle is always there).
                 </p>
 
                 <div class="option-row">
                     <div class="option-text">
                         <label class="option-title" for="show-bundle-archive-checkbox">Archive-all button</label>
                         <span class="option-detail">
-                            Archives every thread of the bundle on the current page. The same icon
-                            sits on each date heading to sweep that section.
+                            Adds a button that archives every thread of the bundle on this page, plus the
+                            same button on each date heading to clear that section.
                         </span>
+                        <div class="option-media" data-media-for="show-bundle-archive-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-bundle-archive-checkbox">
@@ -545,9 +576,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="option-text">
                         <label class="option-title" for="show-bundle-snooze-checkbox">Snooze button</label>
                         <span class="option-detail">
-                            Selects the bundle's threads and opens Gmail's own snooze menu, so the
-                            time you pick applies to the whole bundle.
+                            Adds a button that opens Gmail's snooze menu for the whole bundle.
                         </span>
+                        <div class="option-media" data-media-for="show-bundle-snooze-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-bundle-snooze-checkbox">
@@ -559,10 +590,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="option-text">
                         <label class="option-title" for="show-bundle-delete-checkbox">Delete-all button</label>
                         <span class="option-detail">
-                            Selects the bundle's threads and clicks Gmail's own Delete: they move to
-                            Trash, with Gmail's undo toast. Off unless you turn it on, since it is
-                            the most destructive of the three.
+                            Adds a button that moves the whole bundle to Trash, with Gmail's usual Undo.
                         </span>
+                        <div class="option-media" data-media-for="show-bundle-delete-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-bundle-delete-checkbox">
@@ -573,32 +603,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <div class="option-group" id="archive-behavior">
                     <h3 class="subsection-header">When Inbundly archives</h3>
                     <p class="subsection-note">
-                        What the archive-all button and the date-heading sweep do beyond
-                        archiving. Gmail's own archive (the row hover icon, the toolbar on a
-                        selection, the <code>e</code> key on a thread) is not changed.
+                        These switches <b>only</b> change Inbundly's archive buttons (on bundles, on
+                        date headings, and <code>e</code> on a bundle row), never Gmail's own archive
+                        icon, toolbar button, or <code>e</code> key on a thread.
                     </p>
 
                     <div class="option-row">
                         <div class="option-text">
-                            <label class="option-title" for="skip-starred-on-archive-checkbox">Leave starred messages in place</label>
+                            <label class="option-title" for="mark-read-on-archive-checkbox">Mark as read too</label>
                             <span class="option-detail">
-                                Pinned messages stay put, the way Inbox's sweep left pins alone.
+                                Threads are marked read before they are archived, so they stop counting as unread
+                                (handy for labels set to show only when unread).
                             </span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="skip-starred-on-archive-checkbox">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="option-row">
-                        <div class="option-text">
-                            <label class="option-title" for="mark-read-on-archive-checkbox">Mark as read first</label>
-                            <span class="option-detail">
-                                Uses Gmail's own Mark as read on the selection before archiving, so
-                                a label shown only with unread mail goes quiet once its bundle is
-                                done.
-                            </span>
+                            <div class="option-media" data-media-for="mark-read-on-archive-checkbox" hidden></div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="mark-read-on-archive-checkbox">
@@ -608,31 +625,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
                     <div class="option-row">
                         <div class="option-text">
-                            <label class="option-title" for="unstar-on-archive-checkbox">Remove stars</label>
+                            <label class="option-title" for="unstar-on-archive-checkbox">Remove stars too</label>
                             <span class="option-detail">
-                                Unstars each message as it is archived, so done messages leave
-                                Starred too.
+                                Archived threads lose their star, so they also leave your Starred list.
                             </span>
+                            <span class="option-note" data-note-for="unstar-on-archive-checkbox" hidden>Off while Archive buttons skip starred is on, since skipped threads keep their star.</span>
+                            <div class="option-media" data-media-for="unstar-on-archive-checkbox" hidden></div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="unstar-on-archive-checkbox">
                             <span class="slider"></span>
                         </label>
                     </div>
+
+                    <p class="subsection-note option-group-footnote">
+                        Want starred threads left alone? See <a href="#pinned-messages">Starred threads</a>.
+                    </p>
                 </div>
             </section>
 
             <section class="option-category" id="appearance">
-                <h2>Appearance</h2>
-                <p class="option-lead">Bundle colors, in Gmail's light and dark themes.</p>
+                <h2>Colors</h2>
+                <p class="option-lead">Color bundles to match your Gmail labels, in light and dark themes.</p>
 
                 <div class="option-row">
                     <div class="option-text">
                         <label class="option-title" for="color-bundles-checkbox">Color bundles by label</label>
                         <span class="option-detail">
-                            Tint each bundle row to match its Gmail label color. Needs labels shown
-                            in the message list, which is Gmail's default.
+                            Each bundle row takes its Gmail label color (labels need to show in the message
+                            list, which is Gmail's default).
                         </span>
+                        <div class="option-media" data-media-for="color-bundles-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="color-bundles-checkbox">
@@ -644,11 +667,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="list-type-options" role="radiogroup" aria-label="Bundle color style">
                         <div class="list-type">
                             <input type="radio" name="bundleColorStyle" value="background" id="color-style-background">
-                            <label for="color-style-background">Fill the bundle background with the label color</label>
+                            <label for="color-style-background">Tinted background</label>
                         </div>
                         <div class="list-type">
                             <input type="radio" name="bundleColorStyle" value="accent" id="color-style-accent">
-                            <label for="color-style-accent">Only color the left accent bar and text</label>
+                            <label for="color-style-accent">Colored edge and text only</label>
                         </div>
                     </div>
                 </div>
@@ -656,19 +679,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <details class="option-advanced" id="theme-matching">
                     <summary>
                         <span class="option-title">Theme matching</span>
-                        <span class="option-detail">For Gmail themed with a Stylus userstyle</span>
+                        <span class="option-detail">For Gmail themed with Stylus</span>
                     </summary>
 
                     <div class="option-row">
                         <div class="option-text">
-                            <label class="option-title" for="catppuccin-matching-checkbox">Match Catppuccin colors</label>
+                            <label class="option-title" for="catppuccin-matching-checkbox">Match my Catppuccin theme</label>
                             <span class="option-detail">
                                 If you theme Gmail with a
-                                <a href="https://add0n.com/stylus.html" target="_blank">Stylus</a>
-                                userstyle, snap bundle colors to the
                                 <a href="https://userstyles.catppuccin.com/getting-started/usage/" target="_blank">Catppuccin</a>
-                                flavor it applies instead of Gmail's label colors.
+                                style in
+                                <a href="https://add0n.com/stylus.html" target="_blank">Stylus</a>,
+                                bundle colors use that theme's palette instead of Gmail's label colors.
                             </span>
+                            <div class="option-media" data-media-for="catppuccin-matching-checkbox" hidden></div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="catppuccin-matching-checkbox">
@@ -681,16 +705,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             <section class="option-category" id="custom-bundles">
                 <h2>Custom bundles</h2>
                 <p class="option-lead">
-                    Ad-hoc groups you make in Gmail by selecting messages and clicking
-                    &ldquo;Bundle selected&rdquo;, no label required. They stick across reloads and
-                    sync like every other option. Rename or delete them here; changes apply at once.
+                    Bundles you make by hand: select threads in Gmail and click Bundle selected, no
+                    label needed.
                 </p>
 
                 <div class="option-block">
                     <ul id="custom-bundles-list" class="custom-bundles-list"></ul>
                     <p id="custom-bundles-empty" class="custom-bundles-empty">
-                        No custom bundles yet. In Gmail, select some messages and click
-                        &ldquo;Bundle selected&rdquo; to make one.
+                        No custom bundles yet. In Gmail, select a few threads and click Bundle
+                        selected.
                     </p>
                 </div>
             </section>
@@ -698,17 +721,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             <section class="option-category" id="sync-backup">
                 <h2>Sync &amp; backup</h2>
                 <p class="option-lead">
-                    Settings travel through your browser account, but only between installs that
-                    share one extension ID. Export and import move them by hand, custom bundles
-                    included.
+                    Settings and custom bundles sync through your browser account; Export and Import
+                    copy them anywhere else.
                 </p>
 
                 <div class="option-block">
-                    <p class="subsection-note">
-                        This install's extension ID is <code id="extension-id" class="sync-id">&hellip;</code>.
-                        It should read the same on every computer (compare it at
-                        <code>chrome://extensions</code>); if it does not, the installs are not
-                        syncing with each other.
+                    <p class="subsection-note" id="extension-id-note">
+                        This install's ID is <code id="extension-id" class="sync-id">&hellip;</code>.
+                        <!-- Chrome only: Firefox pins the add-on id, so options.js hides this step there. -->
+                        <span id="extension-id-compare" class="chrome-only">Settings only sync between
+                        installs with the same ID (compare it at <code>chrome://extensions</code>).</span>
                     </p>
                     <div class="sync-actions">
                         <button id="export-button" class="custom-bundle-action">Export settings</button>
@@ -733,7 +755,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <p>
                     You can report bugs, ask questions, or share suggestions by submitting an
                     <a href="https://github.com/benoror/inbundly/issues" target="_blank">issue</a>
-                    on Github.
+                    on GitHub.
                 </p>
             </section>
 
@@ -742,14 +764,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <p>
                     To see what's new in recent releases,
                     <a href="https://github.com/benoror/inbundly/releases" target="_blank">see the release notes</a>
-                    on Github.
+                    on GitHub.
                 </p>
             </section>
             
             <section>
                 <h2>About Inbundly</h2>
                 <p>
-                    Inbundly is a free, open-source browser extension that brings bundles to Gmail.
+                    Inbundly brings Google Inbox-style bundles to Gmail, for Chrome and Firefox. It is
+                    free forever and open source (GPL-3.0), and it leaves Gmail's own controls alone.
                     To learn more, visit
                     <a href="https://inbundly.com/" target="_blank">inbundly.com</a>.
                 </p>

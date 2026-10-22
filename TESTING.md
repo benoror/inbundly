@@ -91,10 +91,11 @@ tags `v2.1.0` … `v4.4.0`.
 
 | # | Scenario | Kind | Coverage |
 |---|----------|------|----------|
-| 6.1 | `keepStarredUnbundled` on (default): starred thread stays outside its bundle | happy | unit `BundlerOptions`, `StarHandler` · manual ✔ (2026-09, prior session) |
-| 6.2 | Starring inside an open bundle pops the message out; unstarring returns it | happy | manual ✔ (prior session) |
+| 6.1 | `keepStarredUnbundled` on (default): starred thread stays outside its bundle | happy | e2e `starred.spec` · unit `BundlerOptions`, `StarHandler` · manual ✔ (2026-09, prior session) |
+| 6.2 | Starring inside an open bundle pops the message out (the bundle stays open); unstarring a pinned thread returns it to its bundle. Gmail flips the star in place (class swap on `.T-KT`, no list repaint), so `MessageSelectHandler` reports the flip and `Bundler` redraws the section when a row's star no longer matches its `data-inbundly-pinned` stamp | happy | e2e `starred.spec` · unit `BundlerOptions` · manual (re-check, row 6.5) |
 | 6.3 | Option off: starred messages bundle normally; no scroll compensation | edge | unit `StarHandler` |
-| 6.4 | Pinned-messages toggle in search bar (hidden by default) filters to starred | happy | manual |
+| 6.4 | Starred switch in search bar (`showPinnedToggle`, hidden by default) filters to starred | happy | manual |
+| 6.5 | Live Gmail contract: starring a row changes the class of its `span.T-KT` in place (`aXw` to `T-KT-Jp`) rather than repainting the row; check in DevTools with a MutationObserver on the row (snippet in the QA notes) | contract | manual |
 
 ## 7. Dates & sections
 
@@ -157,6 +158,7 @@ tags `v2.1.0` … `v4.4.0`.
 | 12.7 | Text fields, dialogs, menus, and focusable controls (bundle checkbox, View all) keep their keys; modifiers and untrusted (synthetic) keys pass through; inactive when bundling is off or off the inbox | edge | e2e `keyboard-nav.spec` · unit `KeyboardNavHandler` |
 | 12.8 | Fallback when Gmail's cursor does not follow focus and nothing is checked: `e`/`#`/`b` go through Gmail's toolbar for the visible row, `x` clicks its checkbox, `Enter`/`o` click the row; an existing selection is left to Gmail | edge | e2e `keyboard-nav.spec` (`cursorFollowsFocus: false`) · unit `KeyboardNavHandler` |
 | 12.9 | Gmail cursor model canary: in live Gmail with shortcuts on, press `j`, then in DevTools confirm `document.activeElement` is the `tr.zA.btb` row and `document.activeElement.tabIndex === -1`; then run `[...document.querySelectorAll('tr.zA')][3].focus()` and confirm `btb` moved to that row. If either fails, Gmail changed the model `GmailCursor` relies on (the 12.8 fallbacks still cover `e`/`x`/`#`/`b`/`Enter`) | contract | manual |
+| 12.11 | Keyboard-only cursor ring on plain rows: a key KeyboardNavHandler takes (`j`/`k`, arrows in the list, a shortcut on the cursor row) puts `inbundly-keyboard` on `<html>`, the next mouse press removes it; while it is on, Gmail's cursor row (`.flex-table-body > tr.zA.btb:not(.bundle-row)`) gets the bundle row's ring (`#1a73e8`, `#8ab4f8` under `messages-dark-theme`); a mouse user never sees it | happy | unit `KeyboardNavHandler` · e2e `keyboard-nav.spec` · verify-inbundly `keyboard-nav` walk |
 | 12.10 | Known limitations: a bundle row loses the cursor when Gmail rerenders the list (next `j` resumes from Gmail's mark or the top); `j`/`k` are handled even when Gmail's own shortcuts are turned off; the 12.8 `Enter` fallback is a best-effort row click; no shortcut parity beyond the keys above (Simplify-style shortcuts are out of scope) | note | — |
 
 ## 13. Bundles outside the Inbox (unreleased, PR #63, issue #43)
@@ -197,21 +199,24 @@ tags `v2.1.0` … `v4.4.0`.
 | 15.4 | `markReadOnArchive` on: Gmail's toolbar `Mark as read` is clicked on the selection before `Archive`; an all-read selection (or a toolbar without that button) goes straight to `Archive`; unread is judged on the threads being archived, not the skipped ones | happy | e2e `bulk-trust.spec` · unit `ArchiveAction`, `GmailToolbar` (`precededBy`) |
 | 15.5 | `unstarOnArchive` on: the star is clicked off each starred thread being archived before the toolbar click; with skip-starred on too, a skipped pin keeps its star | happy | e2e `bulk-trust.spec` · unit `ArchiveAction` |
 | 15.6 | `e` / `y` on a bundle row runs archive-all under the same switches (it clicks the row's icon); Gmail's own archive paths (row hover icon, toolbar on a manual selection, `e` on a thread, the keyboard fallback for a single row) are not changed | happy | e2e `bulk-trust.spec` · unit `KeyboardNavHandler` |
-| 15.7 | Options page: the three switches under Bundle actions, "When Inbundly archives", each auto-save their own key and restore from storage | happy | unit `OptionsPage` · verify-inbundly `bulk-trust` walk (real switch clicks) |
+| 15.7 | Options page: the three archive switches (skip starred under Starred threads; mark read and remove stars under Bundle buttons, "When Inbundly archives"), each auto-save their own key and restore from storage; "Remove stars too" is disabled and greyed (`.option-disabled`, its `.option-note` "Off while Archive buttons skip starred is on, since skipped threads keep their star." shown) while skip-starred is on, and its stored value is kept | happy | unit `OptionsPage` · verify-inbundly `bulk-trust` walk (real switch clicks) |
 | 15.8 | Live Gmail contract: with unread threads selected, `document.querySelector('.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"]')` is the envelope button and clicking it leaves the selection in place for the following Archive; clicking a row's `.T-KT.T-KT-Jp` unstars it. English-only tooltips, like snooze | contract | manual |
 | 15.9 | Known limitations: `Mark as read` and unstar go through Gmail's own controls, so what Gmail does after (server-side read state, the thread leaving Starred, undo) is Gmail's; a section of only pinned threads makes the icon a silent no-op rather than a disabled one; the pin-icon affordance in place of the star (#40) is not part of this layer | note | - |
+| 15.10 | Toolbar already revealed (a thread of the bundle checked by hand first): archive-all still clicks Archive, with the switches off and on. Gmail writes nothing to its toolbar while a selection grows, so `GmailToolbar` checks clickability right after selecting, not only on a toolbar mutation; it clicks the shown copy of a button (one hidden by an ancestor is skipped), waits for a `precededBy` step to apply (the envelope flips) before re-selecting and archiving, gives up after 3 s, and a newer action supersedes a waiting one so a stale wait never fires on a later selection | edge | e2e `bulk-trust.spec` (fixture writes only on change) · unit `GmailToolbar` |
 
 ## 16. Options page layout and find a setting (unreleased, PR #66, issue #57)
 
 | # | Scenario | Kind | Coverage |
 |---|----------|------|----------|
-| 16.1 | The Options tab is eight sections in this order: Bundling, Labels, Inbox layout, Pinned messages, Bundle actions, Appearance, Custom bundles, Sync & backup; each has an id, a one-line lead, and a jump link at the top in the same order | happy | unit `OptionsPage` · e2e `options-page.spec` · verify-inbundly `options-layout` walk |
+| 16.1 | The Options tab is eight sections in this order: Bundling, What becomes a bundle, Inbox layout, Starred threads, Bundle buttons, Colors, Custom bundles, Sync & backup (ids unchanged: `bundling`, `labels`, `inbox-layout`, `pinned-messages`, `bundle-actions`, `appearance`, `custom-bundles`, `sync-backup`); each has an id, a one-line lead, and a jump link at the top in the same order | happy | unit `OptionsPage` · e2e `options-page.spec` · verify-inbundly `options-layout` walk |
 | 16.2 | Every option keeps its key, control id, and default: each switch sits in a row with a `label.option-title[for=id]`, an explanation, and a `Default: on` / `Default: off` chip that agrees with `src/util/Options.js`; radios and lists restore from storage; the `label.switch:has(#id) .slider` click handle is unchanged | contract | unit `OptionsPage` (defaults pinned to `OPTION_DEFAULTS`) · e2e `options-page.spec` |
 | 16.3 | A setting whose value differs from its default gets the `differs` mark on its row, live on change and on restore; an Advanced fold (`#label-rules`, `#theme-matching`) that holds a changed setting opens on load, otherwise stays closed | happy | unit `OptionsPage` · e2e `options-page.spec` |
 | 16.4 | The hash routes tabs: empty is Options, `#help` / `#get-started` their tabs, a section id (`#bundle-actions`) lands on Options and scrolls the section to the top, a Get started heading id lands on Get started; the active nav link is marked and the title reads `Inbundly - <tab>` | happy | unit `OptionsPage` · e2e `options-page.spec` |
 | 16.5 | Find a setting: typing narrows to rows whose text, subsection heading, or section heading matches; sections left empty hide and their jump links dim; a fold with a match opens and returns to its prior state when the search is cleared; no match shows the note quoting the query; Escape clears; `/` focuses the box from the Options tab | happy | unit `OptionsPage` · e2e `options-page.spec` · verify-inbundly `options-layout` walk |
-| 16.6 | Bundle actions section holds the archive-all, snooze, and delete-all switches followed by the three archive switches (the site groups these the same way); the Get started tab links `Options -> Bundle actions`, `Options -> Pinned messages`, `Options -> Labels`, `Options -> Appearance` | happy | unit `OptionsPage` · e2e `options-page.spec` |
+| 16.6 | What becomes a bundle holds Your label list, No bundles of one, Bundle by sender (moved from Inbox layout) and Bundle label combinations (out of the fold); the `#label-rules` fold ("Advanced bundle rules") keeps only Priority bundles. Bundle buttons (`#bundle-actions`) holds the archive-all, snooze, and delete-all switches followed by the two remaining archive switches ("Mark as read too", "Remove stars too") under "When Inbundly archives", which opens with the scope line and ends with a pointer to Starred threads; the Starred threads section (`#pinned-messages`) holds both starred settings side by side in `#starred-pair`, "Show starred on their own rows" (`keepStarredUnbundled`) then "Archive buttons skip starred" (`skipStarredOnArchive`), closed by the shared interaction note, followed by "Starred switch in search bar"; the Get started tab links `Options -> Bundle buttons`, `Options -> Starred threads`, `Options -> What becomes a bundle`, `Options -> Colors` | happy | unit `OptionsPage` · e2e `options-page.spec` |
 | 16.7 | Copy: no em dashes on the page; the Saved pill is fixed at the bottom right and lights on every save; the side nav becomes a top bar under 860px | contract / manual | unit `OptionsPage` (em dashes) · manual (visual) |
+| 16.9 | Layout: each section is a card that opens with its `h2` title and `p.option-lead`; subsections (`.option-group`) are inset panels; help text (`.option-detail`, `.subsection-note`) shares one style; every switch row carries an empty `div.option-media[data-media-for=<checkbox id>][hidden]` slot for a future looping clip or still; light and dark (`prefers-color-scheme`) both use the palette tokens | contract / manual | unit `OptionsPage` (slots, header order) · manual (visual; verify-inbundly screenshots) |
+| 16.10 | Copy (Ducker's approved draft): "starred" everywhere a user acts (Starred threads, Show starred on their own rows, Archive buttons skip starred, Mark as read too, Remove stars too, Starred switch in search bar); Keep my bundle open says it is per tab; Sync & backup shows the compare-the-ID step (`#extension-id-compare`) only in Chrome and hides it in Firefox (detected by `browser.runtime.getBrowserInfo` or a `moz-extension:` URL), where the gecko id is pinned | contract | unit `OptionsPage` (copy, Firefox detection) |
 | 16.8 | Known limitations: search is a plain substring match over the visible copy (a word that appears in another setting's explanation finds that row too); fold open state is not remembered across reloads beyond the changed-setting rule; the live Options page in branded Chrome remains a human check (row 10.7) | note | - |
 
 ## How the e2e suite works
@@ -231,7 +236,8 @@ senders `.yX.xY .yW .bA4 span[email]`, labels `.ar.as .at`, list
 (the envelope button's tooltip is the contract row 15.8 checks). It also
 emulates the Gmail behaviors the extension depends on: clicking a row
 checkbox toggles `aria-checked` and the row's `x7` class, and reveals the
-toolbar's action cluster while any message row (`tr.zA.x7:not(.bundle-row)`,
+toolbar's action cluster (writing only on change, as Gmail does, so a
+growing selection mutates nothing) while any message row (`tr.zA.x7:not(.bundle-row)`,
 since the extension mirrors a full selection onto its bundle row too) is
 selected; toolbar clicks are recorded on `window.__gmail.clicks`, Archive
 and Mark as read also on `window.__gmail.actions` with the selected rows'
@@ -297,10 +303,10 @@ spec. The feature recipes live in `.cursor/skills/verify-inbundly/features/`.
    Turn the switch off afterwards; the lists refresh to plain.
 8. Archive-switch canary (row 15.8): select one unread thread in the Inbox
    and confirm `document.querySelector('.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"]')`
-   is the envelope button. Then turn on Options, Bundle actions, "Mark as
-   read first" and "Leave starred messages in place", star one
-   thread in a bundle of unread threads (with "Keep starred messages outside
-   bundles" off so it stays inside), and click the bundle's archive-all: the
+   is the envelope button. Then turn on Options, Bundle buttons, "Mark as
+   read too" and Options, Starred threads, "Archive buttons skip starred", star one
+   thread in a bundle of unread threads (with "Show starred on their own
+   rows" off so it stays inside), and click the bundle's archive-all: the
    unread threads are marked read and archived, the starred one stays.
    Move the archived threads back from All Mail and unstar afterwards.
 

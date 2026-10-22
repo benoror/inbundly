@@ -28,6 +28,7 @@ import PinnedToggle from './components/PinnedToggle';
 import SelectionBundleControl from './components/SelectionBundleControl';
 
 import KeyboardNavHandler from './handlers/KeyboardNavHandler';
+import { logDebugMessage } from './util/Debug';
 import TabPanelsObserver from './handlers/TabPanelsObserver';
 import MessageListObserver from './handlers/MessageListObserver';
 import MainParentObserver from './handlers/MainParentObserver';
@@ -36,6 +37,7 @@ import StarHandler from './handlers/StarHandler';
 import ThemeChangeHandler from './handlers/ThemeChangeHandler';
 
 import ArchiveAction from './util/ArchiveAction';
+import GmailToolbar from './util/GmailToolbar';
 import { 
     InbundlyClasses,
     Selectors,
@@ -59,12 +61,6 @@ import {
 // bundlingEnabled drives its own enable/disable handling.
 const BUNDLING_RULE_KEYS = BUNDLING_OPTION_KEYS.filter(k => k !== 'bundlingEnabled');
 
-const DEBUG = true;
-const logDebugMessage = message => {
-    if (DEBUG) {
-        console.log(`inbundly-debug: ${message}`);
-    }
-};
 
 // Master on/off switch (Options + top-bar toggle + popup all write this).
 // When false inbundly goes dormant: the list is left plain and every injected
@@ -228,6 +224,21 @@ const selectiveBundling = new SelectiveBundling(customBundles);
 const selectionBundleControl = new SelectionBundleControl(customBundles);
 const bundler = new Bundler(bundleToggler, bundledMail, messageListWatcher, selectiveBundling);
 const starHandler = new StarHandler(bundledMail, selectiveBundling);
+// A star flipped in place: rebundle (a no-op unless the star changes where the
+// thread belongs). Held off while inbundly's own archive drives the toolbar,
+// e.g. unstarOnArchive clicking stars off; Gmail's repaint after the archive
+// rebundles anyway.
+let starRebundlePending = false;
+bundler.setStarToggleHandler(() => {
+    if (starRebundlePending || GmailToolbar.isBusy()) {
+        return;
+    }
+    starRebundlePending = true;
+    setTimeout(() => {
+        starRebundlePending = false;
+        handleGmailRerender();
+    }, 0);
+});
 const dateGrouper = new DateGrouper();
 // Keyboard navigation over the bundled list (j/k across bundle rows, shortcuts
 // inside an open bundle). Dormant whenever bundling doesn't apply to the page.

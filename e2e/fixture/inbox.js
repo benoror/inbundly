@@ -72,6 +72,15 @@ let nextThreadNumber = 1;
  *   daysAgo - age of the thread (drives the date cell), default 0
  *   unread  - bold/unread styling class (zE) vs read (yO), default false
  *   starred - star cell state, default false
+ *
+ * Optional, for the marketing render page (marketing/render/); the e2e specs
+ * leave them unset and get the rows they always had:
+ *   snippet     - snippet text after the subject (Gmail's .y2 span)
+ *   labelColors - { [label]: { background, color } } inline chip colors, the
+ *                 way Gmail paints a colored label chip
+ *   dateText /
+ *   dateTitle   - fixed date cell text and tooltip, instead of the ones
+ *                 derived from daysAgo and the current clock
  */
 function threadRow({
     sender,
@@ -81,6 +90,10 @@ function threadRow({
     daysAgo = 0,
     unread = false,
     starred = false,
+    snippet = null,
+    labelColors = {},
+    dateText: fixedDateText = null,
+    dateTitle: fixedDateTitle = null,
 } = {}) {
     // Hex thread id shaped like Gmail's data-legacy-thread-id.
     const threadId = '1a' + (nextThreadNumber++).toString(16).padStart(13, '0');
@@ -88,8 +101,12 @@ function threadRow({
     // compares selected rows to bundle members by it.
     const rowId = `:fixture-row-${threadId}`;
     const name = sender || (email ? email.split('@')[0] : 'Sender');
+    const chipStyle = l => {
+        const c = labelColors[l];
+        return c ? ` style="background-color: ${escapeHtml(c.background)}; color: ${escapeHtml(c.color)};"` : '';
+    };
     const labelChips = labels.map(l => `
-        <div class="ar as" title=""><div class="at" title="${escapeHtml(l)}">
+        <div class="ar as" title=""><div class="at" title="${escapeHtml(l)}"${chipStyle(l)}>
             <div class="av">${escapeHtml(l)}</div>
         </div></div>`).join('');
     const starClasses = starred ? 'T-KT T-KT-Jp' : 'T-KT aXw';
@@ -111,14 +128,15 @@ function threadRow({
             </td>
             <td class="xY a4W" role="gridcell">
                 <div class="xS"><div class="xT">
-                    <div class="y6"><span><span>${escapeHtml(subject)}</span></span></div>
+                    <div class="y6"><span><span>${escapeHtml(subject)}</span></span></div>${snippet === null ? '' : `
+                    <span class="y2"><span class="Zt">&nbsp;-&nbsp;</span>${escapeHtml(snippet)}</span>`}
                     ${labelChips}
                 </div></div>
             </td>
             <td class="byZ xY" role="gridcell"></td>
             <td class="yf xY"></td>
             <td class="xW xY" role="gridcell">
-                <span title="${dateTitle(daysAgo)}"><span>${dateText(daysAgo)}</span></span>
+                <span title="${escapeHtml(fixedDateTitle || dateTitle(daysAgo))}"><span>${escapeHtml(fixedDateText || dateText(daysAgo))}</span></span>
             </td>
         </tr>`;
 }
@@ -131,8 +149,29 @@ function threadRow({
  * does outside the Inbox: search results, label views, Snoozed). The list
  * markup is the same in every view; which view the extension sees is decided
  * by the URL hash the page is opened at (e2e/helpers/gmail.js openView).
+ *
+ * Extension points for the marketing render page (marketing/render/), all off
+ * by default so the e2e specs get the bare page they always had:
+ *   head               - extra markup at the end of <head> (a stylesheet)
+ *   wrapBefore /
+ *   wrapAfter          - markup around the Gmail page (stand-in chrome: top
+ *                        bar, navigation, the message pane wrapper)
+ *   bodyEnd            - extra markup at the end of <body>, after the Gmail
+ *                        emulation script
+ *   archiveRemovesRows - Archive takes the archived rows out of the list and
+ *                        repaints it, as Gmail does, instead of only
+ *                        recording the action
  */
-function inboxPage({ threads = [], tab = 'Primary', cursorFollowsFocus = true } = {}) {
+function inboxPage({
+    threads = [],
+    tab = 'Primary',
+    cursorFollowsFocus = true,
+    head = '',
+    wrapBefore = '',
+    wrapAfter = '',
+    bodyEnd = '',
+    archiveRemovesRows = false,
+} = {}) {
     const rows = threads.map(threadRow).join('\n');
     const tablist = tab === null ? '' : `
     <div role="tablist">
@@ -149,10 +188,10 @@ function inboxPage({ threads = [], tab = 'Primary', cursorFollowsFocus = true } 
   /* Gmail's stylesheet gives these size; tests need real bounding boxes. */
   .G-atb .T-I { display: inline-block; width: 24px; height: 24px; }
   td.oZ-x3 .oZ-jc { display: inline-block; width: 16px; height: 16px; }
-</style>
+</style>${head}
 </head>
 <body>
-<input id="fixture-search" aria-label="Search mail">
+<input id="fixture-search" aria-label="Search mail">${wrapBefore}
 <div class="nH">
   <div class="BltHke nH oy8Mbf" role="main">
     <div class="G-atb" gh="tm">
@@ -181,7 +220,7 @@ ${rows}
       </div>
     </div>
   </div>
-</div>
+</div>${wrapAfter}
 <script>
 (function emulateGmail() {
     window.__gmail = { clicks: [], actions: [], refreshes: 0 };
@@ -192,8 +231,12 @@ ${rows}
         const envelope = document.getElementById('fixture-envelope');
         const anyUnread = messageRows().some(r => isSelected(r) && r.classList.contains('zE'));
         const label = anyUnread ? 'Mark as read' : 'Mark as unread';
-        envelope.setAttribute('data-tooltip', label);
-        envelope.setAttribute('aria-label', label);
+        // Like Gmail, write only on change: a selection that grows while the
+        // toolbar is already revealed mutates nothing in the toolbar.
+        if (envelope.getAttribute('data-tooltip') !== label) {
+            envelope.setAttribute('data-tooltip', label);
+            envelope.setAttribute('aria-label', label);
+        }
     }
 
     // Gmail behavior: a row checkbox click toggles the row's selected state
@@ -210,7 +253,11 @@ ${rows}
                 // asynchronously, so matching it here would keep the toolbar
                 // revealed after a deselect-all (real Gmail uses its own model).
                 const anySelected = !!document.querySelector('tr.zA.x7:not(.bundle-row)');
-                document.querySelector('.G-Ni').style.display = anySelected ? '' : 'none';
+                const cluster = document.querySelector('.G-Ni');
+                const display = anySelected ? '' : 'none';
+                if (cluster.style.display !== display) {
+                    cluster.style.display = display;
+                }
             });
         });
     }
@@ -239,6 +286,9 @@ ${rows}
             const selected = messageRows().filter(isSelected);
             if (button.getAttribute('act') === '7') {
                 record('archive', selected);
+                if (ARCHIVE_REMOVES_ROWS) {
+                    removeFromList(selected);
+                }
             }
             else if (tooltip === 'Mark as read') {
                 selected.forEach(r => {
@@ -256,14 +306,34 @@ ${rows}
     // script runs before the content script, so the snapshot is pristine.
     const listContainer = [...document.querySelectorAll('.Cp')]
         .find(cp => cp.querySelector('table.F'));
-    const pristineList = listContainer.innerHTML;
-    document.querySelector('.G-atb .T-I[act="20"]').addEventListener('click', () => {
-        window.__gmail.refreshes += 1;
+    let pristineList = listContainer.innerHTML;
+    function repaintList() {
         listContainer.innerHTML = pristineList;
         wireCheckboxes();
         wireStars();
         wireRowClicks();
+    }
+    document.querySelector('.G-atb .T-I[act="20"]').addEventListener('click', () => {
+        window.__gmail.refreshes += 1;
+        repaintList();
     });
+
+    // Gmail behavior (archiveRemovesRows only): archived threads leave the
+    // list, which Gmail repaints without them; nothing is selected after.
+    const ARCHIVE_REMOVES_ROWS = ${archiveRemovesRows ? 'true' : 'false'};
+    function removeFromList(rows) {
+        const ids = new Set(rows.map(r => r.id));
+        const scratch = document.createElement('div');
+        scratch.innerHTML = pristineList;
+        scratch.querySelectorAll('tr.zA').forEach(r => {
+            if (ids.has(r.id)) {
+                r.remove();
+            }
+        });
+        pristineList = scratch.innerHTML;
+        repaintList();
+        document.querySelector('.G-Ni').style.display = 'none';
+    }
 
     // --- Keyboard cursor -------------------------------------------------
     // Gmail's own list is the DOM order of its rows; bundle rows are not in
@@ -361,7 +431,7 @@ ${rows}
     }
     wireRowClicks();
 })();
-</script>
+</script>${bodyEnd}
 </body>
 </html>`;
 }

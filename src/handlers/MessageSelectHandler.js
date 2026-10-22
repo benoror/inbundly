@@ -18,6 +18,7 @@
 import {
     GmailClasses,
     InbundlyClasses,
+    PINNED_STAMP_ATTR,
     Selectors,
     TableBodySelectors,
 } from '../util/Constants';
@@ -43,6 +44,20 @@ const MAIN_CONFIG = {
  * a message row's class on select/check, and mirrors a message's selected state
  * onto its bundle row.
  */
+/**
+ * True if the mutation flipped a Gmail star (`.T-KT`) between starred and not.
+ */
+function _isStarToggle(mutation) {
+    const target = mutation.target;
+    if (mutation.attributeName !== 'class' || !target.classList ||
+        !target.classList.contains('T-KT')) {
+        return false;
+    }
+    const was = !!mutation.oldValue &&
+        mutation.oldValue.split(/\s+/).includes(GmailClasses.STARRED);
+    return was !== target.classList.contains(GmailClasses.STARRED);
+}
+
 class MessageSelectHandler {
 
     constructor(bundledMail, selectiveBundling) {
@@ -50,6 +65,8 @@ class MessageSelectHandler {
         this.selectiveBundling = selectiveBundling;
         this.observer = null;
         this.observedMain = null;
+        // Called (once per mutation batch) when a message row's star flips.
+        this.onStarToggle = null;
         this.inbundlyStyler = new InbundlyStyler(bundledMail);
 
         this._handleMutations = this._handleMutations.bind(this);
@@ -83,6 +100,8 @@ class MessageSelectHandler {
         }
         this.observer = null;
         this.observedMain = null;
+        // Called (once per mutation batch) when a message row's star flips.
+        this.onStarToggle = null;
     }
 
     _handleMutations(mutations) {
@@ -95,6 +114,13 @@ class MessageSelectHandler {
         // message element refs go stale when Gmail re-renders a row, but the
         // row's own labels (and thus its bundle key) do not.
         const openRef = this.bundledMail.getOpenedBundleRef();
+
+        // Gmail toggles a row's star in place (class swap on the star span,
+        // no list repaint), so nothing else would tell the bundler; it decides
+        // from the rows' star state whether a redraw is needed.
+        if (this.onStarToggle && mutations.some(_isStarToggle)) {
+            this.onStarToggle();
+        }
 
         mutations.forEach(mutation => {
             if (mutation.attributeName !== 'class') {
@@ -113,7 +139,10 @@ class MessageSelectHandler {
 
             // Only a row missing our classes needs restoring; skip the label
             // lookup for the common case (e.g. hover) where nothing was dropped.
+            // A row the pass kept out for its star (keepStarredUnbundled) is
+            // loose on purpose, even though it carries the open bundle's label.
             const maybeRestore = !!openRef &&
+                row.getAttribute(PINNED_STAMP_ATTR) !== '1' &&
                 (!row.classList.contains(InbundlyClasses.BUNDLED_MESSAGE) ||
                     !row.classList.contains(InbundlyClasses.VISIBLE));
 

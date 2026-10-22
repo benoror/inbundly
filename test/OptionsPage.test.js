@@ -240,11 +240,11 @@ test('the options page groups settings by topic, in the order of the section lin
 
     expect(headings).toEqual([
         'Bundling',
-        'Labels',
+        'What becomes a bundle',
         'Inbox layout',
-        'Pinned messages',
-        'Bundle actions',
-        'Appearance',
+        'Starred threads',
+        'Bundle buttons',
+        'Colors',
         'Custom bundles',
         'Sync & backup',
     ]);
@@ -269,6 +269,74 @@ test('every switch sits in a row with a title, an explanation, and its default',
     }
 });
 
+test('each section card opens with its title and lead, and every switch row has an empty media slot', () => {
+    for (const section of document.querySelectorAll('.option-category')) {
+        expect(section.firstElementChild.tagName).toBe('H2');
+        expect(section.firstElementChild.nextElementSibling.classList.contains('option-lead')).toBe(true);
+    }
+    for (const input of document.querySelectorAll('.tab.options input[type="checkbox"]')) {
+        const slot = input.closest('.option-row').querySelector('.option-text > .option-media');
+        expect(slot).not.toBeNull();
+        expect(slot.dataset.mediaFor).toBe(input.id);
+        expect(slot.hidden).toBe(true);
+        expect(slot.children).toHaveLength(0);
+    }
+});
+
+test('What becomes a bundle holds the label list, sender bundles, and combine labels outside the fold', () => {
+    const section = document.getElementById('labels');
+    const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
+    expect(ids).toEqual([
+        'skip-single-item-bundles-checkbox',
+        'sender-bundling-checkbox',
+        'combine-labels-checkbox',
+    ]);
+    expect(document.getElementById('inbox-layout').querySelector('#sender-bundling-checkbox')).toBeNull();
+    for (const id of ids) {
+        expect(document.getElementById(id).closest('details')).toBeNull();
+    }
+    // Only the priority rules stay folded.
+    expect(document.getElementById('label-rules').querySelectorAll('textarea, input')).toHaveLength(1);
+    expect(document.getElementById('label-rules').querySelector('#priority-bundles-list')).not.toBeNull();
+});
+
+describe('Remove stars depends on skip-starred', () => {
+    const unstar = () => document.getElementById('unstar-on-archive-checkbox');
+    const skip = () => document.getElementById('skip-starred-on-archive-checkbox');
+    const unstarRow = () => unstar().closest('.option-row');
+    const note = () => unstarRow().querySelector('.option-note[data-note-for="unstar-on-archive-checkbox"]');
+    const flip = (input, value) => {
+        input.checked = value;
+        input.dispatchEvent(new window.Event('change', { bubbles: true }));
+    };
+
+    test('enabled while skip-starred is off', () => {
+        expect(unstar().disabled).toBe(false);
+        expect(unstarRow().classList.contains('option-disabled')).toBe(false);
+        expect(note().hidden).toBe(true);
+    });
+
+    test('greyed out with its note while skip-starred is on, stored value untouched', () => {
+        loadOptionsPage({ skipStarredOnArchive: true, unstarOnArchive: true });
+
+        expect(unstar().disabled).toBe(true);
+        expect(unstar().checked).toBe(true);
+        expect(unstarRow().classList.contains('option-disabled')).toBe(true);
+        expect(note().hidden).toBe(false);
+        expect(store.unstarOnArchive).toBe(true);
+
+        flip(skip(), false);
+        expect(unstar().disabled).toBe(false);
+        expect(unstar().checked).toBe(true);
+        expect(note().hidden).toBe(true);
+        expect(store).toEqual({ skipStarredOnArchive: false, unstarOnArchive: true });
+
+        flip(skip(), true);
+        expect(unstar().disabled).toBe(true);
+        expect(store).toEqual({ skipStarredOnArchive: true, unstarOnArchive: true });
+    });
+});
+
 test('the bulk actions and their archive behavior share one section', () => {
     const section = document.getElementById('bundle-actions');
     const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
@@ -277,17 +345,40 @@ test('the bulk actions and their archive behavior share one section', () => {
         'show-bundle-archive-checkbox',
         'show-bundle-snooze-checkbox',
         'show-bundle-delete-checkbox',
-        'skip-starred-on-archive-checkbox',
         'mark-read-on-archive-checkbox',
         'unstar-on-archive-checkbox',
     ]);
 });
 
+test('both starred settings sit side by side in the Starred threads section', () => {
+    const section = document.getElementById('pinned-messages');
+    const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
+
+    expect(ids).toEqual([
+        'keep-starred-unbundled-checkbox',
+        'skip-starred-on-archive-checkbox',
+        'show-pinned-toggle-checkbox',
+    ]);
+    // Adjacent rows, so the two read as a pair.
+    const keep = document.getElementById('keep-starred-unbundled-checkbox').closest('.option-row');
+    const skip = document.getElementById('skip-starred-on-archive-checkbox').closest('.option-row');
+    expect(keep.nextElementSibling).toBe(skip);
+});
+
 test('a setting that differs from its default is marked, and its fold opens', () => {
     loadOptionsPage({ combineLabels: false, showBundleDelete: true });
 
+    // Combine labels sits outside the fold now, so changing it leaves the fold closed.
     const combine = document.getElementById('combine-labels-checkbox').closest('.option-row');
     expect(combine.classList.contains('differs')).toBe(true);
+    expect(combine.closest('details')).toBeNull();
+    expect(document.getElementById('label-rules').open).toBe(false);
+    expect(document.getElementById('theme-matching').open).toBe(false);
+
+    // A changed setting inside a fold opens it.
+    loadOptionsPage({ priorityBundles: ['Bank'], showBundleDelete: true });
+    expect(document.getElementById('priority-bundles-list').closest('.option-block')
+        .classList.contains('differs')).toBe(true);
     expect(document.getElementById('label-rules').open).toBe(true);
     expect(document.getElementById('theme-matching').open).toBe(false);
 
@@ -356,7 +447,6 @@ describe('find a setting', () => {
         search('when inbundly archives');
 
         expect(visibleRows()).toEqual([
-            'skip-starred-on-archive-checkbox',
             'mark-read-on-archive-checkbox',
             'unstar-on-archive-checkbox',
         ]);
@@ -364,7 +454,7 @@ describe('find a setting', () => {
     });
 
     test('a section name finds every setting in it, blocks included', () => {
-        search('Appearance');
+        search('Colors');
 
         expect(visibleSections()).toEqual(['appearance']);
         expect(hidden(document.getElementById('color-style-accent').closest('.option-block')))
@@ -469,4 +559,69 @@ test('exporting produces JSON holding the current settings', () => {
     expect(payload.app).toBe('inbundly');
     expect(payload.settings.priorityBundles).toEqual(['Bank', 'Work + Urgent']);
     expect(document.getElementById('backup-status').textContent).toBe('Settings exported.');
+});
+
+describe('copy', () => {
+    const title = id => document.querySelector(`label.option-title[for="${id}"]`).textContent.trim();
+    const text = el => el.textContent.replace(/\s+/g, ' ').trim();
+
+    test('the starred settings say "starred" and name what they do', () => {
+        expect(text(document.querySelector('#pinned-messages > h2'))).toBe('Starred threads');
+        expect(title('keep-starred-unbundled-checkbox')).toBe('Show starred on their own rows');
+        expect(title('skip-starred-on-archive-checkbox')).toBe('Archive buttons skip starred');
+        expect(title('show-pinned-toggle-checkbox')).toBe('Starred switch in search bar');
+        expect(title('mark-read-on-archive-checkbox')).toBe('Mark as read too');
+        expect(title('unstar-on-archive-checkbox')).toBe('Remove stars too');
+        // The shared interaction note closes the starred pair.
+        expect(text(document.querySelector('#starred-pair > .option-group-footnote')))
+            .toBe('When starred threads have their own rows, they are never inside a bundle, so '
+                + 'skipping them only matters for the archive button on date headings.');
+        // The scope line under "When Inbundly archives" and its pointer back to Starred threads.
+        const group = document.getElementById('archive-behavior');
+        expect(text(group.querySelector('.subsection-note'))).toMatch(/^These switches only change Inbundly's archive buttons/);
+        expect(group.querySelector('.option-group-footnote a').getAttribute('href')).toBe('#pinned-messages');
+    });
+
+    test('the Remove stars note explains why it is off', () => {
+        expect(text(document.querySelector('.option-note[data-note-for="unstar-on-archive-checkbox"]')))
+            .toBe('Off while Archive buttons skip starred is on, since skipped threads keep their star.');
+    });
+
+    test('Keep my bundle open says it is per tab', () => {
+        expect(title('remember-open-bundle-checkbox')).toBe('Keep my bundle open');
+        expect(text(document.getElementById('remember-open-bundle-checkbox').closest('.option-row')
+            .querySelector('.option-detail')))
+            .toBe('Remembers which bundle you had open in this tab, even after a reload. Closing the tab resets it.');
+    });
+});
+
+describe('extension ID compare step', () => {
+    afterEach(() => {
+        delete global.browser;
+    });
+
+    test('is shown in Chrome', () => {
+        const compare = document.getElementById('extension-id-compare');
+        expect(compare.hidden).toBe(false);
+        expect(compare.textContent).toContain('chrome://extensions');
+        expect(document.getElementById('extension-id').textContent).toBe(EXTENSION_ID);
+    });
+
+    test('is hidden in Firefox, detected from a moz-extension: URL', () => {
+        const realLoad = loadOptionsPage;
+        realLoad({});
+        global.chrome.runtime.getURL = path => `moz-extension://abc/${path}`;
+        // Re-run the tab selection so showExtensionId reads the Firefox runtime.
+        window.location.hash = '#help';
+        window.dispatchEvent(new window.Event('hashchange'));
+        window.location.hash = '';
+        window.dispatchEvent(new window.Event('hashchange'));
+        expect(document.getElementById('extension-id-compare').hidden).toBe(true);
+    });
+
+    test('is hidden in Firefox, detected from browser.runtime.getBrowserInfo', () => {
+        global.browser = { runtime: { getBrowserInfo: () => Promise.resolve({ name: 'Firefox' }) } };
+        loadOptionsPage({});
+        expect(document.getElementById('extension-id-compare').hidden).toBe(true);
+    });
 });

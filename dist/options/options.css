@@ -44,6 +44,7 @@
     --danger-tint: #F3E1E0;
 
     --shadow: 1px 2px 4px rgba(43, 43, 54, 0.14);
+    --shadow-soft: 0 1px 2px rgba(43, 43, 54, 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -66,6 +67,7 @@
         --danger-tint: #3A2A2A;
 
         --shadow: 1px 2px 6px rgba(0, 0, 0, 0.4);
+        --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.35);
     }
 }
 
@@ -187,15 +189,12 @@ h2 {
 }
 
 h3.subsection-header {
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 1.05rem;
+    font-weight: 700;
     margin: 1.5rem 0 0.25rem 0;
 }
 
 .subsection-note {
-    color: var(--muted);
-    font-size: 0.875rem;
-    line-height: 1.5;
     margin: 0 0 0.5rem 0;
     max-width: 42rem;
 }
@@ -203,6 +202,11 @@ h3.subsection-header {
 .tab-lead {
     color: var(--muted);
     margin-bottom: 1.5rem;
+}
+
+.tab.options > h1 {
+    font-size: 2.1rem;
+    letter-spacing: -0.015em;
 }
 
 /**
@@ -367,13 +371,20 @@ h3.subsection-header {
     margin: 1.5rem 0;
 }
 
+/** Narrow windows: cards lose some padding */
+@media (max-width: 600px) {
+    .option-category {
+        padding: 1.1rem 1rem 0.4rem;
+    }
+}
+
 /** Section jump links */
 
 .section-nav {
     display: flex;
     flex-wrap: wrap;
     gap: 6px 8px;
-    margin: 1rem 0 0.5rem;
+    margin: 1rem 0 1.75rem;
 }
 
 .section-nav a {
@@ -395,25 +406,33 @@ h3.subsection-header {
     opacity: 0.4;
 }
 
-/** Sections */
+/** Sections: one card per topic */
 
 .option-category {
-    border-top: 1px solid var(--border);
-    margin: 0 0 2.5rem 0;
-    padding-top: 0.75rem;
+    background-color: var(--raised);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    margin: 0 0 1.75rem 0;
+    padding: 1.35rem 1.5rem 0.6rem;
     scroll-margin-top: 1.5rem;
 }
 
+/* Section header: a large title and a one-line lead, set apart from the rows. */
 .option-category > h2 {
-    font-size: 1.2rem;
-    margin: 0.75rem 0 0.25rem 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    margin: 0 0 0.35rem 0;
 }
 
 .option-lead {
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     line-height: 1.5;
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 1rem 0;
+    max-width: 40rem;
 }
 
 .option-lead a {
@@ -427,7 +446,15 @@ h3.subsection-header {
 .option-row,
 .option-block {
     border-top: 1px solid var(--border);
-    padding: 0.85rem 0;
+    padding: 0.95rem 0;
+}
+
+/* No hairline right under the section header or a subsection note. */
+.option-lead + .option-row,
+.option-lead + .option-block,
+.option-lead + .option-advanced {
+    border-top: none;
+    padding-top: 0.35rem;
 }
 
 .option-row {
@@ -440,12 +467,13 @@ h3.subsection-header {
 .option-text {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
 }
 
 .option-title {
-    font-weight: 500;
+    font-size: 1rem;
+    font-weight: 600;
     line-height: 1.35;
 }
 
@@ -453,9 +481,11 @@ label.option-title {
     cursor: pointer;
 }
 
-.option-detail {
+/* One help-text style everywhere: row explanations, subsection notes, fold summaries. */
+.option-detail,
+.subsection-note {
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.86rem;
     line-height: 1.5;
 }
 
@@ -469,10 +499,14 @@ label.option-title {
 }
 
 .option-default {
+    align-self: flex-start;
+    background-color: var(--tint);
+    border-radius: 999px;
     color: var(--muted);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     letter-spacing: 0.03em;
-    margin-top: 2px;
+    margin-top: 3px;
+    padding: 1px 8px;
     text-transform: uppercase;
 }
 
@@ -482,6 +516,59 @@ label.option-title {
 
 .differs .option-default::before {
     content: 'Changed. ';
+}
+
+/*
+ * Media slot: a short looping clip or still that shows a setting at work.
+ * Empty and hidden until a row gets real media: drop a <video autoplay loop
+ * muted playsinline> or an <img> inside and remove the hidden attribute.
+ */
+.option-media {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    max-width: 22rem;
+    overflow: hidden;
+}
+
+.option-media[hidden],
+.option-media:empty {
+    display: none;
+}
+
+.option-media video,
+.option-media img {
+    display: block;
+    height: auto;
+    width: 100%;
+}
+
+/* A switch that has no effect right now (see DEPENDENT_SWITCHES in options.js). */
+.option-row.option-disabled .option-title,
+.option-row.option-disabled .option-detail {
+    opacity: 0.55;
+}
+
+.option-row.option-disabled label.option-title,
+.option-row.option-disabled .slider {
+    cursor: not-allowed;
+}
+
+.option-row.option-disabled .switch {
+    opacity: 0.45;
+}
+
+/* A short note under a setting, e.g. why it is greyed out. */
+.option-note {
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-style: italic;
+    line-height: 1.45;
+}
+
+.option-note[hidden],
+.option-note:empty {
+    display: none;
 }
 
 .option-block .option-text {
@@ -494,12 +581,36 @@ label.option-title {
     padding-top: 0;
 }
 
+/* A subsection: an inset panel inside its section card. */
 .option-group {
-    margin-top: 0.75rem;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 0.5rem 0 1rem;
+    padding: 0.9rem 1.1rem 0.2rem;
 }
 
-.option-group > .subsection-header + .subsection-note + .option-row {
+.option-group > .subsection-header {
+    margin-top: 0;
+}
+
+.option-group > .subsection-header + .subsection-note + .option-row,
+.option-group > .subsection-header + .option-row,
+.option-group > .option-row:first-child {
     border-top: none;
+}
+
+/* A short line closing a subsection, e.g. how its settings work together. */
+.option-group-footnote {
+    border-top: 1px solid var(--border);
+    margin: 0;
+    padding: 0.7rem 0 0.8rem;
+}
+
+.option-group-footnote a {
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 3px;
 }
 
 /** Advanced settings folded under a section */

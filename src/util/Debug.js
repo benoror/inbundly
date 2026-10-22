@@ -1,0 +1,32 @@
+// Inbundly: Google Inbox-style bundles for Gmail (a fork of inboxy).
+// Copyright (C) 2020  Teresa Ou
+// Copyright (C) 2026  Ben Orozco
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+// The one switch for the `inbundly-debug:` console lines. It used to live in
+// content.js; it sits here so other modules (Bundler) log behind the same flag.
+const DEBUG = false;
+
+function isDebugEnabled() {
+    return DEBUG;
+}
+
+function logDebugMessage(message) {
+    if (isDebugEnabled()) {
+        console.log(`inbundly-debug: ${message}`);
+    }
+}
+
+export { isDebugEnabled, logDebugMessage };

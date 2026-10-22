@@ -1,6 +1,6 @@
 # Bundles outside the Inbox
 
-With the `Also bundle outside the inbox` switch on (Options, Bundling; off by default),
+With the `Bundle other Gmail pages too` switch on (Options, Bundling; off by default),
 Inbundly bundles the other Gmail list views the same way it bundles the Inbox: search
 results, label views, Snoozed, Starred, Important, and All Mail. Two things differ from
 the Inbox. Gmail's own chips (the `Inbox` chip a search result shows, `Sent`, `Draft`)
@@ -26,7 +26,7 @@ are left alone.
 
 ## How to get to it (user POV)
 
-- Options, Bundling, turn on `Also bundle outside the inbox`. Any search results page,
+- Options, Bundling, turn on `Bundle other Gmail pages too`. Any search results page,
   label view, or Snoozed you are looking at rebundles at once.
 - Search Gmail, open a label from the left nav, or open Snoozed: bundles appear, open
   and close like in the Inbox, and `View all` keeps you in that view.
