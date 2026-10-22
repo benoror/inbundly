@@ -36,6 +36,7 @@ import StarHandler from './handlers/StarHandler';
 import ThemeChangeHandler from './handlers/ThemeChangeHandler';
 
 import ArchiveAction from './util/ArchiveAction';
+import GmailToolbar from './util/GmailToolbar';
 import { 
     InbundlyClasses,
     Selectors,
@@ -228,6 +229,21 @@ const selectiveBundling = new SelectiveBundling(customBundles);
 const selectionBundleControl = new SelectionBundleControl(customBundles);
 const bundler = new Bundler(bundleToggler, bundledMail, messageListWatcher, selectiveBundling);
 const starHandler = new StarHandler(bundledMail, selectiveBundling);
+// A star flipped in place: rebundle (a no-op unless the star changes where the
+// thread belongs). Held off while inbundly's own archive drives the toolbar,
+// e.g. unstarOnArchive clicking stars off; Gmail's repaint after the archive
+// rebundles anyway.
+let starRebundlePending = false;
+bundler.setStarToggleHandler(() => {
+    if (starRebundlePending || GmailToolbar.isBusy()) {
+        return;
+    }
+    starRebundlePending = true;
+    setTimeout(() => {
+        starRebundlePending = false;
+        handleGmailRerender();
+    }, 0);
+});
 const dateGrouper = new DateGrouper();
 // Keyboard navigation over the bundled list (j/k across bundle rows, shortcuts
 // inside an open bundle). Dormant whenever bundling doesn't apply to the page.

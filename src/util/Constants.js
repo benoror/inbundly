@@ -95,6 +95,10 @@ const LABELS = `.ar.as .at`;
 // Data attribute stamped on each section's table body so a message row can be
 // mapped back to the section it belongs to (used to scope bundle toggling).
 const SECTION_ATTR = 'data-inbundly-section';
+
+// Stamped on each message row by a bundle pass: '1' when the pass kept the row
+// out of its bundle for its star (keepStarredUnbundled), '0' otherwise.
+const PINNED_STAMP_ATTR = 'data-inbundly-pinned';
 const Selectors = {
     // Per-message checkboxes only: inbundly's own bundle select-all checkbox
     // carries the same Gmail classes (GmailClasses.CHECKBOX) so Gmail's
@@ -180,6 +184,7 @@ export {
     NO_TAB,
     LABEL_SET_SEPARATOR,
     SECTION_ATTR,
+    PINNED_STAMP_ATTR,
     GmailClasses,
     InbundlyClasses,
     Selectors, 

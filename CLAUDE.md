@@ -261,7 +261,10 @@ Flow for landing a feature branch and cutting a release:
   does (option turned off on a search), so Gmail repaints the plain list. `keepStarredUnbundled` (default `true`) is a bundling key: when on,
   starred messages stay outside bundles (Inbox-style pinning); when off,
   `StarHandler` skips scroll compensation because starring no longer changes
-  layout.
+  layout. Gmail flips a star in place (no list repaint), so each pass stamps
+  rows with `data-inbundly-pinned` (`PINNED_STAMP_ATTR`), `MessageSelectHandler`
+  reports star class flips, and `Bundler._hasStaleStarLayout` lets the next
+  pass redraw a still-bundled section whose stars changed (TESTING.md 6.2).
   Custom-bundle membership uses the same listener via
   `CustomBundles.applyStoredValue`. The options page also re-reads the form
   when sync values change remotely.

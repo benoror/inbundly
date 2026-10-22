@@ -91,10 +91,11 @@ tags `v2.1.0` … `v4.4.0`.
 
 | # | Scenario | Kind | Coverage |
 |---|----------|------|----------|
-| 6.1 | `keepStarredUnbundled` on (default): starred thread stays outside its bundle | happy | unit `BundlerOptions`, `StarHandler` · manual ✔ (2026-09, prior session) |
-| 6.2 | Starring inside an open bundle pops the message out; unstarring returns it | happy | manual ✔ (prior session) |
+| 6.1 | `keepStarredUnbundled` on (default): starred thread stays outside its bundle | happy | e2e `starred.spec` · unit `BundlerOptions`, `StarHandler` · manual ✔ (2026-09, prior session) |
+| 6.2 | Starring inside an open bundle pops the message out (the bundle stays open); unstarring a pinned thread returns it to its bundle. Gmail flips the star in place (class swap on `.T-KT`, no list repaint), so `MessageSelectHandler` reports the flip and `Bundler` redraws the section when a row's star no longer matches its `data-inbundly-pinned` stamp | happy | e2e `starred.spec` · unit `BundlerOptions` · manual (re-check, row 6.5) |
 | 6.3 | Option off: starred messages bundle normally; no scroll compensation | edge | unit `StarHandler` |
 | 6.4 | Pinned-messages toggle in search bar (hidden by default) filters to starred | happy | manual |
+| 6.5 | Live Gmail contract: starring a row changes the class of its `span.T-KT` in place (`aXw` to `T-KT-Jp`) rather than repainting the row; check in DevTools with a MutationObserver on the row (snippet in the QA notes) | contract | manual |
 
 ## 7. Dates & sections
 

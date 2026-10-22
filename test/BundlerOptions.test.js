@@ -246,6 +246,50 @@ test('a row streamed in without inbundly stamps marks the section stale', () => 
     expect(bundler._hasUnprocessedRows(list)).toBe(true);
 });
 
+//
+// Star flips since the last pass (keepStarredUnbundled, TESTING.md 6.2)
+//
+
+function createStampedList({ pinnedStamp, starred }) {
+    const list = document.createElement('div');
+    list.innerHTML = `
+        <table class="F"><tbody>
+            <tr class="zA" style="order: 100" data-inbundly-pinned="${pinnedStamp}">
+                <td><span class="T-KT ${starred ? GmailClasses.STARRED : 'aXw'}"></span></td>
+            </tr>
+        </tbody></table>`;
+    return list;
+}
+
+test('a thread starred since the pass that bundled it makes the section stale', () => {
+    const bundler = createBundler(true);
+    expect(bundler._hasStaleStarLayout(createStampedList({ pinnedStamp: '0', starred: true })))
+        .toBe(true);
+});
+
+test('a pinned thread unstarred since the last pass makes the section stale', () => {
+    const bundler = createBundler(true);
+    expect(bundler._hasStaleStarLayout(createStampedList({ pinnedStamp: '1', starred: false })))
+        .toBe(true);
+});
+
+test('unchanged stars, or the option off, leave the section alone', () => {
+    expect(createBundler(true)._hasStaleStarLayout(
+        createStampedList({ pinnedStamp: '1', starred: true }))).toBe(false);
+    expect(createBundler(false)._hasStaleStarLayout(
+        createStampedList({ pinnedStamp: '0', starred: true }))).toBe(false);
+});
+
+test('a redraw strips the bundle classes so a now-pinned row starts loose', () => {
+    const bundler = createBundler(true);
+    const list = createBundledList();
+    list.querySelector('.bundled-message').classList.add('visible', 'last');
+
+    bundler._removeInjectedNodes(list);
+
+    expect(list.querySelectorAll('.bundled-message, .visible, .last').length).toBe(0);
+});
+
 test('removing injected nodes leaves only Gmail message rows', () => {
     const bundler = createBundler(true);
     const list = createBundledList();
