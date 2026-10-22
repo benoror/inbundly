@@ -14,6 +14,10 @@ Output goes to `/workspace/inbundly-store-assets/` (or `--out` /
 `RENDER_OUT`). It stays outside the repo, and none of this is in `dist/`, so the
 shipped extension is unchanged.
 
+The approved copies are committed: store screenshots, promo art and clips in
+`store-assets/` (`chrome/`, `firefox/`, `clips/`), and the site's hero and
+screenshots in `docs/assets/`. Copy new renders there by hand after review.
+
 ## How it works
 
 - The **real build** (`dist/`) runs in Chromium on the e2e fixture

@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="650" src="images/inbundly-banner.png" alt="Inbundly — Google Inbox-style bundles for Gmail">
+  <img width="800" src="docs/assets/hero.png" alt="Inbundly: same mail, way less noise. A crowded Gmail inbox on the left, the same mail grouped into bundles on the right">
 </p>
 
 # Inbundly: Google Inbox-style bundles for Gmail
@@ -59,9 +59,12 @@ your inbox.
   browser updates Gmail tabs on the others without reloading the extension
 * Single-item bundles are skipped by default, shown as regular messages
 * Archive all bundled messages on the current page quickly
-* Star a message to pin it outside of its bundle (on by default and configurable
-  under Options → Starred threads)
-* Intuitive date headings
+* Starred threads get their own rows: star a thread inside a bundle and it
+  steps out of the bundle; unstar it and it goes back (on by default;
+  Options → Starred threads). It happens right away, with no reload, and
+  works for every star type, superstars included
+* Date headings (Today, Yesterday, This month, and so on), each with its own
+  archive button
 * Supports light and dark themes
 * Optionally color bundles to match their Gmail label color — either a subtle
   background tint or just the left accent bar and text, both theme-aware
@@ -72,12 +75,14 @@ your inbox.
   shown on hover and while the bundle is open
 * The delete-all button (hidden by default) and the archive-all and snooze
   buttons (shown by default) toggle under Options → Bundle buttons; the
-  pinned-messages toggle (hidden by default) under Options → Starred threads
-* Archive-all and the date sweep, your way (all off by default; skipping
-  starred is under Options → Starred threads, the rest under Options →
-  Bundle buttons, "When Inbundly archives"): leave starred (pinned) messages in place like Inbox's sweep did,
-  mark messages as read as they are archived, and remove their stars so done
-  messages leave Starred too. Gmail's own archive is not changed
+  starred switch in Gmail's search bar (hidden by default) under Options →
+  Starred threads
+* Archive-all and the date sweep, your way (all off by default): archive
+  buttons can skip starred threads and leave them in your inbox, like Inbox's
+  sweep did (Options → Starred threads, "Archive buttons skip starred"), mark
+  threads as read as they are archived, and remove their stars so done mail
+  leaves Starred too (Options → Bundle buttons, "When Inbundly archives").
+  Gmail's own archive is not changed
 * Gmail keyboard shortcuts that know about bundles: `j` / `k` step through
   the rows you see (bundle rows included, hidden threads skipped); on a
   bundle row `Enter` opens it, `x` selects it, `e` / `b` / `#` archive,
@@ -103,9 +108,14 @@ Learn more at [inbundly.com](https://inbundly.com).
 
 ## Screenshots
 
-| Light | Dark |
+![Your Gmail inbox, grouped into bundles](docs/assets/screenshot-1-inbox-bundles-light.png)
+
+| | |
 |:---:|:---:|
-| ![Inbundly bundling Gmail in light mode](docs/assets/screenshot-light.png) | ![Inbundly bundling Gmail in dark mode](docs/assets/screenshot-dark.png) |
+| ![Sender and date of the newest thread on a closed bundle, dark mode](docs/assets/screenshot-2-sender-glance-dark.png) | ![A starred thread on its own row above its bundle](docs/assets/screenshot-3-starred-popout-light.png) |
+| See who wrote last and when, right on the closed bundle. | Star a thread and it steps out of its bundle. Unstar it and it goes back. |
+| ![The archive-all button on a bundle row, dark mode](docs/assets/screenshot-4-archive-skips-starred-dark.png) | ![The Starred threads section of the Options page](docs/assets/screenshot-5-options-light.png) |
+| Archive a whole bundle in one click. Starred threads can stay put. | Every setting in plain words, grouped by topic. |
 
 ## Setup
 
