@@ -28,6 +28,7 @@ import PinnedToggle from './components/PinnedToggle';
 import SelectionBundleControl from './components/SelectionBundleControl';
 
 import KeyboardNavHandler from './handlers/KeyboardNavHandler';
+import { logDebugMessage } from './util/Debug';
 import TabPanelsObserver from './handlers/TabPanelsObserver';
 import MessageListObserver from './handlers/MessageListObserver';
 import MainParentObserver from './handlers/MainParentObserver';
@@ -60,12 +61,6 @@ import {
 // bundlingEnabled drives its own enable/disable handling.
 const BUNDLING_RULE_KEYS = BUNDLING_OPTION_KEYS.filter(k => k !== 'bundlingEnabled');
 
-const DEBUG = true;
-const logDebugMessage = message => {
-    if (DEBUG) {
-        console.log(`inbundly-debug: ${message}`);
-    }
-};
 
 // Master on/off switch (Options + top-bar toggle + popup all write this).
 // When false inbundly goes dormant: the list is left plain and every injected

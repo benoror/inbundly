@@ -24,6 +24,7 @@ import QuickSelectHandler from '../handlers/QuickSelectHandler';
 import MessageSelectHandler from '../handlers/MessageSelectHandler';
 
 import InbundlyStyler from './InbundlyStyler';
+import { isDebugEnabled, logDebugMessage } from '../util/Debug';
 
 import { 
     getCurrentPageNumber, 
@@ -280,6 +281,30 @@ class Bundler {
     }
 
     /**
+     * Debug aid: how the first few starred rows of a pass were classified.
+     * Only with the DEBUG flag (src/util/Debug.js) on; the sample is not even
+     * computed otherwise.
+     */
+    _logStarredSample(messageNodes) {
+        if (!isDebugEnabled()) {
+            return;
+        }
+        const starredSample = messageNodes
+            .filter(message => this._isStarred(message))
+            .slice(0, 3)
+            .map(message => ({
+                keepStarredUnbundled: this.keepStarredUnbundled,
+                skipSingleItemBundles: this.skipSingleItemBundles,
+                labels: DomUtils.getLabelStrings(message),
+                relevant: this.selectiveBundling.findRelevantLabels(message),
+                forceUnbundled: !!this._shouldKeepUnbundled(message),
+            }));
+        if (starredSample.length) {
+            logDebugMessage(`starred sample ${JSON.stringify(starredSample)}`);
+        }
+    }
+
+    /**
      * True if keepStarredUnbundled is on and a row's star changed since the
      * pass that laid it out: a thread starred inside a bundle must pop out,
      * one unstarred outside must rejoin its bundle. Each pass stamps whether
@@ -330,19 +355,7 @@ class Bundler {
 
         const messageNodes = [...tableBody.querySelectorAll(TableBodySelectors.MESSAGE_NODES)];
 
-        const starredSample = messageNodes
-            .filter(message => this._isStarred(message))
-            .slice(0, 3)
-            .map(message => ({
-                keepStarredUnbundled: this.keepStarredUnbundled,
-                skipSingleItemBundles: this.skipSingleItemBundles,
-                labels: DomUtils.getLabelStrings(message),
-                relevant: this.selectiveBundling.findRelevantLabels(message),
-                forceUnbundled: !!this._shouldKeepUnbundled(message),
-            }));
-        if (starredSample.length) {
-            console.log(`inbundly-debug: starred sample ${JSON.stringify(starredSample)}`);
-        }
+        this._logStarredSample(messageNodes);
 
         // Stamp which rows this pass keeps out of bundles for their star
         // (_hasStaleStarLayout; MessageSelectHandler leaves those loose).
