@@ -10,7 +10,16 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+## [4.5.0] - 2026-10-21
+
 ### Added
+- **Starred threads step out of their bundle, right away** (#68, #69). With
+  "Show starred on their own rows" on (the default, Options → Starred
+  threads), starring a thread inside a bundle moves it onto its own row at
+  once, and unstarring puts it back; an open bundle stays open. Before, a star
+  only took effect after a reload. Every star type counts, superstars ("Red
+  star", "Orange bang", and the rest) included, and a bundle whose threads are
+  all starred no longer forms at all: they show as plain rows.
 - **Keyboard navigation that knows about bundles** (#46). `j` / `k` (and the
   arrow keys once focus is in the list) step through the rows you see: plain
   threads, bundle rows, and the open bundle's threads, in display order. A
@@ -21,7 +30,7 @@ independent of upstream's versioning. The format is based on
   puts Gmail's cursor on its first thread, so `e` archives the thread you are
   looking at instead of whatever Gmail's cursor was left on.
 - **Bundles outside the Inbox** (#43, upstream inboxy#32 and inboxy#113). A new
-  switch under Options, Bundling ("Also bundle outside the inbox", off by
+  switch under Options → Bundling ("Bundle other Gmail pages too", off by
   default) bundles search results, label views, Snoozed, Starred, Important,
   and All Mail the way the Inbox is bundled, with the same open/close, bundle
   actions, remembered open bundle, and keyboard navigation. Gmail's own chips
@@ -40,13 +49,15 @@ independent of upstream's versioning. The format is based on
   most recent first.
 - **Archive-all and date sweep switches** (#40 and #48, upstream inboxy#25,
   inboxy#56, inboxy#66, inboxy#74, inboxy#81, and PR inboxy#84). Three
-  switches under Options, Bundle actions, "When Inbundly archives", all off by
-  default so archive-all keeps doing what it did: **leave starred (pinned)
-  messages in place**, the way Inbox's sweep left pins alone, including a
-  pinned message you had checked by hand; **mark messages as read** as they
+  switches, all off by default so archive-all keeps doing what it did:
+  **Archive buttons skip starred** (Options → Starred threads) leaves starred
+  threads in your inbox, the way Inbox's sweep left pins alone, including a
+  starred thread you had checked by hand; and under Options → Bundle buttons,
+  "When Inbundly archives", **Mark as read too** marks threads as read as they
   are archived, through Gmail's own Mark as read, so a label shown only with
-  unread mail goes quiet once its bundle is done; and **remove their stars**,
-  so done messages leave Starred too. They apply to Inbundly's archive-all
+  unread mail goes quiet once its bundle is done, and **Remove stars too**
+  takes the stars off so done threads leave Starred too (greyed out while
+  skip starred is on, since the two would fight). They apply to Inbundly's archive-all
   icon on a bundle row (and its `e` shortcut) and to the check-all sweep on a
   date heading, take effect on the next click without a reload, and leave
   Gmail's own archive untouched.
@@ -57,23 +68,49 @@ independent of upstream's versioning. The format is based on
 
 ### Changed
 - **Options page laid out by topic** (#57, upstream inboxy#72). The Options
-  tab is eight named sections, Bundling, Labels, Inbox layout, Pinned
-  messages, Bundle actions, Appearance, Custom bundles, and Sync & backup,
-  each with a one-line lead and jump links at the top. Every setting is one
+  tab is eight named sections, Bundling, What becomes a bundle, Inbox layout,
+  Starred threads, Bundle buttons, Colors, Custom bundles, and Sync & backup,
+  each a card with a one-line lead, and jump links at the top. Every setting is one
   row: its name and a short explanation on the left, the switch on the right,
   and the default it ships with underneath; a setting you changed is marked.
   The bulk buttons (archive-all, snooze, delete-all) and the archive switches
-  share the Bundle actions section. Combine labels, priority rules, and
-  Catppuccin matching fold under an Advanced disclosure inside their section,
-  open whenever one of them is changed. The Saved status is a small pill that
+  share the Bundle buttons section; the two starred settings sit together
+  under Starred threads; sender bundles and combine labels are under What
+  becomes a bundle. Priority rules and Catppuccin matching fold under an
+  Advanced disclosure inside their section, open whenever one of them is
+  changed. Every title and explanation was rewritten in plain words (#68), and
+  "starred" is used everywhere you act on a star. The Saved status is a small pill that
   stays in view, and hover-only help icons became visible text. Narrow
   windows put the navigation on top. No option key or default changed;
   nothing to migrate. The layout patterns take a cue from settings pages such
   as Simplify's; the look and copy are Inbundly's own.
+- **Keyboard cursor ring only when you use the keyboard** (#68). Plain rows
+  get the same focus ring as bundle rows while you move with `j` / `k`, and it
+  goes away on the next mouse click.
+- **Debug logging is off** (#68). Release builds no longer write Inbundly's
+  debug messages to the browser console.
+- **New store and site visuals** (#70). Five new screenshots with captions,
+  rendered from the real extension on a stand-in inbox with invented mail
+  (no real inbox in public anymore), a before/after hero for the site, the
+  README, and link previews, and new promo tiles. Store images now live in
+  `store-assets/` (`chrome/`, `firefox/`, `brand/`, `clips/`); the site keeps
+  `docs/assets/`. The Date headings description in Options now names the
+  headings Inbundly actually shows (Today, Yesterday, This month).
 
 ### Fixed
 - Gmail's archive shortcut (and `x`, `#`, `b`, `Enter`) acting on a thread you
   could not see while a bundle was open (inboxy#50, #77, #82).
+- **Archive-all doing nothing when a thread was already checked** (#68). With
+  a bundle thread checked by hand first, archive-all (and snooze or
+  delete-all) waited for a toolbar change Gmail never makes, so the rows
+  stayed selected and nothing was archived. It now clicks the toolbar that is
+  already showing and gives up after 3 seconds instead of hanging.
+- **Starred threads in real Gmail** (#69). Inbundly read the star from how
+  Gmail first drew the row, so a star clicked in the list was missed until a
+  refresh, a bundle of superstarred threads stayed bundled, and Archive
+  buttons skip starred archived superstarred threads anyway. The star is now
+  read from its live state everywhere: bundling, the live pop-out, and the
+  archive switches.
 
 ## [4.4.0] - 2026-09-10
 
