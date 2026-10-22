@@ -24,58 +24,180 @@ import { Selectors } from './Constants';
 // clickable, then click it. Gmail handles the rest — including any menu the
 // button opens (e.g. snooze times).
 
+// How long to wait for Gmail to reveal the toolbar (or apply a precededBy
+// step) before giving up. A wait that never ends would leave the selection in
+// place and a MutationObserver attached for the life of the tab.
+const REVEAL_TIMEOUT_MS = 3000;
+const PRECEDED_BY_TIMEOUT_MS = 1500;
+
+// The action in flight. A newer call supersedes it, so a wait that outlived
+// its click can never fire on a selection the user made afterwards.
+let pendingToken = 0;
+let pendingPromise = null;
+
 /**
  * Select the given messages, then click the toolbar button matched by
  * `toolbarButtonSelector` once it is clickable. No-op when no such button
  * exists (e.g. Gmail changed its markup).
  *
+ * The button is looked up again at click time, preferring a copy that is
+ * actually shown: Gmail may redraw the toolbar, and a toolbar Gmail keeps for
+ * another view can sit hidden by an ancestor. When the toolbar is already
+ * revealed (a thread was checked by hand first) Gmail writes nothing more as
+ * the selection grows, so clickability is checked right after selecting too,
+ * not only on a toolbar mutation.
+ *
  * `precededBy` names another toolbar button to click first, on the same
  * selection, when it is present and clickable at that moment (e.g. "Mark as
  * read" ahead of Archive). It is looked up only once the toolbar has been
  * revealed, since Gmail sets those buttons up for the selection; when Gmail
- * shows no such button, the main action runs alone.
+ * shows no such button, the main action runs alone. After that first click
+ * the main action waits until Gmail has applied it (the button stops being
+ * clickable, e.g. the envelope flips to "Mark as unread"), or a short
+ * timeout, then re-applies the selection and clicks.
+ *
+ * Returns a promise for whether the main action was clicked.
  */
 function triggerToolbarAction(
     toolbarButtonSelector,
     selectMessagesFunction,
     { precededBy = null } = {})
 {
-    const toolbarButton = document.querySelector(toolbarButtonSelector);
+    const toolbarButton = _findButton(toolbarButtonSelector);
     if (!toolbarButton || !toolbarButton.parentNode) {
-        return;
+        return Promise.resolve(false);
     }
 
-    const buttonIsVisible = new Promise(resolve => {
-        const observer = new MutationObserver((mutation, observer) => {
-            if (_isClickable(toolbarButton)) {
-                observer.disconnect();
-                resolve();
-            }
-        });
-        observer.observe(
-            toolbarButton.parentNode,
-            { attributes: true, childList: false, subtree: true });
-    });
+    const token = ++pendingToken;
+    const current = () => token === pendingToken;
+    const clickable = () => current() && _findClickable(toolbarButtonSelector);
+    const buttonIsVisible = _waitFor(clickable, toolbarButton.parentNode, REVEAL_TIMEOUT_MS, current);
 
-    const selectMessages = new Promise(resolve => {
-        selectMessagesFunction();
-        resolve();
-    });
+    selectMessagesFunction();
 
-    Promise.all([buttonIsVisible, selectMessages]).then(() => {
-        const firstButton = precededBy ? document.querySelector(precededBy) : null;
-        if (!firstButton || !_isClickable(firstButton)) {
-            _simulateClick(toolbarButton);
-            return;
+    const promise = buttonIsVisible.then(button => {
+        if (!button || !current()) {
+            return false;
+        }
+        const firstButton = precededBy ? _findClickable(precededBy) : null;
+        if (!firstButton) {
+            _simulateClick(button);
+            return true;
         }
         _simulateClick(firstButton);
         // Gmail may redraw the toolbar for the first action (the envelope
-        // flips to "Mark as unread"), so the main action goes to the freshest
-        // copy of its button, on the next task.
-        setTimeout(() => {
-            _simulateClick(document.querySelector(toolbarButtonSelector) || toolbarButton);
-        }, 0);
+        // flips to "Mark as unread") and applies it asynchronously, so the main
+        // action waits for that, then goes to the freshest copy of its button
+        // on the same selection.
+        return _waitFor(
+            () => !current() || !_findClickable(precededBy),
+            firstButton.parentNode,
+            PRECEDED_BY_TIMEOUT_MS,
+            current)
+        .then(() => {
+            selectMessagesFunction();
+            return _waitFor(clickable, toolbarButton.parentNode, REVEAL_TIMEOUT_MS, current);
+        })
+        .then(fresh => {
+            if (!current()) {
+                return false;
+            }
+            _simulateClick(fresh || button);
+            return true;
+        });
     });
+    pendingPromise = promise;
+    promise.then(() => {
+        if (current()) {
+            pendingPromise = null;
+        }
+    });
+    return promise;
+}
+
+/**
+ * True while a toolbar action is waiting to click (selection made, Gmail not
+ * driven yet). Handlers that would rebundle on the rows' changes (e.g. a star
+ * flipped by unstarOnArchive) hold off meanwhile.
+ */
+function isBusy() {
+    return !!pendingPromise;
+}
+
+/**
+ * Settles once the action in flight (if any) has clicked or given up.
+ */
+function whenIdle() {
+    return pendingPromise ? pendingPromise.then(() => undefined) : Promise.resolve();
+}
+
+/**
+ * Drop the action in flight without clicking (tests, teardown).
+ */
+function cancelPending() {
+    pendingToken++;
+    pendingPromise = null;
+}
+
+/**
+ * Resolve with `check()`'s first truthy value: checked on the next task (so
+ * Gmail has handled the clicks that preceded the wait), on every attribute or
+ * child change under `root`, and on a light poll as a backstop (Gmail may
+ * re-render the toolbar outside `root`). Resolves with null on timeout, or
+ * as soon as `isAlive()` turns false (the action was superseded).
+ */
+function _waitFor(check, root, timeoutMs, isAlive = () => true) {
+    return new Promise(resolve => {
+        let done = false;
+        let observer = null;
+        let poll = null;
+        let timeout = null;
+        const finish = value => {
+            if (done) {
+                return;
+            }
+            done = true;
+            if (observer) {
+                observer.disconnect();
+            }
+            clearInterval(poll);
+            clearTimeout(timeout);
+            resolve(value);
+        };
+        const tryCheck = () => {
+            if (!isAlive()) {
+                finish(null);
+                return;
+            }
+            const value = check();
+            if (value) {
+                finish(value);
+            }
+        };
+        if (root && root.isConnected !== false) {
+            observer = new MutationObserver(tryCheck);
+            observer.observe(root, { attributes: true, childList: true, subtree: true });
+        }
+        setTimeout(tryCheck, 0);
+        poll = setInterval(tryCheck, 100);
+        timeout = setTimeout(() => finish(null), timeoutMs);
+    });
+}
+
+/**
+ * The first button matching `selector`, preferring one that is shown (no
+ * display:none on it or an ancestor).
+ */
+function _findButton(selector) {
+    const buttons = [...document.querySelectorAll(selector)];
+    return buttons.find(_isShown) || buttons[0] || null;
+}
+
+/**
+ * The shown, enabled button matching `selector`, or null.
+ */
+function _findClickable(selector) {
+    return [...document.querySelectorAll(selector)].find(_isClickable) || null;
 }
 
 /**
@@ -104,8 +226,21 @@ function deselectMessages(messages) {
 }
 
 function _isClickable(button) {
-    return getComputedStyle(button.parentNode).display !== 'none' &&
+    return _isShown(button) &&
         button.getAttribute('aria-disabled') !== 'true';
+}
+
+/**
+ * True when neither `element` nor any ancestor is display:none. Computed
+ * style, not layout, so it holds under jsdom too.
+ */
+function _isShown(element) {
+    for (let node = element; node && node.nodeType === 1; node = node.parentElement) {
+        if (getComputedStyle(node).display === 'none') {
+            return false;
+        }
+    }
+    return !!element && element.isConnected !== false;
 }
 
 function _simulateClick(element) {
@@ -123,4 +258,11 @@ function _simulateClick(element) {
     dispatchMouseEvent(element, 'mouseup');
 }
 
-export default { triggerToolbarAction, selectMessages, deselectMessages };
+export default {
+    triggerToolbarAction,
+    selectMessages,
+    deselectMessages,
+    isBusy,
+    whenIdle,
+    cancelPending,
+};

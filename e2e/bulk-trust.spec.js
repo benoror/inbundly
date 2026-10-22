@@ -227,3 +227,29 @@ test('the e shortcut on a bundle row runs archive-all under the same switches', 
 
     await page.close();
 });
+
+// Gmail reveals its toolbar once, on the first checked row, and writes
+// nothing more while the selection grows. A thread of the bundle checked by
+// hand has already revealed it, so archive-all must not wait for a reveal.
+for (const switches of [
+    {},
+    { markReadOnArchive: true, skipStarredOnArchive: true },
+]) {
+    test(`archive-all with the toolbar already revealed by a hand-checked bundle thread ${JSON.stringify(switches)}`, async () => {
+        await setSyncOptions(context, switches);
+        const page = await openInbox(context);
+        await page.evaluate(() => {
+            const work1 = [...document.querySelectorAll('tr.zA:not(.bundle-row)')]
+                .find(r => r.querySelector('.y6 span span').textContent === 'Work 1');
+            work1.querySelector('.oZ-jc').click();
+        });
+        await expect(row(page, 'Work 1')).toHaveClass(/x7/);
+        await expect(page.locator('.G-Ni')).toBeVisible();
+
+        await workBundle(page).locator('.archive-bundle').dispatchEvent('click');
+
+        await expect.poll(() => archiveSubjects(page)).toEqual([['Work 1', 'Work 2']]);
+
+        await page.close();
+    });
+}

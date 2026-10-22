@@ -348,7 +348,11 @@ Flow for landing a feature branch and cutting a release:
  read at click time: `content.js` awaits `ArchiveAction.loadOptions()` before
  the first bundle pass and applies `onChanged` values with no refresh and no
  `<html>` class. A section of only starred threads with skip on is a
- silent no-op. Gmail's own archive paths (row hover icon, toolbar on a
+ silent no-op. `GmailToolbar.triggerToolbarAction` never relies on a toolbar
+ mutation alone: Gmail writes nothing while a selection grows on an already
+ revealed toolbar (TESTING.md 15.10), so it also checks right after selecting
+ and on a light poll, times out after 3 s, and lets a newer action supersede a
+ waiting one. Gmail's own archive paths (row hover icon, toolbar on a
  manual selection, `e` on a thread, the keyboard single-row fallback) are
  deliberately untouched. The e2e fixture emulates the envelope button (it
  reads "Mark as read" only while the selection holds an unread row) and

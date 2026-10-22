@@ -192,8 +192,12 @@ ${rows}
         const envelope = document.getElementById('fixture-envelope');
         const anyUnread = messageRows().some(r => isSelected(r) && r.classList.contains('zE'));
         const label = anyUnread ? 'Mark as read' : 'Mark as unread';
-        envelope.setAttribute('data-tooltip', label);
-        envelope.setAttribute('aria-label', label);
+        // Like Gmail, write only on change: a selection that grows while the
+        // toolbar is already revealed mutates nothing in the toolbar.
+        if (envelope.getAttribute('data-tooltip') !== label) {
+            envelope.setAttribute('data-tooltip', label);
+            envelope.setAttribute('aria-label', label);
+        }
     }
 
     // Gmail behavior: a row checkbox click toggles the row's selected state
@@ -210,7 +214,11 @@ ${rows}
                 // asynchronously, so matching it here would keep the toolbar
                 // revealed after a deselect-all (real Gmail uses its own model).
                 const anySelected = !!document.querySelector('tr.zA.x7:not(.bundle-row)');
-                document.querySelector('.G-Ni').style.display = anySelected ? '' : 'none';
+                const cluster = document.querySelector('.G-Ni');
+                const display = anySelected ? '' : 'none';
+                if (cluster.style.display !== display) {
+                    cluster.style.display = display;
+                }
             });
         });
     }

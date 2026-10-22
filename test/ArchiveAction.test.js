@@ -17,6 +17,7 @@
 
 import ArchiveAction from '../src/util/ArchiveAction';
 import BulkArchiveButton from '../src/components/BulkArchiveButton';
+import GmailToolbar from '../src/util/GmailToolbar';
 import { OPTION_DEFAULTS } from '../src/util/Options';
 
 /**
@@ -87,14 +88,14 @@ function revealToolbar() {
     document.querySelector('.G-Ni').style.display = 'block';
 }
 
-// The archive click waits for the toolbar to reveal (a MutationObserver
-// callback), then the preceded-by path defers the main click one more task.
+// The archive click waits for the toolbar to reveal, and the preceded-by path
+// waits for Gmail to apply its first step; whenIdle settles once it clicked.
 async function settle() {
-    await new Promise(resolve => setTimeout(resolve, 0));
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await GmailToolbar.whenIdle();
 }
 
 beforeEach(() => {
+    GmailToolbar.cancelPending();
     starClicks = [];
     toolbarClicks = [];
     ArchiveAction.applyOptions({

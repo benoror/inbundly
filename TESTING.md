@@ -200,6 +200,7 @@ tags `v2.1.0` … `v4.4.0`.
 | 15.7 | Options page: the three switches under Bundle actions, "When Inbundly archives", each auto-save their own key and restore from storage | happy | unit `OptionsPage` · verify-inbundly `bulk-trust` walk (real switch clicks) |
 | 15.8 | Live Gmail contract: with unread threads selected, `document.querySelector('.G-atb:not([style*="none"]) .T-I.J-J5-Ji[data-tooltip="Mark as read"]')` is the envelope button and clicking it leaves the selection in place for the following Archive; clicking a row's `.T-KT.T-KT-Jp` unstars it. English-only tooltips, like snooze | contract | manual |
 | 15.9 | Known limitations: `Mark as read` and unstar go through Gmail's own controls, so what Gmail does after (server-side read state, the thread leaving Starred, undo) is Gmail's; a section of only pinned threads makes the icon a silent no-op rather than a disabled one; the pin-icon affordance in place of the star (#40) is not part of this layer | note | - |
+| 15.10 | Toolbar already revealed (a thread of the bundle checked by hand first): archive-all still clicks Archive, with the switches off and on. Gmail writes nothing to its toolbar while a selection grows, so `GmailToolbar` checks clickability right after selecting, not only on a toolbar mutation; it clicks the shown copy of a button (one hidden by an ancestor is skipped), waits for a `precededBy` step to apply (the envelope flips) before re-selecting and archiving, gives up after 3 s, and a newer action supersedes a waiting one so a stale wait never fires on a later selection | edge | e2e `bulk-trust.spec` (fixture writes only on change) · unit `GmailToolbar` |
 
 ## 16. Options page layout and find a setting (unreleased, PR #66, issue #57)
 
@@ -231,7 +232,8 @@ senders `.yX.xY .yW .bA4 span[email]`, labels `.ar.as .at`, list
 (the envelope button's tooltip is the contract row 15.8 checks). It also
 emulates the Gmail behaviors the extension depends on: clicking a row
 checkbox toggles `aria-checked` and the row's `x7` class, and reveals the
-toolbar's action cluster while any message row (`tr.zA.x7:not(.bundle-row)`,
+toolbar's action cluster (writing only on change, as Gmail does, so a
+growing selection mutates nothing) while any message row (`tr.zA.x7:not(.bundle-row)`,
 since the extension mirrors a full selection onto its bundle row too) is
 selected; toolbar clicks are recorded on `window.__gmail.clicks`, Archive
 and Mark as read also on `window.__gmail.actions` with the selected rows'
