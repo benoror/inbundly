@@ -92,10 +92,13 @@ tags `v2.1.0` … `v4.4.0`.
 | # | Scenario | Kind | Coverage |
 |---|----------|------|----------|
 | 6.1 | `keepStarredUnbundled` on (default): starred thread stays outside its bundle | happy | e2e `starred.spec` · unit `BundlerOptions`, `StarHandler` · manual ✔ (2026-09, prior session) |
-| 6.2 | Starring inside an open bundle pops the message out (the bundle stays open); unstarring a pinned thread returns it to its bundle. Gmail flips the star in place (class swap on `.T-KT`, no list repaint), so `MessageSelectHandler` reports the flip and `Bundler` redraws the section when a row's star no longer matches its `data-inbundly-pinned` stamp | happy | e2e `starred.spec` · unit `BundlerOptions` · manual (re-check, row 6.5) |
+| 6.2 | Starring inside an open bundle pops the message out (the bundle stays open); unstarring a pinned thread returns it to its bundle, with no refresh. Gmail flips the star in place (no list repaint), and not necessarily its class: the star's accessible names (aria-label / data-tooltip / title / img alt, or aria-checked) change. `MessageSelectHandler` watches those attributes inside the star cell, a click on a star re-checks after 50/300/1000 ms as a backstop, and `Bundler` redraws a section only when a row's star (`StarState.isStarred`) no longer matches its `data-inbundly-pinned` stamp | happy | e2e `starred.spec` (both fixture star modes: names only, and names plus class) · unit `MessageSelectHandler`, `BundlerOptions` · manual (row 6.5) |
 | 6.3 | Option off: starred messages bundle normally; no scroll compensation | edge | unit `StarHandler` |
 | 6.4 | Starred switch in search bar (`showPinnedToggle`, hidden by default) filters to starred | happy | manual |
-| 6.5 | Live Gmail contract: starring a row changes the class of its `span.T-KT` in place (`aXw` to `T-KT-Jp`) rather than repainting the row; check in DevTools with a MutationObserver on the row (snippet in the QA notes) | contract | manual |
+| 6.5 | Live Gmail contract: a row's star is `td.apU span.T-KT` with an `img.T-KT-JX`; its state reads from aria-checked, then the English/Spanish name ("Starred" / "Not starred", superstars like "Red star"), then the class (`T-KT-Jp` / `aXw`) as rendered. Check in DevTools: star a row in a bundle and see which attributes of the span change (snippet in the QA notes); a superstar's span must read as starred | contract | manual |
+| 6.6 | One starred check (`src/util/StarState.js`) for bundling, the live redraw, StarHandler's scroll anchoring and the archive switches (`skipStarredOnArchive`, `unstarOnArchive`) | contract | unit `StarState` |
+| 6.7 | Every bundling mode (single label, grouped labels, priority bundle, custom bundle, sender bundle): a bundle whose members are all starred is not drawn, its threads show on their own rows; for a yellow star on load, a superstar on load, and stars clicked live | happy | e2e `starred-modes.spec` |
+| 6.8 | Same modes with `skipStarredOnArchive` on (and `keepStarredUnbundled` off so the stars sit in the bundle): archive-all on an all-starred bundle archives nothing; with one starred live only the other is archived | happy | e2e `starred-modes.spec` |
 
 ## 7. Dates & sections
 
@@ -243,7 +246,12 @@ selected; toolbar clicks are recorded on `window.__gmail.clicks`, Archive
 and Mark as read also on `window.__gmail.actions` with the selected rows'
 subjects; Mark as read flips the selected rows to read and the envelope
 reads "Mark as read" only while the selection holds an unread row; clicking
-a row's star toggles it and records a star / unstar action. It also models
+a row's star toggles it and records a star / unstar action. The star is
+Gmail's markup (`span.T-KT` with aria-label / data-tooltip and an
+`img.T-KT-JX`); by default a click flips only its names, not the class it
+was rendered with (`starToggle: 'class'` also swaps the class), and a
+Refresh repaints it from the new state. `starred: 'Red star'` renders a
+superstar without `T-KT-Jp`. It also models
 Gmail's keyboard cursor the way the extension understands it (row 12.9 is
 the live canary): rows are focusable (`tabindex="-1"`), the cursor row
 carries `btb` and follows DOM focus, `j`/`k` walk Gmail's DOM-ordered list

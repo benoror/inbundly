@@ -205,6 +205,7 @@ function standIn({
     width: 20px; height: 20px; display: inline-block; background-color: ${t.starOff};
     -webkit-mask: ${svgUrl(ICONS.star)} no-repeat center / 20px;
   }
+  td.apU .T-KT img { display: none; }
   td.apU .T-KT.T-KT-Jp { background-color: #f4b400; -webkit-mask-image: ${svgUrl(ICONS.starFilled)}; }
 
   /* Gmail sizes its row archive button (.brq); the extension supplies the icon */

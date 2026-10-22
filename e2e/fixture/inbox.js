@@ -17,8 +17,13 @@
 //    rows' subjects, Mark as read flips the selected rows to read (`yO`), and
 //    the envelope button reads "Mark as read" only while the selection holds
 //    an unread row, "Mark as unread" otherwise, as Gmail's does;
-//  - clicking a row's star toggles it between Gmail's starred and unstarred
-//    classes and records a star / unstar action;
+//  - a row's star is Gmail's span.T-KT in td.apU with an img.T-KT-JX inside,
+//    named by aria-label / data-tooltip / alt ("Starred", "Not starred", or a
+//    superstar's name such as "Red star"); clicking it records a star /
+//    unstar action. By default (`starToggle: 'attributes'`) the click flips
+//    only the star's names in place and leaves the class it was rendered
+//    with, so only a Refresh (which repaints from the new server state)
+//    redraws the class; `starToggle: 'class'` also swaps the classes;
 //  - the Refresh button (act="20") rebuilds the message list from pristine
 //    rows, the way Gmail repaints it (the extension clicks it after an
 //    option changes and rebundles from the rerender); counted on
@@ -63,6 +68,17 @@ function dateText(daysAgo) {
 let nextThreadNumber = 1;
 
 /**
+ * Gmail's row star: `starred` false, true (yellow star) or a superstar name.
+ * Shared with the page script (toString) so a Refresh repaints the new state.
+ */
+function starMarkup(starred) {
+    const name = starred === true ? 'Starred' : (starred || 'Not starred');
+    const classes = starred === true ? 'T-KT T-KT-Jp' : (starred ? 'T-KT' : 'aXw T-KT');
+    return `<span class="${classes}" role="button" aria-label="${name}" ` +
+        `data-tooltip="${name}"><img class="T-KT-JX" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="${name}"></span>`;
+}
+
+/**
  * One Gmail message row. Options:
  *   sender  - display name (default derived from email)
  *   email   - sender address (put on span[email], like Gmail)
@@ -71,7 +87,9 @@ let nextThreadNumber = 1;
  *             shown in the message list)
  *   daysAgo - age of the thread (drives the date cell), default 0
  *   unread  - bold/unread styling class (zE) vs read (yO), default false
- *   starred - star cell state, default false
+ *   starred - star cell state, default false. true is Gmail's yellow star
+ *             (class T-KT-Jp, "Starred"); a string is a superstar's name
+ *             (e.g. 'Red star'), drawn without T-KT-Jp
  *
  * Optional, for the marketing render page (marketing/render/); the e2e specs
  * leave them unset and get the rows they always had:
@@ -109,7 +127,7 @@ function threadRow({
         <div class="ar as" title=""><div class="at" title="${escapeHtml(l)}"${chipStyle(l)}>
             <div class="av">${escapeHtml(l)}</div>
         </div></div>`).join('');
-    const starClasses = starred ? 'T-KT T-KT-Jp' : 'T-KT aXw';
+    const star = starMarkup(starred);
 
     return `
         <tr class="zA ${unread ? 'zE' : 'yO'}" role="row" id="${rowId}" tabindex="-1">
@@ -117,7 +135,7 @@ function threadRow({
             <td class="oZ-x3 xY" data-tooltip="Select">
                 <div class="oZ-jc T-Jo J-J5-Ji" role="checkbox" aria-checked="false" tabindex="-1"></div>
             </td>
-            <td class="apU xY"><span class="${starClasses}" role="button"></span></td>
+            <td class="apU xY">${star}</td>
             <td class="yX xY" role="gridcell">
                 <div class="yW">
                     <span class="bA4">
@@ -171,6 +189,7 @@ function inboxPage({
     wrapAfter = '',
     bodyEnd = '',
     archiveRemovesRows = false,
+    starToggle = 'attributes',
 } = {}) {
     const rows = threads.map(threadRow).join('\n');
     const tablist = tab === null ? '' : `
@@ -263,16 +282,48 @@ ${rows}
     }
     wireCheckboxes();
 
-    // Gmail behavior: clicking a row's star toggles it.
+    // Gmail behavior: clicking a row's star toggles it in place. The names
+    // (aria-label, data-tooltip, the img's alt) always follow; the class only
+    // with starToggle 'class'. The server state changes too, so a Refresh
+    // repaints the row with the new star.
+    const STAR_TOGGLE = ${JSON.stringify(starToggle)};
+    ${starMarkup.toString()}
+    const NOT_STARRED_NAME = 'Not starred';
+    function isStarredNow(star) {
+        return star.getAttribute('aria-label') !== NOT_STARRED_NAME;
+    }
+    function setStarName(star, name) {
+        star.setAttribute('aria-label', name);
+        star.setAttribute('data-tooltip', name);
+        const img = star.querySelector('img');
+        if (img) {
+            img.setAttribute('alt', name);
+        }
+    }
     function wireStars() {
         document.querySelectorAll('td.apU .T-KT').forEach(star => {
             star.addEventListener('click', () => {
-                const starred = star.classList.contains('T-KT-Jp');
-                star.classList.toggle('T-KT-Jp', !starred);
-                star.classList.toggle('aXw', starred);
-                record(starred ? 'unstar' : 'star', [star.closest('tr')]);
+                const starred = isStarredNow(star);
+                setStarName(star, starred ? NOT_STARRED_NAME : 'Starred');
+                if (STAR_TOGGLE === 'class') {
+                    star.classList.toggle('T-KT-Jp', !starred);
+                    star.classList.toggle('aXw', starred);
+                }
+                const row = star.closest('tr');
+                updatePristineStar(row.id, !starred);
+                record(starred ? 'unstar' : 'star', [row]);
             });
         });
+    }
+    function updatePristineStar(rowId, starred) {
+        const scratch = document.createElement('div');
+        scratch.innerHTML = pristineList;
+        const cell = [...scratch.querySelectorAll('tr.zA')]
+            .find(r => r.id === rowId);
+        if (cell) {
+            cell.querySelector('td.apU').innerHTML = starMarkup(starred);
+            pristineList = scratch.innerHTML;
+        }
     }
     wireStars();
 

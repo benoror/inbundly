@@ -60,6 +60,10 @@ function row(page, subject) {
     });
 }
 
+// The fixture's star flips its names in place, like Gmail (not its class).
+const STARRED = '.T-KT[aria-label="Starred"]';
+const NOT_STARRED = '.T-KT[aria-label="Not starred"]';
+
 const gmailClicks = page => page.evaluate(() => window.__gmail.clicks);
 const gmailActions = page => page.evaluate(() => window.__gmail.actions);
 const archiveSubjects = async page =>
@@ -77,7 +81,7 @@ test('by default the date sweep archives everything, pinned thread included', as
     ]);
     // Nothing else was touched: no Mark as read, star still on.
     expect((await gmailActions(page)).map(a => a.type)).toEqual(['archive']);
-    await expect(row(page, 'Work pinned').locator('.T-KT-Jp')).toHaveCount(1);
+    await expect(row(page, 'Work pinned').locator(STARRED)).toHaveCount(1);
 
     await page.close();
 });
@@ -104,7 +108,7 @@ test('skipStarredOnArchive: the date sweep leaves the pinned thread in place', a
     await expect.poll(() => gmailClicks(page)).toEqual(['act:7']);
     expect(await archiveSubjects(page)).toEqual([['Work 1', 'Work 2', 'Outside message']]);
     await expect(row(page, 'Work pinned')).not.toHaveClass(/x7/);
-    await expect(row(page, 'Work pinned').locator('.T-KT-Jp')).toHaveCount(1);
+    await expect(row(page, 'Work pinned').locator(STARRED)).toHaveCount(1);
 
     await page.close();
 });
@@ -185,7 +189,7 @@ test('markReadOnArchive: an all-read selection goes straight to archive', async 
 test('unstarOnArchive: the date sweep unstars the pinned thread, then archives it', async () => {
     await setSyncOptions(context, { unstarOnArchive: true });
     const page = await openInbox(context);
-    await expect(row(page, 'Work pinned').locator('.T-KT-Jp')).toHaveCount(1);
+    await expect(row(page, 'Work pinned').locator(STARRED)).toHaveCount(1);
 
     await page.locator('.date-row .archive-bundle').dispatchEvent('click');
 
@@ -194,8 +198,7 @@ test('unstarOnArchive: the date sweep unstars the pinned thread, then archives i
     expect(actions.map(a => a.type)).toEqual(['unstar', 'archive']);
     expect(actions[0].subjects).toEqual(['Work pinned']);
     expect(actions[1].subjects).toEqual(['Work 1', 'Work 2', 'Work pinned', 'Outside message']);
-    await expect(row(page, 'Work pinned').locator('.T-KT-Jp')).toHaveCount(0);
-    await expect(row(page, 'Work pinned').locator('.aXw')).toHaveCount(1);
+    await expect(row(page, 'Work pinned').locator(NOT_STARRED)).toHaveCount(1);
 
     await page.close();
 });
@@ -209,7 +212,7 @@ test('skip + unstar together: the skipped pinned thread keeps its star', async (
     await expect.poll(() => gmailClicks(page)).toEqual(['act:7']);
     expect((await gmailActions(page)).map(a => a.type)).toEqual(['archive']);
     expect(await archiveSubjects(page)).toEqual([['Work 1', 'Work 2', 'Outside message']]);
-    await expect(row(page, 'Work pinned').locator('.T-KT-Jp')).toHaveCount(1);
+    await expect(row(page, 'Work pinned').locator(STARRED)).toHaveCount(1);
 
     await page.close();
 });

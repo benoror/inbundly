@@ -42,6 +42,7 @@ import {
     PINNED_STAMP_ATTR,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
+import StarState from '../util/StarState';
 import OpenBundleStore from '../util/OpenBundleStore';
 import { isCustomBundleKey } from '../util/CustomBundleKey';
 import { isSenderBundleKey } from '../util/SenderBundleKey';
@@ -298,10 +299,43 @@ class Bundler {
                 labels: DomUtils.getLabelStrings(message),
                 relevant: this.selectiveBundling.findRelevantLabels(message),
                 forceUnbundled: !!this._shouldKeepUnbundled(message),
+                star: this._describeStar(message),
             }));
         if (starredSample.length) {
             logDebugMessage(`starred sample ${JSON.stringify(starredSample)}`);
         }
+    }
+
+    /**
+     * Debug aid: the star control's class and names, to check Gmail's live
+     * markup against StarState.
+     */
+    _describeStar(message) {
+        const star = StarState.findStar(message);
+        if (!star) {
+            return null;
+        }
+        const img = star.querySelector('img');
+        return {
+            class: star.className,
+            role: star.getAttribute('role'),
+            ariaLabel: star.getAttribute('aria-label'),
+            ariaChecked: star.getAttribute('aria-checked'),
+            tooltip: star.getAttribute('data-tooltip'),
+            alt: img && img.getAttribute('alt'),
+        };
+    }
+
+    /**
+     * True if any bundled section on the page has a star that no longer
+     * matches its layout (see _hasStaleStarLayout). Cheap, and free of side
+     * effects, so a star-flip signal can check it before asking for a pass.
+     */
+    hasStaleStarLayout() {
+        return DomUtils.getSectionMessageLists().some(
+            list => list.children[0] &&
+                list.children[0].classList.contains('is-bundled') &&
+                this._hasStaleStarLayout(list));
     }
 
     /**
@@ -667,7 +701,9 @@ class Bundler {
     }
 
     _isStarred(message) {
-        return message.querySelector(`.${GmailClasses.STARRED}`);
+        // Shared with the archive switches; reads the star's live accessible
+        // state, not only the class the row was rendered with (StarState).
+        return StarState.isStarred(message);
     }
 
     _shouldKeepUnbundled(message) {

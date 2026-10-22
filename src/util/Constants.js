@@ -51,6 +51,7 @@ const GmailClasses = {
     SELECTED: 'x7',
     SNOOZED: 'cL',
     STARRED: 'T-KT-Jp',
+    UNSTARRED: 'aXw',
     SUBJECT_CELL: 'a4W',
     UNREAD: 'zE',
     UNREAD_SENDER: 'zF',

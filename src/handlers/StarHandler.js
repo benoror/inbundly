@@ -17,6 +17,7 @@
 
 import { Selectors } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
+import StarState from '../util/StarState';
 import { supportsBundling } from '../util/MessagePageUtils';
 
 const _getTop = function(element) {
@@ -62,15 +63,23 @@ class StarHandler {
             return;
         }
 
-        const isStarring = e.target.matches(Selectors.UNSTARRED);
-        const isUnstarring = e.target.matches(Selectors.STARRED);
-
-        if (!isStarring && !isUnstarring) {
+        // Gmail's click target is usually the img inside the star span, so
+        // resolve the star control the target belongs to, then read its state.
+        if (!e.target || !e.target.closest || !StarState.isStarNode(e.target)) {
             return;
         }
+        const messageRow = DomUtils.findMessageRow(e.target);
+        if (!messageRow) {
+            return;
+        }
+        const starState = StarState.starStateOf(StarState.findStar(messageRow));
+        if (starState === null) {
+            return;
+        }
+        const isStarring = !starState;
+        const isUnstarring = starState;
 
         // Only applies to bundled messages
-        const messageRow = DomUtils.findMessageRow(e.target);
         const labels = this.selectiveBundling.findRelevantLabels(messageRow);
         if (!labels.length) {
             return;
