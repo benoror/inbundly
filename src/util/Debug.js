@@ -17,7 +17,7 @@
 
 // The one switch for the `inbundly-debug:` console lines. It used to live in
 // content.js; it sits here so other modules (Bundler) log behind the same flag.
-const DEBUG = true;
+const DEBUG = false;
 
 function isDebugEnabled() {
     return DEBUG;
