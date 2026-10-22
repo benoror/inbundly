@@ -618,6 +618,16 @@ const FEATURES = {
             return row ? row.querySelector('.y6 span span').textContent : null;
         });
         const gmailActions = () => page.evaluate(() => window.__gmail.actions);
+        const keyboardMode = () => page.evaluate(
+            () => document.documentElement.classList.contains('inbundly-keyboard'));
+        const plainRowRing = () => page.evaluate(() => {
+            const row = document.querySelector('tr.zA.btb:not(.bundle-row)');
+            if (!row) {
+                return null;
+            }
+            const style = getComputedStyle(row);
+            return `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`;
+        });
 
         await rec.step('inbox-bundled-no-cursor', {
             action: async () => { page = await openInbox(context); rec.watch(page, 'inbox'); },
@@ -654,6 +664,8 @@ const FEATURES = {
                 eq('cursor on Loose B', cursor, 'Loose B'),
                 eq('Gmail\'s cursor mark followed onto the thread', gmailCursor, 'Loose B'),
                 eq('no bundle row rings', count(P, '.inbundly-cursor'), 0),
+                truthy('keyboard mode on (<html>.inbundly-keyboard)', keyboardMode),
+                eq('plain row carries the same blue ring', plainRowRing, 'solid 2px rgb(26, 115, 232)'),
             ],
             shots,
         });
@@ -721,6 +733,9 @@ const FEATURES = {
                 eq('two News threads visible', visibleBundledMessages(P), 2),
                 eq('cursor on News 1 after a mouse open', cursor, 'News 1'),
                 eq('Gmail\'s mark on News 1', gmailCursor, 'News 1'),
+                falsy('a mouse press ended keyboard mode', keyboardMode),
+                truthy('no ring on the plain cursor row for a mouse user',
+                    async () => ((await plainRowRing()) || 'none').startsWith('none')),
             ],
             shots,
         });

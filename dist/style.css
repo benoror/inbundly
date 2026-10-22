@@ -316,6 +316,21 @@ html.inbundly.messages-dark-theme .bundle-row.inbundly-cursor {
     outline-color: #8ab4f8;
 }
 
+/*
+ * The same ring on Gmail's own cursor row (.btb), so a plain row reads like a
+ * bundle row under j/k. Only while the keyboard drives the list: <html> has
+ * inbundly-keyboard from a key KeyboardNavHandler takes until the next mouse
+ * press, so a mouse user never sees it.
+ */
+html.inbundly.inbundly-keyboard .flex-table-body > tr.zA.btb:not(.bundle-row) {
+    outline: 2px solid #1a73e8;
+    outline-offset: -2px;
+}
+
+html.inbundly.inbundly-keyboard.messages-dark-theme .flex-table-body > tr.zA.btb:not(.bundle-row) {
+    outline-color: #8ab4f8;
+}
+
 /**
  * Message count, in bundle row 
  */

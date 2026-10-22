@@ -69,6 +69,10 @@ const InbundlyClasses = {
     HIDE_BUNDLE_DELETE: 'hide-bundle-delete',
     HIDE_BUNDLE_SNOOZE: 'hide-bundle-snooze',
     HIDE_PINNED_TOGGLE: 'hide-pinned-toggle',
+    // On <html> while the user drives the list from the keyboard (set on a
+    // key this handler takes, cleared on the next mouse press), so the
+    // cursor ring on plain rows shows for keyboard use only.
+    KEYBOARD_MODE: 'inbundly-keyboard',
     MESSAGES_DARK_THEME: 'messages-dark-theme',
     MESSAGES_DEFAULT_THEME: 'messages-default-theme',
     INBUNDLY: 'inbundly',

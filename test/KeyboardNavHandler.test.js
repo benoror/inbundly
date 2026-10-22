@@ -327,3 +327,53 @@ describe('when Gmail\'s cursor mark does not follow focus', () => {
         spy.mockRestore();
     });
 });
+
+describe('keyboard mode (cursor ring on plain rows)', () => {
+    const keyboardMode = () => document.documentElement.classList.contains('inbundly-keyboard');
+
+    test('j/k turn it on, a mouse press turns it off', () => {
+        const { handler } = createHandler(bundle);
+        handler.attach();
+        expect(keyboardMode()).toBe(false);
+
+        press(handler, 'j');
+        expect(keyboardMode()).toBe(true);
+
+        window.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true }));
+        expect(keyboardMode()).toBe(false);
+
+        press(handler, 'k');
+        expect(keyboardMode()).toBe(true);
+        handler.detach();
+        expect(keyboardMode()).toBe(false);
+    });
+
+    test('a handled shortcut on the cursor row turns it on too', () => {
+        const { handler } = createHandler(bundle);
+        document.getElementById('a').classList.add('btb');
+        document.getElementById('a').focus();
+        press(handler, 'x');
+        expect(keyboardMode()).toBe(true);
+    });
+
+    test('keys it leaves alone do not', () => {
+        const { handler: inactive } = createHandler(bundle, { active: false });
+        press(inactive, 'j');
+        expect(keyboardMode()).toBe(false);
+
+        const { handler } = createHandler(bundle);
+        const search = document.getElementById('search');
+        search.focus();
+        press(handler, 'j', { target: search });
+        press(handler, 'q');
+        press(handler, 'j', { ctrlKey: true });
+        expect(keyboardMode()).toBe(false);
+    });
+
+    test('the stylesheet draws the ring on a plain cursor row only in keyboard mode', () => {
+        const css = require('fs').readFileSync(require('path').join(__dirname, '..', 'dist', 'style.css'), 'utf8');
+        expect(css).toContain(
+            'html.inbundly.inbundly-keyboard .flex-table-body > tr.zA.btb:not(.bundle-row) {\n    outline: 2px solid #1a73e8;');
+        expect(css).toMatch(/html\.inbundly\.inbundly-keyboard\.messages-dark-theme \.flex-table-body > tr\.zA\.btb:not\(\.bundle-row\) \{\n    outline-color: #8ab4f8;/);
+    });
+});

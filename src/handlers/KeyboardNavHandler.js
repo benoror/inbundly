@@ -36,6 +36,9 @@ import {
 //    enabled); the other thread shortcuts are swallowed, because Gmail's own
 //    cursor is on some other thread and would act on that instead;
 //  - Escape from inside the open bundle collapses it.
+// While the keyboard drives the list, <html> carries `inbundly-keyboard`
+// (cleared on the next mouse press), so a cursor ring can be drawn on Gmail's
+// own cursor row for keyboard users only (see style.css).
 // Moving onto a message row goes through GmailCursor.focusRow so Gmail's own
 // shortcuts act on it. When Gmail's cursor mark disagrees with the focused row
 // (and nothing is checked), the most common shortcuts fall back to Gmail's
@@ -79,6 +82,7 @@ class KeyboardNavHandler {
         this.attached = false;
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleMouseDown = this.handleMouseDown.bind(this);
     }
 
     /**
@@ -91,12 +95,24 @@ class KeyboardNavHandler {
             return;
         }
         window.addEventListener('keydown', this.handleKeyDown, true);
+        window.addEventListener('mousedown', this.handleMouseDown, true);
         this.attached = true;
     }
 
     detach() {
         window.removeEventListener('keydown', this.handleKeyDown, true);
+        window.removeEventListener('mousedown', this.handleMouseDown, true);
+        this._setKeyboardMode(false);
         this.attached = false;
+    }
+
+    /** A mouse press ends keyboard mode: the ring is for keyboard users only. */
+    handleMouseDown() {
+        this._setKeyboardMode(false);
+    }
+
+    _setKeyboardMode(on) {
+        document.documentElement.classList.toggle(InbundlyClasses.KEYBOARD_MODE, on);
     }
 
     handleKeyDown(e) {
@@ -125,6 +141,7 @@ class KeyboardNavHandler {
             if (ARROW_KEYS.has(e.key) && !GmailCursor.getFocusedRow()) {
                 return;
             }
+            this._setKeyboardMode(true);
             this._move(rows, current, NEXT_KEYS.has(e.key) ? 1 : -1);
             this._swallow(e);
             return;
@@ -133,6 +150,7 @@ class KeyboardNavHandler {
         if (!current) {
             return;
         }
+        this._setKeyboardMode(true);
         if (current.classList.contains(InbundlyClasses.BUNDLE_ROW)) {
             this._handleBundleRowKey(e, current);
         }
