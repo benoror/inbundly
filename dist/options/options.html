@@ -156,9 +156,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <h2 id="bundles-and-colors">Bundles &amp; colors</h2>
                 <p>
                     A few options control how bundles are grouped (under
-                    <a href="#labels">Options &rarr; Labels</a> and
+                    <a href="#labels">Options &rarr; What becomes a bundle</a> and
                     <a href="#inbox-layout">Options &rarr; Inbox layout</a>) and colored (under
-                    <a href="#appearance">Options &rarr; Appearance</a>):
+                    <a href="#appearance">Options &rarr; Colors</a>):
                 </p>
                 <ul class="bulleted-list">
                     <li>
@@ -210,12 +210,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <p>
                     You can pin important bundled messages by starring them. By default, pinned messages
                     appear in their own row outside of their bundle. You can turn this behavior off under
-                    <a href="#pinned-messages">Options &rarr; Pinned messages</a> if you prefer starred
+                    <a href="#pinned-messages">Options &rarr; Starred threads</a> if you prefer starred
                     messages to remain bundled.
                 </p>
                 <p>
                     The pinned-messages toggle is optional and hidden by default. Turn it on under
-                    <a href="#pinned-messages">Options &rarr; Pinned messages</a>.
+                    <a href="#pinned-messages">Options &rarr; Starred threads</a>.
                 </p>
                 <div>
                     <img 
@@ -244,11 +244,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <p>
                     The archive-all and snooze buttons are on by default; delete-all is off
                     because it is more destructive. Turn each on or off under
-                    <a href="#bundle-actions">Options &rarr; Bundle actions</a>.
+                    <a href="#bundle-actions">Options &rarr; Bundle buttons</a>.
                 </p>
                 <p>
                     Three optional switches (all off by default, under
-                    <a href="#bundle-actions">Options &rarr; Bundle actions</a>) shape what archive-all
+                    <a href="#bundle-actions">Options &rarr; Bundle buttons</a>) shape what archive-all
                     and the date sweep do: leave starred (pinned) messages in place, the way Inbox's
                     sweep left pins alone; mark the messages as read as they are archived; and remove
                     their stars, so done messages leave Starred too. They apply only to
@@ -314,11 +314,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
             <nav class="section-nav" aria-label="Option sections">
                 <a href="#bundling">Bundling</a>
-                <a href="#labels">Labels</a>
+                <a href="#labels">What becomes a bundle</a>
                 <a href="#inbox-layout">Inbox layout</a>
-                <a href="#pinned-messages">Pinned messages</a>
-                <a href="#bundle-actions">Bundle actions</a>
-                <a href="#appearance">Appearance</a>
+                <a href="#pinned-messages">Starred threads</a>
+                <a href="#bundle-actions">Bundle buttons</a>
+                <a href="#appearance">Colors</a>
                 <a href="#custom-bundles">Custom bundles</a>
                 <a href="#sync-backup">Sync &amp; backup</a>
             </nav>
@@ -365,7 +365,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section class="option-category" id="labels">
-                <h2>Labels</h2>
+                <h2>What becomes a bundle</h2>
                 <p class="option-lead">
                     Which labels become bundles. Threads that share a label bundle together, so
                     <a href="#create-filters">Gmail filters that apply labels</a> are how you set
@@ -410,27 +410,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     </label>
                 </div>
 
+                <div class="option-row">
+                    <div class="option-text">
+                        <label class="option-title" for="sender-bundling-checkbox">Sender bundles</label>
+                        <span class="option-detail">
+                            Unlabeled messages that share a sender bundle together: by domain, or
+                            by the exact address on personal-mail domains like gmail.com. Needs
+                            2+ threads; labels always win.
+                        </span>
+                        <div class="option-media" data-media-for="sender-bundling-checkbox" hidden></div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="sender-bundling-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="option-row">
+                    <div class="option-text">
+                        <label class="option-title" for="combine-labels-checkbox">Combine labels</label>
+                        <span class="option-detail">
+                            Each distinct set of labels forms its own bundle: threads labeled
+                            A&nbsp;+&nbsp;B group separately from threads labeled only A. The
+                            bundle title factors out any shared parent.
+                        </span>
+                        <div class="option-media" data-media-for="combine-labels-checkbox" hidden></div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="combine-labels-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
                 <details class="option-advanced" id="label-rules">
                     <summary>
                         <span class="option-title">Advanced label rules</span>
-                        <span class="option-detail">Combine labels, priority bundles</span>
+                        <span class="option-detail">Priority bundles</span>
                     </summary>
-
-                    <div class="option-row">
-                        <div class="option-text">
-                            <label class="option-title" for="combine-labels-checkbox">Combine labels</label>
-                            <span class="option-detail">
-                                Each distinct set of labels forms its own bundle: threads labeled
-                                A&nbsp;+&nbsp;B group separately from threads labeled only A. The
-                                bundle title factors out any shared parent.
-                            </span>
-                            <div class="option-media" data-media-for="combine-labels-checkbox" hidden></div>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="combine-labels-checkbox">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
 
                     <div class="option-block">
                         <div class="option-text">
@@ -452,22 +468,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             <section class="option-category" id="inbox-layout">
                 <h2>Inbox layout</h2>
                 <p class="option-lead">How the list reads around its bundles.</p>
-
-                <div class="option-row">
-                    <div class="option-text">
-                        <label class="option-title" for="sender-bundling-checkbox">Sender bundles</label>
-                        <span class="option-detail">
-                            Unlabeled messages that share a sender bundle together: by domain, or
-                            by the exact address on personal-mail domains like gmail.com. Needs
-                            2+ threads; labels always win.
-                        </span>
-                        <div class="option-media" data-media-for="sender-bundling-checkbox" hidden></div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="sender-bundling-checkbox">
-                        <span class="slider"></span>
-                    </label>
-                </div>
 
                 <div class="option-row">
                     <div class="option-text">
@@ -502,7 +502,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section class="option-category" id="pinned-messages">
-                <h2>Pinned messages</h2>
+                <h2>Starred threads</h2>
                 <p class="option-lead">Starring a message pins it, the way Google Inbox did.</p>
 
                 <div class="option-row">
@@ -551,7 +551,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section class="option-category" id="bundle-actions">
-                <h2>Bundle actions</h2>
+                <h2>Bundle buttons</h2>
                 <p class="option-lead">
                     Buttons on a bundle row, shown on hover and while the bundle is open. The
                     select-all checkbox is always there; Gmail's toolbar actions then apply to
@@ -635,6 +635,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                 Unstars each message as it is archived, so done messages leave
                                 Starred too.
                             </span>
+                            <span class="option-note" data-note-for="unstar-on-archive-checkbox" hidden></span>
                             <div class="option-media" data-media-for="unstar-on-archive-checkbox" hidden></div>
                         </div>
                         <label class="switch">
@@ -646,7 +647,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             </section>
 
             <section class="option-category" id="appearance">
-                <h2>Appearance</h2>
+                <h2>Colors</h2>
                 <p class="option-lead">Bundle colors, in Gmail's light and dark themes.</p>
 
                 <div class="option-row">

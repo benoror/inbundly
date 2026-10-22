@@ -240,11 +240,11 @@ test('the options page groups settings by topic, in the order of the section lin
 
     expect(headings).toEqual([
         'Bundling',
-        'Labels',
+        'What becomes a bundle',
         'Inbox layout',
-        'Pinned messages',
-        'Bundle actions',
-        'Appearance',
+        'Starred threads',
+        'Bundle buttons',
+        'Colors',
         'Custom bundles',
         'Sync & backup',
     ]);
@@ -283,6 +283,60 @@ test('each section card opens with its title and lead, and every switch row has 
     }
 });
 
+test('What becomes a bundle holds the label list, sender bundles, and combine labels outside the fold', () => {
+    const section = document.getElementById('labels');
+    const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
+    expect(ids).toEqual([
+        'skip-single-item-bundles-checkbox',
+        'sender-bundling-checkbox',
+        'combine-labels-checkbox',
+    ]);
+    expect(document.getElementById('inbox-layout').querySelector('#sender-bundling-checkbox')).toBeNull();
+    for (const id of ids) {
+        expect(document.getElementById(id).closest('details')).toBeNull();
+    }
+    // Only the priority rules stay folded.
+    expect(document.getElementById('label-rules').querySelectorAll('textarea, input')).toHaveLength(1);
+    expect(document.getElementById('label-rules').querySelector('#priority-bundles-list')).not.toBeNull();
+});
+
+describe('Remove stars depends on skip-starred', () => {
+    const unstar = () => document.getElementById('unstar-on-archive-checkbox');
+    const skip = () => document.getElementById('skip-starred-on-archive-checkbox');
+    const unstarRow = () => unstar().closest('.option-row');
+    const note = () => unstarRow().querySelector('.option-note[data-note-for="unstar-on-archive-checkbox"]');
+    const flip = (input, value) => {
+        input.checked = value;
+        input.dispatchEvent(new window.Event('change', { bubbles: true }));
+    };
+
+    test('enabled while skip-starred is off', () => {
+        expect(unstar().disabled).toBe(false);
+        expect(unstarRow().classList.contains('option-disabled')).toBe(false);
+        expect(note().hidden).toBe(true);
+    });
+
+    test('greyed out with its note while skip-starred is on, stored value untouched', () => {
+        loadOptionsPage({ skipStarredOnArchive: true, unstarOnArchive: true });
+
+        expect(unstar().disabled).toBe(true);
+        expect(unstar().checked).toBe(true);
+        expect(unstarRow().classList.contains('option-disabled')).toBe(true);
+        expect(note().hidden).toBe(false);
+        expect(store.unstarOnArchive).toBe(true);
+
+        flip(skip(), false);
+        expect(unstar().disabled).toBe(false);
+        expect(unstar().checked).toBe(true);
+        expect(note().hidden).toBe(true);
+        expect(store).toEqual({ skipStarredOnArchive: false, unstarOnArchive: true });
+
+        flip(skip(), true);
+        expect(unstar().disabled).toBe(true);
+        expect(store).toEqual({ skipStarredOnArchive: true, unstarOnArchive: true });
+    });
+});
+
 test('the bulk actions and their archive behavior share one section', () => {
     const section = document.getElementById('bundle-actions');
     const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
@@ -296,7 +350,7 @@ test('the bulk actions and their archive behavior share one section', () => {
     ]);
 });
 
-test('both starred settings sit side by side in the Pinned messages section', () => {
+test('both starred settings sit side by side in the Starred threads section', () => {
     const section = document.getElementById('pinned-messages');
     const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
 
@@ -314,8 +368,17 @@ test('both starred settings sit side by side in the Pinned messages section', ()
 test('a setting that differs from its default is marked, and its fold opens', () => {
     loadOptionsPage({ combineLabels: false, showBundleDelete: true });
 
+    // Combine labels sits outside the fold now, so changing it leaves the fold closed.
     const combine = document.getElementById('combine-labels-checkbox').closest('.option-row');
     expect(combine.classList.contains('differs')).toBe(true);
+    expect(combine.closest('details')).toBeNull();
+    expect(document.getElementById('label-rules').open).toBe(false);
+    expect(document.getElementById('theme-matching').open).toBe(false);
+
+    // A changed setting inside a fold opens it.
+    loadOptionsPage({ priorityBundles: ['Bank'], showBundleDelete: true });
+    expect(document.getElementById('priority-bundles-list').closest('.option-block')
+        .classList.contains('differs')).toBe(true);
     expect(document.getElementById('label-rules').open).toBe(true);
     expect(document.getElementById('theme-matching').open).toBe(false);
 
@@ -391,7 +454,7 @@ describe('find a setting', () => {
     });
 
     test('a section name finds every setting in it, blocks included', () => {
-        search('Appearance');
+        search('Colors');
 
         expect(visibleSections()).toEqual(['appearance']);
         expect(hidden(document.getElementById('color-style-accent').closest('.option-block')))

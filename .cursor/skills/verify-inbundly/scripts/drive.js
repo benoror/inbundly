@@ -1070,10 +1070,14 @@ const FEATURES = {
 
         await rec.step('flip-unstar-on-and-skip-starred-off', {
             action: async () => {
-                await switchFor('unstar-on-archive-checkbox').click();
+                // Remove stars is greyed out while skip-starred is on (it would
+                // do nothing), so skip-starred goes off first.
                 await switchFor('skip-starred-on-archive-checkbox').click();
                 await options.waitForFunction(
-                    () => !document.getElementById('skip-starred-on-archive-checkbox').checked);
+                    () => !document.getElementById('unstar-on-archive-checkbox').disabled);
+                await switchFor('unstar-on-archive-checkbox').click();
+                await options.waitForFunction(
+                    () => document.getElementById('unstar-on-archive-checkbox').checked);
             },
             checks: [
                 truthy('unstar on', checked('unstar-on-archive-checkbox')),
@@ -1319,6 +1323,36 @@ const FEATURES = {
             shots,
         });
 
+        await rec.step('skip-starred-greys-out-remove-stars', {
+            action: async () => {
+                await options.locator('label.switch:has(#skip-starred-on-archive-checkbox) .slider').click();
+                await options.waitForFunction(
+                    () => document.getElementById('unstar-on-archive-checkbox').disabled);
+            },
+            checks: [
+                truthy('skip-starred on', () => options.locator('#skip-starred-on-archive-checkbox').isChecked()),
+                truthy('Remove stars disabled', () => options.locator('#unstar-on-archive-checkbox').isDisabled()),
+                truthy('Remove stars row greyed', hasClass(
+                    () => options.locator('.option-row', { has: options.locator('#unstar-on-archive-checkbox') }),
+                    'option-disabled')),
+                falsy('Remove stars stored value untouched',
+                    async () => Object.prototype.hasOwnProperty.call(await storedSync(), 'unstarOnArchive')),
+            ],
+            shots,
+        });
+
+        await rec.step('skip-starred-off-again', {
+            action: async () => {
+                await options.locator('label.switch:has(#skip-starred-on-archive-checkbox) .slider').click();
+                await options.waitForFunction(
+                    () => !document.getElementById('unstar-on-archive-checkbox').disabled);
+            },
+            checks: [
+                falsy('Remove stars enabled again', () => options.locator('#unstar-on-archive-checkbox').isDisabled()),
+            ],
+            shots,
+        });
+
         await rec.step('restore-delete-all-off', {
             action: async () => {
                 await deleteRow().locator('label.switch .slider').click();
@@ -1326,7 +1360,7 @@ const FEATURES = {
             },
             checks: [
                 falsy('row no longer marked as changed', hasClass(deleteRow, 'differs')),
-                eq('sync holds the explicit false', storedSync, { showBundleDelete: false }),
+                eq('sync holds the explicit falses', storedSync, { showBundleDelete: false, skipStarredOnArchive: false }),
             ],
             shots,
         });

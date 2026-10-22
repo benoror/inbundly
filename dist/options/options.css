@@ -543,6 +543,34 @@ label.option-title {
     width: 100%;
 }
 
+/* A switch that has no effect right now (see DEPENDENT_SWITCHES in options.js). */
+.option-row.option-disabled .option-title,
+.option-row.option-disabled .option-detail {
+    opacity: 0.55;
+}
+
+.option-row.option-disabled label.option-title,
+.option-row.option-disabled .slider {
+    cursor: not-allowed;
+}
+
+.option-row.option-disabled .switch {
+    opacity: 0.45;
+}
+
+/* A short note under a setting, e.g. why it is greyed out. */
+.option-note {
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-style: italic;
+    line-height: 1.45;
+}
+
+.option-note[hidden],
+.option-note:empty {
+    display: none;
+}
+
 .option-block .option-text {
     margin-bottom: 0.75rem;
 }

@@ -97,7 +97,7 @@ test('the page opens on Options, grouped into named sections with jump links', a
         'unstar-on-archive-checkbox',
     ]);
 
-    // Both starred settings sit together in Pinned messages.
+    // Both starred settings sit together in Starred threads.
     const pinnedSwitches = await page.locator('#pinned-messages input[type="checkbox"]')
         .evaluateAll(inputs => inputs.map(i => i.id));
     expect(pinnedSwitches).toEqual([
@@ -150,12 +150,12 @@ test('a changed setting inside an Advanced fold opens the fold on load', async (
     const page = await openOptions();
     await expect(page.locator('#label-rules')).not.toHaveAttribute('open', '');
 
-    await setSyncOptions(context, { combineLabels: false });
+    await setSyncOptions(context, { priorityBundles: ['Bank'] });
     await page.reload();
-    await page.locator('#combine-labels-checkbox').waitFor({ state: 'attached' });
+    await page.locator('#priority-bundles-list').waitFor({ state: 'attached' });
     await expect.poll(() => page.locator('#label-rules').evaluate(d => d.open)).toBe(true);
-    await expect(page.locator('#combine-labels-checkbox')).not.toBeChecked();
-    await expect(page.locator('#combine-labels-checkbox').locator('xpath=ancestor::*[contains(@class,"option-row")]'))
+    await expect(page.locator('#priority-bundles-list')).toHaveValue('Bank');
+    await expect(page.locator('#priority-bundles-list').locator('xpath=ancestor::*[contains(@class,"option-block")]'))
         .toHaveClass(/differs/);
     await page.close();
 });
@@ -186,5 +186,30 @@ test('find a setting narrows the page, opens folds, and clears back', async () =
     await page.locator('.tab.options h1').click();
     await page.keyboard.press('/');
     await expect(search).toBeFocused();
+    await page.close();
+});
+
+test('Remove stars is greyed out while skip-starred is on, its value kept', async () => {
+    await setSyncOptions(context, { unstarOnArchive: true });
+    const page = await openOptions('#bundle-actions');
+    const unstar = page.locator('#unstar-on-archive-checkbox');
+    const unstarRow = page.locator('.option-row', { has: unstar });
+    await expect(unstar).toBeChecked();
+    await expect(unstar).toBeEnabled();
+
+    await page.locator('label.switch:has(#skip-starred-on-archive-checkbox) .slider').click();
+    await expect(unstar).toBeDisabled();
+    await expect(unstar).toBeChecked();
+    await expect(unstarRow).toHaveClass(/option-disabled/);
+    await expect.poll(storedSync).toEqual({ unstarOnArchive: true, skipStarredOnArchive: true });
+
+    // A click on the greyed switch changes nothing.
+    await unstarRow.locator('label.switch .slider').click({ force: true });
+    await expect(unstar).toBeChecked();
+
+    await page.locator('label.switch:has(#skip-starred-on-archive-checkbox) .slider').click();
+    await expect(unstar).toBeEnabled();
+    await expect(unstarRow).not.toHaveClass(/option-disabled/);
+    await expect.poll(storedSync).toEqual({ unstarOnArchive: true, skipStarredOnArchive: false });
     await page.close();
 });

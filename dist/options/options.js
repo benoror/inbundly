@@ -199,12 +199,43 @@ for (const [key, field] of Object.entries(OPTION_FIELDS)) {
     }
 }
 
+//
+// Settings that depend on another
+//
+// "Remove stars" has no effect while "Leave starred messages in place" is
+// on: skipped threads are never archived, so they keep their star. The
+// switch is greyed out then, with a note under it. Its stored value is left
+// as it is, so turning skip-starred off brings back what the user had.
+
+const DEPENDENT_SWITCHES = [
+    { id: 'unstar-on-archive-checkbox', disabledWhenOn: 'skip-starred-on-archive-checkbox' },
+];
+
+function syncDependentSwitches() {
+    for (const { id, disabledWhenOn } of DEPENDENT_SWITCHES) {
+        const input = byId(id);
+        const disabled = byId(disabledWhenOn).checked;
+        input.disabled = disabled;
+        const row = input.closest('.option-row');
+        row.classList.toggle('option-disabled', disabled);
+        const note = row.querySelector(`.option-note[data-note-for="${id}"]`);
+        if (note) {
+            note.hidden = !disabled;
+        }
+    }
+}
+
+for (const { disabledWhenOn } of DEPENDENT_SWITCHES) {
+    byId(disabledWhenOn).addEventListener('change', syncDependentSwitches);
+}
+
 function restoreOptionsForm() {
     chrome.storage.sync.get(OPTION_DEFAULTS, items => {
         for (const [key, field] of Object.entries(OPTION_FIELDS)) {
             field.write(items[key]);
             markChangedFromDefault(key);
         }
+        syncDependentSwitches();
         openAdvancedWithChanges();
     });
 }

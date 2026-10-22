@@ -1,7 +1,9 @@
 # Options page layout and find a setting
 
-The Options tab is laid out as eight sections a user can name (Bundling, Labels, Inbox
-layout, Pinned messages, Bundle actions, Appearance, Custom bundles, Sync & backup), each
+The Options tab is laid out as eight sections a user can name (Bundling, What becomes a
+bundle, Inbox layout, Starred threads, Bundle buttons, Colors, Custom bundles, Sync & backup;
+ids `bundling`, `labels`, `inbox-layout`, `pinned-messages`, `bundle-actions`, `appearance`,
+`custom-bundles`, `sync-backup`), each
 with a one-line lead and one row per setting: name and explanation on the left, the switch
 on the right. Jump links at the top reach every section, every switch row states its
 default and is marked when its value differs, the less common settings fold under an
@@ -15,9 +17,12 @@ settings.
 - `layout-jump` a jump link (or a direct `#<section-id>` URL) stays on the Options tab
   and scrolls that section to the top of the view.
 - `layout-bundle-actions` the archive-all, snooze, and delete-all switches and the two
-  remaining archive switches (mark read, unstar) share the `Bundle actions` section.
+  remaining archive switches (mark read, unstar) share the `Bundle buttons` section (`#bundle-actions`).
 - `layout-starred-pair` both starred settings (`keep-starred-unbundled-checkbox`, then
-  `skip-starred-on-archive-checkbox`) sit side by side in the `Pinned messages` section.
+  `skip-starred-on-archive-checkbox`) sit side by side in the `Starred threads` section (`#pinned-messages`).
+- `layout-remove-stars-dependency` turning skip-starred on disables and greys the Remove
+  stars switch (`.option-row.option-disabled`, `.option-note` shown); its stored value is
+  kept, and turning skip-starred off enables it again.
 - `layout-defaults` every switch row carries `Default: on` or `Default: off`; a row whose
   value differs from its default gets the `differs` class, cleared when it is flipped back.
 - `layout-fold` an Advanced fold (`#label-rules`, `#theme-matching`) is closed in a fresh
@@ -33,11 +38,11 @@ settings.
 
 - Click the Inbundly toolbar icon, then `Options`; or `chrome://extensions`, Inbundly,
   `Extension options`. The Get started tab links into sections too (`Options -> Bundle
-  actions`, `Options -> Pinned messages`, and so on).
+  buttons`, `Options -> Starred threads`, and so on).
 - Click a chip under the search box to jump to that section; type in `Find a setting`
   (or press `/`) to narrow the page.
-- Open `Advanced label rules` under Labels or `Theme matching` under Appearance for the
-  folded settings.
+- Open `Advanced label rules` under What becomes a bundle (Priority bundles) or `Theme
+  matching` under Colors for the folded settings.
 
 ## Driving it with Playwright
 
@@ -93,7 +98,7 @@ Preconditions:
   explanation finds that row too (`snooze` also finds the `Snoozed` view in "Also bundle
   outside the inbox"); pick a distinctive word such as `priority` or `delete-all`.
 - A fold also opens on load when a setting inside it differs from its default (a stored
-  `priorityBundles` list, `combineLabels` off). Start from an empty store when a step
+  `priorityBundles` list; Combine labels sits outside the fold now). Start from an empty store when a step
   expects `#label-rules` closed.
 - Every visit to the Options tab re-reads the form from storage; a flip made through
   `setSyncOptions` shows after `options.reload()` or on the tab's storage listener, not
