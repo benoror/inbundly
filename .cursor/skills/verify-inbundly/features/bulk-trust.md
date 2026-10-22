@@ -28,8 +28,9 @@ Gmail refresh or a rebundle. Gmail's own archive paths are untouched.
 
 ## How to get to it (user POV)
 
-- Options, then Bundle actions, then `When Inbundly archives`: the three switches
-  `Leave starred messages in place`, `Mark as read first`, `Remove stars`.
+- Options, then Pinned messages: `Leave starred messages in place`, next to `Keep starred
+  messages outside bundles`. Options, then Bundle actions, then `When Inbundly archives`:
+  `Mark as read first`, `Remove stars`.
 - In the Inbox, the check-all icon at the right of a date heading (`Today`) sweeps that
   section; hover a bundle row and click its archive icon for the bundle.
 

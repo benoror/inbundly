@@ -277,10 +277,24 @@ test('the bulk actions and their archive behavior share one section', () => {
         'show-bundle-archive-checkbox',
         'show-bundle-snooze-checkbox',
         'show-bundle-delete-checkbox',
-        'skip-starred-on-archive-checkbox',
         'mark-read-on-archive-checkbox',
         'unstar-on-archive-checkbox',
     ]);
+});
+
+test('both starred settings sit side by side in the Pinned messages section', () => {
+    const section = document.getElementById('pinned-messages');
+    const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);
+
+    expect(ids).toEqual([
+        'keep-starred-unbundled-checkbox',
+        'skip-starred-on-archive-checkbox',
+        'show-pinned-toggle-checkbox',
+    ]);
+    // Adjacent rows, so the two read as a pair.
+    const keep = document.getElementById('keep-starred-unbundled-checkbox').closest('.option-row');
+    const skip = document.getElementById('skip-starred-on-archive-checkbox').closest('.option-row');
+    expect(keep.nextElementSibling).toBe(skip);
 });
 
 test('a setting that differs from its default is marked, and its fold opens', () => {
@@ -356,7 +370,6 @@ describe('find a setting', () => {
         search('when inbundly archives');
 
         expect(visibleRows()).toEqual([
-            'skip-starred-on-archive-checkbox',
             'mark-read-on-archive-checkbox',
             'unstar-on-archive-checkbox',
         ]);

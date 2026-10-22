@@ -1260,7 +1260,10 @@ const FEATURES = {
                 eq('buttons and archive switches share the section',
                     () => options.locator('#bundle-actions input[type="checkbox"]').evaluateAll(i => i.map(x => x.id)),
                     ['show-bundle-archive-checkbox', 'show-bundle-snooze-checkbox', 'show-bundle-delete-checkbox',
-                        'skip-starred-on-archive-checkbox', 'mark-read-on-archive-checkbox', 'unstar-on-archive-checkbox']),
+                        'mark-read-on-archive-checkbox', 'unstar-on-archive-checkbox']),
+                eq('both starred settings side by side in Pinned messages',
+                    () => options.locator('#pinned-messages input[type="checkbox"]').evaluateAll(i => i.map(x => x.id)),
+                    ['keep-starred-unbundled-checkbox', 'skip-starred-on-archive-checkbox', 'show-pinned-toggle-checkbox']),
             ],
             shots,
         });

@@ -85,16 +85,25 @@ test('the page opens on Options, grouped into named sections with jump links', a
         anchors => anchors.map(a => a.getAttribute('href').slice(1)));
     expect(links).toEqual(SECTIONS);
 
-    // The Bundle actions section holds the three buttons and the archive switches.
+    // The Bundle actions section holds the three buttons and the archive switches
+    // that shape what archiving does (skip-starred moved to Pinned messages).
     const actionSwitches = await page.locator('#bundle-actions input[type="checkbox"]')
         .evaluateAll(inputs => inputs.map(i => i.id));
     expect(actionSwitches).toEqual([
         'show-bundle-archive-checkbox',
         'show-bundle-snooze-checkbox',
         'show-bundle-delete-checkbox',
-        'skip-starred-on-archive-checkbox',
         'mark-read-on-archive-checkbox',
         'unstar-on-archive-checkbox',
+    ]);
+
+    // Both starred settings sit together in Pinned messages.
+    const pinnedSwitches = await page.locator('#pinned-messages input[type="checkbox"]')
+        .evaluateAll(inputs => inputs.map(i => i.id));
+    expect(pinnedSwitches).toEqual([
+        'keep-starred-unbundled-checkbox',
+        'skip-starred-on-archive-checkbox',
+        'show-pinned-toggle-checkbox',
     ]);
     await page.close();
 });

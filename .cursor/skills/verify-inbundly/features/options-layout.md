@@ -14,8 +14,10 @@ settings.
   the eight `.option-category` sections in the order of the `.section-nav` links.
 - `layout-jump` a jump link (or a direct `#<section-id>` URL) stays on the Options tab
   and scrolls that section to the top of the view.
-- `layout-bundle-actions` the archive-all, snooze, and delete-all switches and the three
-  archive switches (skip starred, mark read, unstar) share the `Bundle actions` section.
+- `layout-bundle-actions` the archive-all, snooze, and delete-all switches and the two
+  remaining archive switches (mark read, unstar) share the `Bundle actions` section.
+- `layout-starred-pair` both starred settings (`keep-starred-unbundled-checkbox`, then
+  `skip-starred-on-archive-checkbox`) sit side by side in the `Pinned messages` section.
 - `layout-defaults` every switch row carries `Default: on` or `Default: off`; a row whose
   value differs from its default gets the `differs` class, cleared when it is flipped back.
 - `layout-fold` an Advanced fold (`#label-rules`, `#theme-matching`) is closed in a fresh
@@ -63,8 +65,9 @@ Preconditions:
   `location.hash` is `#bundle-actions`, `.tab.options` is visible, and
   `#bundle-actions` has `getBoundingClientRect().top` between `0` and `120`. Its
   checkboxes are, in order, `show-bundle-archive-checkbox`, `show-bundle-snooze-checkbox`,
-  `show-bundle-delete-checkbox`, `skip-starred-on-archive-checkbox`,
-  `mark-read-on-archive-checkbox`, `unstar-on-archive-checkbox`.
+  `show-bundle-delete-checkbox`, `mark-read-on-archive-checkbox`,
+  `unstar-on-archive-checkbox`; `#pinned-messages` holds `keep-starred-unbundled-checkbox`,
+  `skip-starred-on-archive-checkbox`, `show-pinned-toggle-checkbox`.
 - **Flip delete-all on.** `await deleteRow.locator('label.switch .slider').click()`.
   `#save-status` gains `visible`, `deleteRow` gains `differs`, sync storage equals
   `{ showBundleDelete: true }`.
