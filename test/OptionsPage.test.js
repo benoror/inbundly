@@ -560,3 +560,68 @@ test('exporting produces JSON holding the current settings', () => {
     expect(payload.settings.priorityBundles).toEqual(['Bank', 'Work + Urgent']);
     expect(document.getElementById('backup-status').textContent).toBe('Settings exported.');
 });
+
+describe('copy', () => {
+    const title = id => document.querySelector(`label.option-title[for="${id}"]`).textContent.trim();
+    const text = el => el.textContent.replace(/\s+/g, ' ').trim();
+
+    test('the starred settings say "starred" and name what they do', () => {
+        expect(text(document.querySelector('#pinned-messages > h2'))).toBe('Starred threads');
+        expect(title('keep-starred-unbundled-checkbox')).toBe('Show starred on their own rows');
+        expect(title('skip-starred-on-archive-checkbox')).toBe('Archive buttons skip starred');
+        expect(title('show-pinned-toggle-checkbox')).toBe('Starred switch in search bar');
+        expect(title('mark-read-on-archive-checkbox')).toBe('Mark as read too');
+        expect(title('unstar-on-archive-checkbox')).toBe('Remove stars too');
+        // The shared interaction note closes the starred pair.
+        expect(text(document.querySelector('#starred-pair > .option-group-footnote')))
+            .toBe('When starred threads have their own rows, they are never inside a bundle, so '
+                + 'skipping them only matters for the archive button on date headings.');
+        // The scope line under "When Inbundly archives" and its pointer back to Starred threads.
+        const group = document.getElementById('archive-behavior');
+        expect(text(group.querySelector('.subsection-note'))).toMatch(/^These switches only change Inbundly's archive buttons/);
+        expect(group.querySelector('.option-group-footnote a').getAttribute('href')).toBe('#pinned-messages');
+    });
+
+    test('the Remove stars note explains why it is off', () => {
+        expect(text(document.querySelector('.option-note[data-note-for="unstar-on-archive-checkbox"]')))
+            .toBe('Off while Archive buttons skip starred is on, since skipped threads keep their star.');
+    });
+
+    test('Keep my bundle open says it is per tab', () => {
+        expect(title('remember-open-bundle-checkbox')).toBe('Keep my bundle open');
+        expect(text(document.getElementById('remember-open-bundle-checkbox').closest('.option-row')
+            .querySelector('.option-detail')))
+            .toBe('Remembers which bundle you had open in this tab, even after a reload. Closing the tab resets it.');
+    });
+});
+
+describe('extension ID compare step', () => {
+    afterEach(() => {
+        delete global.browser;
+    });
+
+    test('is shown in Chrome', () => {
+        const compare = document.getElementById('extension-id-compare');
+        expect(compare.hidden).toBe(false);
+        expect(compare.textContent).toContain('chrome://extensions');
+        expect(document.getElementById('extension-id').textContent).toBe(EXTENSION_ID);
+    });
+
+    test('is hidden in Firefox, detected from a moz-extension: URL', () => {
+        const realLoad = loadOptionsPage;
+        realLoad({});
+        global.chrome.runtime.getURL = path => `moz-extension://abc/${path}`;
+        // Re-run the tab selection so showExtensionId reads the Firefox runtime.
+        window.location.hash = '#help';
+        window.dispatchEvent(new window.Event('hashchange'));
+        window.location.hash = '';
+        window.dispatchEvent(new window.Event('hashchange'));
+        expect(document.getElementById('extension-id-compare').hidden).toBe(true);
+    });
+
+    test('is hidden in Firefox, detected from browser.runtime.getBrowserInfo', () => {
+        global.browser = { runtime: { getBrowserInfo: () => Promise.resolve({ name: 'Firefox' }) } };
+        loadOptionsPage({});
+        expect(document.getElementById('extension-id-compare').hidden).toBe(true);
+    });
+});

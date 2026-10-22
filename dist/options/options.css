@@ -595,8 +595,22 @@ label.option-title {
 }
 
 .option-group > .subsection-header + .subsection-note + .option-row,
-.option-group > .subsection-header + .option-row {
+.option-group > .subsection-header + .option-row,
+.option-group > .option-row:first-child {
     border-top: none;
+}
+
+/* A short line closing a subsection, e.g. how its settings work together. */
+.option-group-footnote {
+    border-top: 1px solid var(--border);
+    margin: 0;
+    padding: 0.7rem 0 0.8rem;
+}
+
+.option-group-footnote a {
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 3px;
 }
 
 /** Advanced settings folded under a section */

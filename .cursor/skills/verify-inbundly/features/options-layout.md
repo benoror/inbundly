@@ -41,7 +41,7 @@ settings.
   buttons`, `Options -> Starred threads`, and so on).
 - Click a chip under the search box to jump to that section; type in `Find a setting`
   (or press `/`) to narrow the page.
-- Open `Advanced label rules` under What becomes a bundle (Priority bundles) or `Theme
+- Open `Advanced bundle rules` under What becomes a bundle (Priority bundles) or `Theme
   matching` under Colors for the folded settings.
 
 ## Driving it with Playwright
@@ -95,8 +95,8 @@ Preconditions:
 - The real `<input type="checkbox">` is visually hidden behind the styled `.slider`; click
   the slider inside the same `label.switch`, never `check()` on the input.
 - The search matches the visible copy, so a word that appears in another setting's
-  explanation finds that row too (`snooze` also finds the `Snoozed` view in "Also bundle
-  outside the inbox"); pick a distinctive word such as `priority` or `delete-all`.
+  explanation finds that row too (`snooze` also finds the `Snoozed` view in "Bundle other
+  Gmail pages too"); pick a distinctive word such as `priority` or `delete-all`.
 - A fold also opens on load when a setting inside it differs from its default (a stored
   `priorityBundles` list; Combine labels sits outside the fold now). Start from an empty store when a step
   expects `#label-rules` closed.

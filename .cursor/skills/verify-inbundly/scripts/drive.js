@@ -1244,7 +1244,7 @@ const FEATURES = {
                 eq('every switch row states its default', () => options.locator('.option-row .option-default').count(), 17),
                 eq('delete-all row says Default: off', () => deleteRow().locator('.option-default').textContent(), 'Default: off'),
                 falsy('nothing marked as changed in a fresh profile', count(O, '.differs')),
-                falsy('Advanced label rules closed', foldOpen('label-rules')),
+                falsy('Advanced bundle rules closed', foldOpen('label-rules')),
                 eq('sync storage empty in a fresh profile', storedSync, {}),
             ],
             shots,

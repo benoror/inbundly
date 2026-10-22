@@ -22,12 +22,12 @@ search.
 
 ## How to get to it (user POV)
 
-- Open the Inbox (or a category tab like Promotions) with `Sender bundles` on in Options
+- Open the Inbox (or a category tab like Promotions) with `Bundle by sender` on in Options
   (default); unlabeled newsletters and notifications from one domain collapse into a bundle
   named after the domain.
 - Click a sender bundle to expand it; click `View all` on the row to open Gmail's search
   for that sender.
-- Options, then Inbox layout, then the `Sender bundles` switch, turns the feature off; the inbox rebundles
+- Options, then What becomes a bundle, then the `Bundle by sender` switch, turns the feature off; the inbox rebundles
   live.
 
 ## Driving it with Playwright
