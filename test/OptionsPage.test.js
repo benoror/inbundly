@@ -269,6 +269,20 @@ test('every switch sits in a row with a title, an explanation, and its default',
     }
 });
 
+test('each section card opens with its title and lead, and every switch row has an empty media slot', () => {
+    for (const section of document.querySelectorAll('.option-category')) {
+        expect(section.firstElementChild.tagName).toBe('H2');
+        expect(section.firstElementChild.nextElementSibling.classList.contains('option-lead')).toBe(true);
+    }
+    for (const input of document.querySelectorAll('.tab.options input[type="checkbox"]')) {
+        const slot = input.closest('.option-row').querySelector('.option-text > .option-media');
+        expect(slot).not.toBeNull();
+        expect(slot.dataset.mediaFor).toBe(input.id);
+        expect(slot.hidden).toBe(true);
+        expect(slot.children).toHaveLength(0);
+    }
+});
+
 test('the bulk actions and their archive behavior share one section', () => {
     const section = document.getElementById('bundle-actions');
     const ids = [...section.querySelectorAll('input[type="checkbox"]')].map(input => input.id);

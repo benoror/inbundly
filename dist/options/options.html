@@ -289,6 +289,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         </div>
 
         <div class="tab options">
+            <!--
+              Layout: one section card per topic (h2 + p.option-lead), then rows.
+              Each switch row: label.option-title (the setting's name),
+              span.option-detail (its help text), and an empty
+              div.option-media[hidden] slot for a short looping clip or still
+              (put a <video autoplay loop muted playsinline> or <img> inside and
+              drop `hidden` to show it). The Default chip is added by options.js.
+            -->
             <h1>Options</h1>
             <p class="tab-lead">
                 Every option here, and your custom bundles, saves the moment you change it and
@@ -331,6 +339,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             The same switch sits in Gmail's search bar and in the toolbar popup;
                             all three stay in step.
                         </span>
+                        <div class="option-media" data-media-for="bundling-enabled-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="bundling-enabled-checkbox">
@@ -346,6 +355,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             The label or sender a view is already filtered by is not bundled again
                             there. Conversations, Sent, Drafts, Spam, and Trash never bundle.
                         </span>
+                        <div class="option-media" data-media-for="bundle-other-views-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="bundle-other-views-checkbox">
@@ -392,6 +402,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             Show a label with only one thread as a regular message instead of a
                             one-row bundle.
                         </span>
+                        <div class="option-media" data-media-for="skip-single-item-bundles-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="skip-single-item-bundles-checkbox">
@@ -413,6 +424,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                 A&nbsp;+&nbsp;B group separately from threads labeled only A. The
                                 bundle title factors out any shared parent.
                             </span>
+                            <div class="option-media" data-media-for="combine-labels-checkbox" hidden></div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="combine-labels-checkbox">
@@ -449,6 +461,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             by the exact address on personal-mail domains like gmail.com. Needs
                             2+ threads; labels always win.
                         </span>
+                        <div class="option-media" data-media-for="sender-bundling-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="sender-bundling-checkbox">
@@ -464,6 +477,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             check-all sweep. Shown in the Default inbox type; sectioned inbox
                             types already have Gmail's own headings.
                         </span>
+                        <div class="option-media" data-media-for="group-by-date-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="group-by-date-checkbox">
@@ -478,6 +492,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             Reopen the bundle you had open after reloads, refreshes, and page
                             navigation, for the browser session.
                         </span>
+                        <div class="option-media" data-media-for="remember-open-bundle-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="remember-open-bundle-checkbox">
@@ -497,6 +512,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             A pinned message gets its own row in the list instead of sitting inside
                             its bundle.
                         </span>
+                        <div class="option-media" data-media-for="keep-starred-unbundled-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="keep-starred-unbundled-checkbox">
@@ -510,6 +526,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                         <span class="option-detail">
                             Pinned messages stay put, the way Inbox's sweep left pins alone.
                         </span>
+                        <div class="option-media" data-media-for="skip-starred-on-archive-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="skip-starred-on-archive-checkbox">
@@ -524,6 +541,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             A switch next to Gmail's search box that flips between the Inbox and
                             its pinned messages.
                         </span>
+                        <div class="option-media" data-media-for="show-pinned-toggle-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-pinned-toggle-checkbox">
@@ -547,6 +565,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             Archives every thread of the bundle on the current page. The same icon
                             sits on each date heading to sweep that section.
                         </span>
+                        <div class="option-media" data-media-for="show-bundle-archive-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-bundle-archive-checkbox">
@@ -561,6 +580,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             Selects the bundle's threads and opens Gmail's own snooze menu, so the
                             time you pick applies to the whole bundle.
                         </span>
+                        <div class="option-media" data-media-for="show-bundle-snooze-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-bundle-snooze-checkbox">
@@ -576,6 +596,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             Trash, with Gmail's undo toast. Off unless you turn it on, since it is
                             the most destructive of the three.
                         </span>
+                        <div class="option-media" data-media-for="show-bundle-delete-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="show-bundle-delete-checkbox">
@@ -599,6 +620,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                 a label shown only with unread mail goes quiet once its bundle is
                                 done.
                             </span>
+                            <div class="option-media" data-media-for="mark-read-on-archive-checkbox" hidden></div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="mark-read-on-archive-checkbox">
@@ -613,6 +635,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                 Unstars each message as it is archived, so done messages leave
                                 Starred too.
                             </span>
+                            <div class="option-media" data-media-for="unstar-on-archive-checkbox" hidden></div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="unstar-on-archive-checkbox">
@@ -633,6 +656,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             Tint each bundle row to match its Gmail label color. Needs labels shown
                             in the message list, which is Gmail's default.
                         </span>
+                        <div class="option-media" data-media-for="color-bundles-checkbox" hidden></div>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="color-bundles-checkbox">
@@ -669,6 +693,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                 <a href="https://userstyles.catppuccin.com/getting-started/usage/" target="_blank">Catppuccin</a>
                                 flavor it applies instead of Gmail's label colors.
                             </span>
+                            <div class="option-media" data-media-for="catppuccin-matching-checkbox" hidden></div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="catppuccin-matching-checkbox">
