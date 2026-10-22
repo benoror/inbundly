@@ -98,6 +98,9 @@ async function openScene(env, {
     const html = inboxPage({
         threads: rowsFor(entries, renderDay()),
         archiveRemovesRows,
+        // The stand-in CSS paints the star from its class, so the clips
+        // need the fixture's class-swapping star click.
+        starToggle: 'class',
         ...standIn({ theme, nav, search, labels: NAV_LABELS, inboxCount, transparent }),
     });
     await context.unroute('https://mail.google.com/**').catch(() => {});

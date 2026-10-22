@@ -23,6 +23,7 @@ import {
     TableBodySelectors,
 } from '../util/Constants';
 import DomUtils from '../util/DomUtils';
+import StarState from '../util/StarState';
 import { supportsBundling } from '../util/MessagePageUtils';
 import InbundlyStyler from '../bundling/InbundlyStyler';
 
@@ -31,9 +32,15 @@ import InbundlyStyler from '../bundling/InbundlyStyler';
 // our classes onto the new elements — which orphans any observer bound to the
 // tbody or the rows. role="main" survives that, so one subtree observer there
 // keeps catching class changes on whatever rows are currently live.
+//
+// The star's own state attributes are watched too: Gmail updates the star's
+// accessible state (aria-label / data-tooltip / title / aria-checked, the
+// img's alt) in place when the user clicks it, which is not always a class
+// change. Only mutations inside a star cell are acted on for those.
+const STAR_ATTRS = ['aria-label', 'aria-checked', 'data-tooltip', 'title', 'alt'];
 const MAIN_CONFIG = {
     attributes: true,
-    attributeFilter: ['class'],
+    attributeFilter: ['class', ...STAR_ATTRS],
     attributeOldValue: true,
     childList: false,
     subtree: true,
@@ -45,17 +52,17 @@ const MAIN_CONFIG = {
  * onto its bundle row.
  */
 /**
- * True if the mutation flipped a Gmail star (`.T-KT`) between starred and not.
+ * True if the mutation touched a row's star (its class or state attributes, or
+ * a node in the star cell). It may not be a flip (hover changes the class
+ * too); the bundler decides from the rows' star state whether to redraw.
  */
-function _isStarToggle(mutation) {
-    const target = mutation.target;
-    if (mutation.attributeName !== 'class' || !target.classList ||
-        !target.classList.contains('T-KT')) {
+function _touchesStar(mutation) {
+    if (mutation.type === 'attributes' &&
+        mutation.attributeName !== 'class' &&
+        !STAR_ATTRS.includes(mutation.attributeName)) {
         return false;
     }
-    const was = !!mutation.oldValue &&
-        mutation.oldValue.split(/\s+/).includes(GmailClasses.STARRED);
-    return was !== target.classList.contains(GmailClasses.STARRED);
+    return StarState.isStarNode(mutation.target);
 }
 
 class MessageSelectHandler {
@@ -115,10 +122,10 @@ class MessageSelectHandler {
         // row's own labels (and thus its bundle key) do not.
         const openRef = this.bundledMail.getOpenedBundleRef();
 
-        // Gmail toggles a row's star in place (class swap on the star span,
-        // no list repaint), so nothing else would tell the bundler; it decides
-        // from the rows' star state whether a redraw is needed.
-        if (this.onStarToggle && mutations.some(_isStarToggle)) {
+        // Gmail toggles a row's star in place (no list repaint), so nothing
+        // else would tell the bundler; it decides from the rows' star state
+        // whether a redraw is needed (a hover is a no-op).
+        if (this.onStarToggle && mutations.some(_touchesStar)) {
             this.onStarToggle();
         }
 
@@ -170,7 +177,9 @@ class MessageSelectHandler {
                 // restored above; re-hide a closed bundle's row here so it
                 // doesn't pop out of its bundle while (de)selected.
                 const sectionId = DomUtils.getSectionId(row);
+                // A row kept out for its star stays out.
                 if (!row.classList.contains(InbundlyClasses.BUNDLED_MESSAGE) &&
+                    row.getAttribute(PINNED_STAMP_ATTR) !== '1' &&
                     rowLabels.some(
                         l => this.bundledMail.getBundleInSection(sectionId, l))) {
                     row.classList.add(InbundlyClasses.BUNDLED_MESSAGE);

@@ -38,6 +38,7 @@ import ThemeChangeHandler from './handlers/ThemeChangeHandler';
 
 import ArchiveAction from './util/ArchiveAction';
 import GmailToolbar from './util/GmailToolbar';
+import StarState from './util/StarState';
 import { 
     InbundlyClasses,
     Selectors,
@@ -224,21 +225,37 @@ const selectiveBundling = new SelectiveBundling(customBundles);
 const selectionBundleControl = new SelectionBundleControl(customBundles);
 const bundler = new Bundler(bundleToggler, bundledMail, messageListWatcher, selectiveBundling);
 const starHandler = new StarHandler(bundledMail, selectiveBundling);
-// A star flipped in place: rebundle (a no-op unless the star changes where the
-// thread belongs). Held off while inbundly's own archive drives the toolbar,
-// e.g. unstarOnArchive clicking stars off; Gmail's repaint after the archive
-// rebundles anyway.
-let starRebundlePending = false;
-bundler.setStarToggleHandler(() => {
-    if (starRebundlePending || GmailToolbar.isBusy()) {
+// A star flipped in place: rebundle, but only when a star no longer matches
+// where its thread is laid out (bundler.hasStaleStarLayout, cheap and side
+// effect free), so a hover over the star costs nothing. Held off while
+// inbundly's own archive drives the toolbar, e.g. unstarOnArchive clicking
+// stars off; Gmail's repaint after the archive rebundles anyway.
+let starCheckTimer = null;
+const checkStars = () => {
+    if (GmailToolbar.isBusy() || !bundlingEnabled ||
+        !supportsBundling(window.location.href) || !bundler.hasStaleStarLayout()) {
         return;
     }
-    starRebundlePending = true;
-    setTimeout(() => {
-        starRebundlePending = false;
-        handleGmailRerender();
-    }, 0);
-});
+    handleGmailRerender();
+};
+const scheduleStarCheck = (delay = 0) => {
+    clearTimeout(starCheckTimer);
+    starCheckTimer = setTimeout(() => {
+        starCheckTimer = null;
+        checkStars();
+    }, delay);
+};
+bundler.setStarToggleHandler(() => scheduleStarCheck());
+// Backstop for a star Gmail updates through a path the observer doesn't see
+// (or applies after its server round trip): after a click on a row's star,
+// re-check a few times. Each check is a no-op once the layout matches.
+const STAR_RECHECK_DELAYS_MS = [50, 300, 1000];
+document.addEventListener('click', e => {
+    if (!StarState.isStarNode(e.target) || !e.target.closest('tr')) {
+        return;
+    }
+    STAR_RECHECK_DELAYS_MS.forEach(delay => setTimeout(checkStars, delay));
+}, true);
 const dateGrouper = new DateGrouper();
 // Keyboard navigation over the bundled list (j/k across bundle rows, shortcuts
 // inside an open bundle). Dormant whenever bundling doesn't apply to the page.

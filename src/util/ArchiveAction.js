@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import GmailToolbar from './GmailToolbar';
+import StarState from './StarState';
 import { GmailClasses, Selectors } from './Constants';
 import { OPTION_DEFAULTS, ARCHIVE_OPTION_KEYS } from './Options';
 
@@ -69,7 +70,7 @@ function getOptions() {
 }
 
 function isStarred(message) {
-    return !!message.querySelector(Selectors.STARRED);
+    return StarState.isStarred(message);
 }
 
 function isUnread(message) {
@@ -120,8 +121,8 @@ function archive(messages) {
 }
 
 function unstar(message) {
-    const star = message.querySelector(Selectors.STARRED);
-    if (star) {
+    const star = StarState.findStar(message);
+    if (star && StarState.starStateOf(star) !== false) {
         star.click();
     }
 }
