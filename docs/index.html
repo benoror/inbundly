@@ -14,7 +14,11 @@
   <meta property="og:description" content="Bring back Google Inbox bundles in Gmail. Free, open source, privacy-friendly.">
   <meta property="og:url" content="https://inbundly.com/">
   <meta property="og:image" content="https://inbundly.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Inbundly: same mail, way less noise. A crowded Gmail inbox next to the same mail grouped into bundles.">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://inbundly.com/assets/og-image.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -45,8 +49,8 @@
           <p class="cta-note">Available for Chrome and Firefox — or install from source on GitHub.</p>
           <p class="ph-badge"><a href="https://www.producthunt.com/products/inbundly?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-inbundly" target="_blank" rel="noopener noreferrer"><img alt="Inbundly - Bundle emails by label into tidy groups, right inside Gmail | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1244240&amp;theme=light&amp;t=1789162402563"></a></p>
         </div>
-        <div class="hero-card">
-          <img src="assets/icon-512.png" width="220" height="220" alt="Inbundly app icon — a bundle of mail in an inbox tray">
+        <div class="hero-shot">
+          <img src="assets/hero.png" width="2400" height="1200" fetchpriority="high" alt="Same mail, way less noise: a crowded Gmail inbox on the left, and on the right the same mail grouped into bundles by label and sender, with the Work bundle open">
         </div>
       </div>
     </section>
@@ -55,16 +59,28 @@
       <div class="wrap">
         <div class="section-head">
           <h2>Your inbox, bundled</h2>
-          <p>Related email grouped into tidy, collapsible bundles — in light and dark.</p>
+          <p>Related email grouped into tidy, collapsible bundles, in light and dark.</p>
         </div>
         <div class="shots">
-          <figure>
-            <img src="assets/screenshot-light.png" alt="Inbundly bundling Gmail in light mode" loading="lazy">
-            <figcaption>Light</figcaption>
+          <figure class="wide">
+            <img src="assets/screenshot-1-inbox-bundles-light.png" width="1280" height="800" alt="A Gmail inbox in light mode with Travel, Receipts, Newsletters, Family, Work and a sender bundle collapsed under Today and Yesterday headings" loading="lazy">
+            <figcaption>Your Gmail inbox, grouped into bundles. Same mail, way less noise.</figcaption>
           </figure>
           <figure>
-            <img src="assets/screenshot-dark.png" alt="Inbundly bundling Gmail in dark mode" loading="lazy">
-            <figcaption>Dark</figcaption>
+            <img src="assets/screenshot-2-sender-glance-dark.png" width="1280" height="800" alt="Closed bundles in dark mode, each showing the sender and date of its newest thread at the right" loading="lazy">
+            <figcaption>See who wrote last and when, right on the closed bundle.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/screenshot-3-starred-popout-light.png" width="1280" height="800" alt="A starred thread on its own row just above the open Work bundle it came from" loading="lazy">
+            <figcaption>Star a thread and it steps out of its bundle. Unstar it and it goes back.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/screenshot-4-archive-skips-starred-dark.png" width="1280" height="800" alt="The pointer on a bundle's archive-all button in dark mode" loading="lazy">
+            <figcaption>Archive a whole bundle in one click. Starred threads can stay put.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/screenshot-5-options-light.png" width="1280" height="800" alt="The Starred threads section of the Inbundly Options page, one plain-words row per setting with its default" loading="lazy">
+            <figcaption>Every setting in plain words, grouped by topic.</figcaption>
           </figure>
         </div>
       </div>
@@ -90,7 +106,7 @@
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/><circle cx="18" cy="16" r="3"/></svg></div>
             <h3>Custom bundles</h3>
-            <p>Select any messages and bundle them on the fly — no Gmail label required. They sync across your signed-in Chrome browsers.</p>
+            <p>Select any messages and bundle them on the fly — no Gmail label required. They sync across your signed-in Chrome or Firefox browsers.</p>
           </div>
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
@@ -104,8 +120,8 @@
           </div>
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M11 3l2.2 4.8 5.2.5-3.9 3.4 1.1 5.1L11 14.4 6.4 16.8l1.1-5.1L3.6 8.3l5.2-.5z"/><path d="M16 18h6M19 15v6" stroke-linecap="round"/></svg></div>
-            <h3>Keep starred messages outside bundles</h3>
-            <p>Inbox-style pinning — a starred message stays in its own row, outside the bundle. Toggle under Options → Bundle setup.</p>
+            <h3>Starred threads on their own rows</h3>
+            <p>Inbox-style pinning — star a thread and it steps out of its bundle right away; unstar it and it goes back. Toggle under Options → Starred threads.</p>
           </div>
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3-5 3z"/></svg></div>
@@ -115,7 +131,27 @@
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M3.5 6l1.5 1.5L8 5"/><path d="M3.5 12l1.5 1.5L8 11"/><path d="M3.5 18l1.5 1.5L8 17"/></svg></div>
             <h3>Bundle bulk actions</h3>
-            <p>Select-all, archive-all, snooze-all, or delete/trash-all from the bundle row. Each control uses Gmail’s own toolbar actions on every thread in the bundle. Toggle individually under Options → Features.</p>
+            <p>Select-all, archive-all, snooze-all, or delete/trash-all from the bundle row. Each control uses Gmail’s own toolbar actions on every thread in the bundle. Toggle individually under Options → Bundle buttons.</p>
+          </div>
+          <div class="card">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10l9 5 9-5"/><path d="M9 19v-4h6v4"/></svg></div>
+            <h3>Archive-all, your way</h3>
+            <p>Archive buttons can skip starred threads, mark mail as read, or remove stars as they archive. All off by default; Gmail’s own archive is untouched.</p>
+          </div>
+          <div class="card">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 8v4l2.5 1.5"/></svg></div>
+            <h3>Who wrote last, at a glance</h3>
+            <p>A closed bundle shows the sender of its newest thread and when, bold while it’s unread. Hover for the address and the full date.</p>
+          </div>
+          <div class="card">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></div>
+            <h3>Keyboard that knows bundles</h3>
+            <p>Gmail’s <code>j</code> / <code>k</code> step through bundle rows; <code>Enter</code> opens one, and <code>e</code>, <code>b</code>, or <code>#</code> archive, snooze, or delete all of it.</p>
+          </div>
+          <div class="card">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+            <h3>Beyond the inbox</h3>
+            <p>Optionally bundle search results, label views, Snoozed, Starred, Important, and All Mail the same way. Off by default.</p>
           </div>
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="20" height="8" rx="4"/><circle cx="16" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg></div>
@@ -130,17 +166,12 @@
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18"/><circle cx="8.5" cy="9" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="9" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/></svg></div>
             <h3>Label colors</h3>
-            <p>Tint bundles to match their Gmail label color — a subtle background fill or an accent bar, both theme-aware.</p>
-          </div>
-          <div class="card">
-            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.5 6.5 0 0 0 9.8 9.8z"/></svg></div>
-            <h3>Light &amp; dark</h3>
-            <p>Follows your Gmail theme, with careful, readable colors in both light and dark modes.</p>
+            <p>Tint bundles to match their Gmail label color — a subtle background fill or an accent bar, readable in both light and dark Gmail.</p>
           </div>
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
-            <h3>Options autosave</h3>
-            <p>No Save button. Change a setting and it’s stored; new defaults reach installs that never touched that option.</p>
+            <h3>Options in plain words</h3>
+            <p>Every setting explained, with its default, grouped by topic, plus a search box to find one. No Save button: changes apply at once.</p>
           </div>
           <div class="card">
             <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></div>
