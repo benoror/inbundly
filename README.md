@@ -4,7 +4,7 @@
 
 # Inbundly: Google Inbox-style bundles for Gmail
 
-**Inbundly** brings back the best part of Google Inbox — **bundles** — to Gmail, and keeps
+**Inbundly** brings Google Inbox's best idea, **bundles**, to Gmail, and keeps
 going: it groups your email into tidy, collapsible bundles and adds more ways to organize
 your inbox.
 
@@ -42,7 +42,7 @@ your inbox.
 
 * Messages with the same label are bundled together in your inbox
 * Unlabeled messages that share a sender bundle by domain (or by exact
-  address for personal-mail domains) — labels always win, and a sender
+  address for personal-mail domains). Labels always win, and a sender
   bundle needs 2+ threads (on by default; Options → What becomes a bundle)
 * The open bundle is remembered across reloads, refreshes, and page
   navigation for the browser session (on by default; Options → Inbox layout)
@@ -53,10 +53,10 @@ your inbox.
 * Optionally bundle by the whole *set* of labels, so threads sharing labels
   A + B form their own bundle, colored by the first label (enable in Options)
 * Priority bundles: force chosen labels (or label sets) to always group
-  together regardless of a thread's other labels — e.g. `Bank`, `School/*`
+  together regardless of a thread's other labels, e.g. `Bank`, `School/*`
   (subtree), or `Work + Urgent`; first matching rule wins (configure in Options)
 * Custom bundles: select any messages in Gmail and click the floating
-  "Bundle selected" button to group them on the fly — no Gmail label needed.
+  "Bundle selected" button to group them on the fly, no Gmail label needed.
   Custom bundles override label-based grouping, stick across reloads, and sync
   with all other options to your other browsers signed into the same Chrome or
   Firefox account (`chrome.storage.sync`). Manage or delete them under
@@ -72,7 +72,7 @@ your inbox.
 * Date headings (Today, Yesterday, This month, and so on), each with its own
   archive button
 * Supports light and dark themes
-* Optionally color bundles to match their Gmail label color — either a subtle
+* Optionally color bundles to match their Gmail label color: either a subtle
   background tint or just the left accent bar and text, both theme-aware
   (enable in Options)
 * Select, archive, snooze, or delete all of a bundle's messages from its
@@ -92,7 +92,8 @@ your inbox.
 * Gmail keyboard shortcuts that know about bundles: `j` / `k` step through
   the rows you see (bundle rows included, hidden threads skipped); on a
   bundle row `Enter` opens it, `x` selects it, `e` / `b` / `#` archive,
-  snooze, or delete all of it; `Escape` collapses from inside; opening a
+  snooze, or delete all of it (each only when its button is on; delete is off
+  by default); `Escape` collapses from inside; opening a
   bundle puts the cursor on its first thread so `e` archives what you see
 * Bundles outside the Inbox too (off by default; Options → Bundling): search
   results, label views, Snoozed, Starred, Important, and All Mail bundle like
@@ -158,7 +159,7 @@ suites on every push and PR.
 
 Settings live in `chrome.storage.sync`, which only reaches installs that share one
 extension ID. Unpacked builds normally get an ID derived from the folder they're loaded
-from, so the same extension on two machines would get two IDs — and two separate,
+from, so the same extension on two machines would get two IDs, and two separate,
 never-syncing copies of your settings. `dist/manifest.json` therefore pins a `key`
 (and a Firefox `browser_specific_settings.gecko.id`), which fixes the ID no matter
 where `dist/` lives:
@@ -167,7 +168,7 @@ where `dist/` lives:
 cpggdbckpaoikhddngoeepdedfkleiab
 ```
 
-Options → **Sync & backup** shows the ID this install is actually using — it should
+Options → **Sync & backup** shows the ID this install is actually using. It should
 match on every computer. That section also exports/imports settings as JSON, which is
 the way to move them when sync is off or when the ID changed. Chrome also needs
 extension syncing enabled (`chrome://settings/syncSetup`), and propagation isn't
@@ -181,7 +182,7 @@ or email [support@inbundly.com](mailto:support@inbundly.com).
 ## Support the project
 
 Inbundly is free and open source. If it helps tidy your inbox, consider
-[sponsoring its development](https://github.com/sponsors/benoror) ♥ — it keeps the
+[sponsoring its development](https://github.com/sponsors/benoror) ♥. It keeps the
 project maintained and the lights on.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-♥-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/benoror)
