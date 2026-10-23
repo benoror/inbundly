@@ -20,6 +20,12 @@ your inbox.
   <a href="https://www.producthunt.com/products/inbundly?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-inbundly" target="_blank" rel="noopener noreferrer"><img alt="Inbundly - Bundle emails by label into tidy groups, right inside Gmail | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1244240&amp;theme=light&amp;t=1789162402563"></a>
 </p>
 
+## Demo
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=6EjHeNCD-N4"><img width="640" src="https://img.youtube.com/vi/6EjHeNCD-N4/maxresdefault.jpg" alt="Watch the Inbundly demo on YouTube"></a>
+</p>
+
 ## Install
 
 - **Chrome / Edge / Brave:** [**Add to Chrome**](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) from the Chrome Web Store.
