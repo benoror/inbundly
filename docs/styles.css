@@ -120,6 +120,11 @@ section.block { padding: 56px 0; }
 .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 @media (max-width: 760px) { .shots { grid-template-columns: 1fr; } }
 .shots figure { margin: 0; }
+.video { max-width: 960px; margin: 0 auto; aspect-ratio: 16 / 9; }
+.video iframe {
+  width: 100%; height: 100%; border: 0;
+  border-radius: 12px; box-shadow: var(--shadow);
+}
 .shots img {
   width: 100%; height: auto; display: block;
   border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
