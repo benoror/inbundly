@@ -12,6 +12,7 @@ your inbox.
   <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Chrome Web Store" src="https://img.shields.io/chrome-web-store/v/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white"></a>
   <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Users" src="https://img.shields.io/chrome-web-store/users/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=users"></a>
   <a href="https://addons.mozilla.org/firefox/addon/inbundly/"><img alt="Firefox Add-on" src="https://img.shields.io/amo/v/inbundly?label=Firefox%20Add-ons&logo=firefoxbrowser&logoColor=white"></a>
+  <!-- TODO(edge): add the Microsoft Edge Add-ons badge here once the listing is live (link to its URL, no placeholder href). -->
   <a href="https://github.com/benoror/inbundly/blob/master/COPYING"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/License-GPL--3.0-blue"></a>
   <a href="https://github.com/sponsors/benoror"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white"></a>
 </p>
@@ -28,7 +29,9 @@ your inbox.
 
 ## Install
 
-- **Chrome / Edge / Brave:** [**Add to Chrome**](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) from the Chrome Web Store.
+- **Chrome / Brave:** [**Add to Chrome**](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) from the Chrome Web Store.
+- **Microsoft Edge:** install from the [Chrome Web Store](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) for now (Edge asks you to allow extensions from other stores). A Microsoft Edge Add-ons listing is coming.
+  <!-- TODO(edge): replace the line above with "[**Get it for Edge**](<Edge Add-ons URL>) from Microsoft Edge Add-ons." once the listing is live. -->
 - **Firefox:** [**Add to Firefox**](https://addons.mozilla.org/firefox/addon/inbundly/) from Firefox Add-ons.
 - **From source:** see [Setup](#setup) to build and load `dist/` as an unpacked extension.
 
@@ -58,8 +61,8 @@ your inbox.
 * Custom bundles: select any messages in Gmail and click the floating
   "Bundle selected" button to group them on the fly, no Gmail label needed.
   Custom bundles override label-based grouping, stick across reloads, and sync
-  with all other options to your other browsers signed into the same Chrome or
-  Firefox account (`chrome.storage.sync`). Manage or delete them under
+  with all other options to your other browsers signed into the same Chrome,
+  Edge, or Firefox account (`chrome.storage.sync`). Manage or delete them under
   Options → Custom bundles
 * All Options page settings sync across devices the same way; a change on one
   browser updates Gmail tabs on the others without reloading the extension
@@ -139,7 +142,11 @@ npm run build
 npm run watch
 ```
 
-The `dist` directory can then be loaded as an [unpacked extension](https://developer.chrome.com/extensions/getstarted).
+The `dist` directory can then be loaded as an [unpacked extension](https://developer.chrome.com/extensions/getstarted)
+(in Microsoft Edge: `edge://extensions`, turn on **Developer mode**, then **Load unpacked**).
+
+Store packages: `npm run package` builds `packages/inbundly-<version>-{chrome,firefox,edge}.zip`
+(or one target with `npm run package:chrome`, `package:firefox`, `package:edge`).
 
 ### Testing
 
@@ -150,6 +157,9 @@ npm test
 # End-to-end tests: the built extension against a Gmail-shaped fixture
 # (one-time setup: npx playwright install chromium)
 npm run test:e2e
+
+# The same e2e suite in an installed Microsoft Edge
+INBUNDLY_E2E_CHANNEL=msedge npm run test:e2e
 ```
 
 [TESTING.md](TESTING.md) holds the full feature testing matrix. CI runs both
@@ -171,8 +181,10 @@ cpggdbckpaoikhddngoeepdedfkleiab
 Options → **Sync & backup** shows the ID this install is actually using. It should
 match on every computer. That section also exports/imports settings as JSON, which is
 the way to move them when sync is off or when the ID changed. Chrome also needs
-extension syncing enabled (`chrome://settings/syncSetup`), and propagation isn't
-instant.
+extension syncing enabled (`chrome://settings/syncSetup`; in Edge,
+`edge://settings/profiles/sync` with Extensions on), and propagation isn't
+instant. Store installs from different stores (Chrome Web Store, Edge Add-ons,
+Firefox AMO) get different IDs, so their settings don't sync with each other.
 
 ## Feedback
 

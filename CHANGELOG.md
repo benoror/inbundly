@@ -10,6 +10,31 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Microsoft Edge Add-ons packaging.** `npm run package:edge` (or
+  `just package-edge`) builds `packages/inbundly-<version>-edge.zip`, the
+  Chrome build without `key`, `update_url`, or Firefox settings.
+  `STORE_LISTING.md` gains the Edge Partner Center copy (permission
+  rationale, single purpose, no remote code, data use, certification notes)
+  and `store-assets/edge/logo-300.png`; the Chrome screenshots and tiles are
+  reused. The Edge listing link is a TODO until the listing is live; Edge
+  users install from the Chrome Web Store meanwhile.
+- **e2e in Edge.** `INBUNDLY_E2E_CHANNEL=msedge npm run test:e2e` runs the
+  Playwright suite in an installed Microsoft Edge.
+
+### Removed
+- **The `declarativeContent` permission and the background service worker.**
+  Its only job was a show-page-action rule, which does nothing in Manifest V3
+  (the toolbar action is always enabled), so behavior is unchanged. The
+  extension now asks only for `storage` plus Gmail host access, and the
+  Firefox package no longer needs a `background.scripts` fallback. The e2e
+  harness, marketing renderer, and verify skill reach `chrome.storage`
+  through an extension page instead of the worker.
+
+### Changed
+- `scripts/package.mjs` zips with a built-in Node writer when the `zip` CLI
+  isn't installed.
+
 ### Fixed
 - **No bundling attempt in message popout windows.** A popped-out message has
   no `#` in its URL (its thread id is an encoded query param), so it was taken

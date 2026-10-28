@@ -32,8 +32,8 @@ Preconditions:
 - `scripts/verify.sh doctor` passed for the current `RUN_ID`.
 - Fixture inbox threads: `Work 1` and `Work 2` (label `Work`). This is the
   `options-autosave` seed in `scripts/drive.js`.
-- Fresh profile, so `chrome.storage.sync.get(null)` (evaluated in the extension's service
-  worker, `context.serviceWorkers()[0]`) returns `{}` at the start.
+- Fresh profile, so `chrome.storage.sync.get(null)` (evaluated in the harness's
+  background extension page, `extensionPage(context)`) returns `{}` at the start.
 - `const deleteSwitch = options.locator('label.switch:has(#show-bundle-delete-checkbox) .slider')`.
 
 - **Run the mapped drive.** `.cursor/skills/verify-inbundly/scripts/verify.sh drive options-autosave`.
@@ -67,7 +67,7 @@ Preconditions:
 - The Options URL uses the pinned extension id. If `#extension-id` shows anything else,
   `dist/manifest.json` `key` changed and every stored setting is unreachable; stop and
   report rather than driving on.
-- Read storage through the service worker, not the Options page, so the check is a
-  second, independent view of the saved value.
+- Read storage through the harness's background extension page, not the Options tab
+  under test, so the check is a second, independent view of the saved value.
 - List textareas (label lists, priority rules) debounce before saving; if you extend the
   walk to them, wait for `#save-status.visible` rather than reading storage immediately.
