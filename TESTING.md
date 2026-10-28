@@ -29,6 +29,7 @@ tags `v2.1.0` … `v4.5.0`.
 | 1.9 | Rows Gmail streams into an already-bundled table trigger a rebundle (no half-bundled list) | edge | unit `BundlerOptions` (`_hasUnprocessedRows`) |
 | 1.10 | Gmail leaves label chip `title` empty → label read from descendants/aria-label | edge | unit `DomUtils` |
 | 1.11 | Message row without a date cell does not crash bundling | edge | unit `DateDivider` |
+| 1.12 | A collapsed bundle row is as tall as a thread row: a long label name truncates with an ellipsis on one line and Gmail's cell height (and so its density setting) is kept | edge | e2e `collapsed-row-density.spec` · manual (density switch in live Gmail) |
 
 ## 2. Label selection rules
 
@@ -147,6 +148,7 @@ tags `v2.1.0` … `v4.5.0`.
 | 11.2 | Message list not painted yet → `CoalescedRetry` soft-retries; never a fatal skip of observers | edge | unit `CoalescedRetry` |
 | 11.3 | Open bundle holds its position (frozen order) across rerenders | edge | unit `BundledMail` |
 | 11.4 | Theme detection does not crash in popout windows | edge | unit `ThemePalette` |
+| 11.5 | A message popout window (`/popout?...&th=%23thread-f...`, no literal `#`) is never read as the Inbox, so bundling does not run there | edge | unit `MessagePageUtils` |
 
 ## 12. Keyboard navigation (unreleased, PR #62, issue #46)
 
