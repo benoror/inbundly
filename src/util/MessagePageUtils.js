@@ -73,9 +73,13 @@ function applyOptions(options = {}) {
  * (a conversation, settings, ...). `arg` is the raw (still URL-encoded) query
  * or label segment, or null. `page` is the 1-based message page. `key` is the
  * hash without paging, e.g. 'inbox', 'search/label%3AWork', 'snoozed'.
- * A URL with no hash is the Inbox (Gmail's landing page).
+ * A URL with no hash is the Inbox (Gmail's landing page), except a message
+ * popout window, which is never a list view (see _isPopout).
  */
 function parseView(url) {
+    if (_isPopout(url)) {
+        return { kind: null, arg: null, page: 1, key: 'popout' };
+    }
     const hash = _getHash(url);
     const pageMatch = hash.match(/\/p(\d+)$/);
     const page = pageMatch ? parseInt(pageMatch[1]) : 1;
@@ -307,6 +311,17 @@ function getCurrentBaseUrl() {
     const url = window.location.href;
     const parts = url.split('#');
     return parts[0];
+}
+
+/**
+ * Whether the url is a message popout window (`/mail/u/0/popout?...`). It has
+ * no literal '#' (its thread id rides in an encoded `th=%23thread-f%3A...`
+ * query param), so _getHash would read it as the Inbox, yet it has no message
+ * list: bundling there would retry until it gave up with an error.
+ */
+function _isPopout(url) {
+    const path = url.split(/[?#]/)[0];
+    return /\/popout\/?$/.test(path);
 }
 
 function _getHash(url) {

@@ -223,15 +223,15 @@ html.inbundly .bundle-row.visible .bundle-and-count {
     text-overflow: ellipsis;
 }
 
-/* Handle long label names */
+/* Long label names truncate with an ellipsis instead of wrapping. Wrapping
+ * needed `height: unset` on the cells, which let a collapsed bundle outgrow
+ * Gmail's row height and ignore its density setting. */
 html.inbundly .bundle-row:not(.visible) .bundle-and-count {
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-html.inbundly .bundle-row:not(.visible) .xY {
-    align-items: flex-start;
-    height: unset;
-}
-/* Allow more width before wrapping (#11), but not too much so that #36 happens */
+/* Allow more width before truncating (#11), but not too much so that #36 happens */
 html.inbundly .bundle-row:not(.visible) .xY.yX {
     padding-right: 20px;
     flex-basis: 180px;

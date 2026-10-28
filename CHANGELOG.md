@@ -10,6 +10,19 @@ independent of upstream's versioning. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+- **No bundling attempt in message popout windows.** A popped-out message has
+  no `#` in its URL (its thread id is an encoded query param), so it was taken
+  for the Inbox and bundling retried against a message list that never appears.
+  Popouts are now never a list view. Based on
+  [semeon/inboxy-nuevo](https://github.com/semeon/inboxy-nuevo); thanks
+  @semeon.
+- **Collapsed bundle rows match Gmail's row height.** A long label name now
+  truncates with an ellipsis instead of wrapping, and the `height: unset`
+  override that let a collapsed bundle grow taller than a thread row (and
+  ignore Gmail's density setting) is gone. Based on
+  [semeon/inboxy-nuevo](https://github.com/semeon/inboxy-nuevo).
+
 ## [4.5.0] - 2026-10-21
 
 ### Added
