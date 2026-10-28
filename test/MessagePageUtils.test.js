@@ -95,6 +95,24 @@ test('supportsBundling - views that are not thread lists never bundle', () => {
     expect(supportsBundling(url('search/'))).toBe(false);
 });
 
+test('supportsBundling - a message popout window never bundles', () => {
+    // Hashless like the Inbox landing page, but the thread id is an encoded
+    // query param and there is no message list to bundle.
+    const popout = 'https://mail.google.com/mail/u/0/popout?ver=68wculcb7ncj&cat=Work&th=%23thread-f%3A1873941809954180940&cvid=2';
+    expect(supportsBundling(popout)).toBe(false);
+    expect(supportsBundling('https://mail.google.com/mail/u/1/popout?ver=abc')).toBe(false);
+    expect(supportsBundling('https://mail.google.com/mail/u/0/popout')).toBe(false);
+
+    applyOptions({ bundleOtherViews: true });
+    expect(supportsBundling(popout)).toBe(false);
+    expect(isInboxView(popout)).toBe(false);
+    expect(getPageNumber(popout)).toBeUndefined();
+    // "popout" in a search query or label name is not a popout window.
+    expect(supportsBundling(url('search/popout'))).toBe(true);
+    expect(supportsBundling(url('label/popout'))).toBe(true);
+    expect(supportsBundling('https://mail.google.com/mail/u/0/?q=popout#inbox')).toBe(true);
+});
+
 test('isInboxView / isOtherBundlableView are pure of the option', () => {
     expect(isInboxView(url('inbox/p2'))).toBe(true);
     expect(isInboxView(url('label/Work'))).toBe(false);
@@ -114,6 +132,8 @@ test('parseView', () => {
         .toEqual({ kind: 'label', arg: 'Parent%2FChild', page: 1, key: 'label/Parent%2FChild' });
     expect(parseView(url('inbox/FMfcgzQbfVjh')).kind).toBeNull();
     expect(parseView(GMAIL).kind).toBe('inbox');
+    expect(parseView(`${GMAIL}popout?ver=abc&th=%23thread-f%3A1`))
+        .toEqual({ kind: null, arg: null, page: 1, key: 'popout' });
 });
 
 test('getPageNumber', () => {
