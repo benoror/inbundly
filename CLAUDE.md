@@ -18,7 +18,7 @@ longer actively maintained. Licensed GPL-3.0. Site: [inbundly.com](https://inbun
 
 **Published:** [Chrome Web Store](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga)
 (item ID `pbfjicjmcpogjlbpljebhhgkgfhbdcga`; the pinned dev-unpacked ID stays
-`cpggdbckpaoikhddngoeepdedfkleiab`). Firefox AMO (`inbundly@benoror.github.io`) in review.
+`cpggdbckpaoikhddngoeepdedfkleiab`). Firefox AMO (`inbundly@benoror.github.io`) in review. Microsoft Edge Add-ons: package ready, not yet submitted.
 
 The extension runs as a content script injected into `mail.google.com`, observing
 Gmail's DOM and restructuring the message list into collapsible bundles by label.
@@ -39,7 +39,7 @@ Gmail's DOM and restructuring the message list into collapsible bundles by label
  `GmailToolbar` (drive Gmail's toolbar on a selection), `GmailCursor` (read/move
  Gmail's keyboard cursor through row focus).
 - `dist/` — the loadable unpacked extension. Contains committed static assets
-  (`manifest.json`, `style.css`, `background.js`, `popup/`, `options/`, `icons/`,
+  (`manifest.json`, `style.css`, `popup/`, `options/`, `icons/`,
   `assets/`) plus the webpack-built `content.js`.
 - `test/` — Jest tests.
 
@@ -84,7 +84,11 @@ QA stays manual per `TESTING.md`.
 3. Open `mail.google.com`.
 
 After a rebuild: click **reload ↻** on the Inbundly card in `chrome://extensions`, then
-refresh Gmail.
+refresh Gmail. Microsoft Edge works the same way at `edge://extensions`.
+
+The extension has no background script or service worker (only the `storage`
+permission). Test harnesses read and write `chrome.storage.sync` through an extension
+page instead (`extensionPage` in `e2e/helpers/gmail.js`).
 
 ### Extension identity (do not change casually)
 
@@ -145,14 +149,14 @@ Flow for landing a feature branch and cutting a release:
 4. **GitHub Release:** `gh release create vX.Y.Z --repo benoror/inbundly --latest --notes-file <notes>`
    (notes = that version's changelog section).
 5. **Store packages (attach to every release):** `npm run package` builds
-   `packages/inbundly-<version>-{chrome,firefox}.zip` (via `scripts/package.mjs`), then
+   `packages/inbundly-<version>-{chrome,firefox,edge}.zip` (via `scripts/package.mjs`), then
    `gh release upload vX.Y.Z --repo benoror/inbundly packages/inbundly-<version>-*.zip`.
 
    The packager transforms `dist/manifest.json` per store — the committed manifest keeps
    `key` (unpacked-dev ID pinning), but **Chrome Web Store rejects `key`** (it assigns the
-   ID) and **Firefox AMO (MV3) requires a `background.scripts` fallback** next to
-   `service_worker`. Never upload a raw `dist/` zip — it fails both validators. `packages/`
-   and `*.zip` are gitignored.
+   ID). Edge Add-ons gets the same manifest as Chrome; Firefox keeps
+   `browser_specific_settings.gecko`. Never upload a raw `dist/` zip: the stores that
+   assign their own ID reject `key`. `packages/` and `*.zip` are gitignored.
 
 > Running `npm test` from inside a `.claude/worktrees/…` path reports "0 tests": `master`'s
 > Jest config ignores `/.claude/`, which matches the worktree's own path. Run tests from the

@@ -54,7 +54,7 @@ Read-only checks, each printed as `ok` or `FAIL` with the fix: Node 20 or newer,
 `dist/content.js` newer than every file under `src/` (stale builds prove the wrong code),
 `package.json` and `dist/manifest.json` on the same version, and leftover scratch from
 other runs. If all pass it runs one probe: loads the built extension against a two-thread
-fixture and confirms the service worker reports the pinned extension id
+fixture and confirms an extension page reports the pinned extension id
 `cpggdbckpaoikhddngoeepdedfkleiab`, the manifest version, and exactly one `.bundle-row`.
 Output is saved to `evidence/<RUN_ID>/doctor.log`. A `FAIL` line means the instance is not
 worth driving; fix it (usually `launch` again) before any Drive.
@@ -110,7 +110,7 @@ its `.gitignore`), one subdirectory per driven feature:
 Proof standards: exercise the user path (click the bundle row, click the switch on the
 Options page), not internal setters; the one sanctioned shortcut is
 `setSyncOptions(context, {...})` from the harness, which writes `chrome.storage.sync`
-through the extension's own service worker, the same boundary a second device would cross.
+through an extension page (the harness's `extensionPage`), the same boundary a second device would cross.
 Verify side effects next to what is visible: `sessionStorage['inbundly:openBundle:v1']`
 for the remembered bundle, `chrome.storage.sync` contents for options, `window.__gmail.clicks`
 for toolbar actions, `window.__gmail.refreshes` for the rebundle Gmail is asked for after an

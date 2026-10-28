@@ -12,7 +12,7 @@ watch:
 test:
     npm test
 
-# Build store-ready ZIPs for both stores → packages/
+# Build store-ready ZIPs for every store (Chrome, Firefox, Edge) → packages/
 package:
     node scripts/package.mjs
 
@@ -21,7 +21,9 @@ package-chrome:
     node scripts/package.mjs chrome
 package-firefox:
     node scripts/package.mjs firefox
+package-edge:
+    node scripts/package.mjs edge
 
-# Regenerate the Chrome store icon → store-assets/chrome/icon-128.png
+# Regenerate the store icons → store-assets/chrome/icon-128.png, store-assets/edge/logo-300.png
 store-assets:
     node scripts/store-assets.mjs
