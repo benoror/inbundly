@@ -12,7 +12,8 @@ your inbox.
   <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Chrome Web Store" src="https://img.shields.io/chrome-web-store/v/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white"></a>
   <a href="https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga"><img alt="Users" src="https://img.shields.io/chrome-web-store/users/pbfjicjmcpogjlbpljebhhgkgfhbdcga?label=users"></a>
   <a href="https://addons.mozilla.org/firefox/addon/inbundly/"><img alt="Firefox Add-on" src="https://img.shields.io/amo/v/inbundly?label=Firefox%20Add-ons&logo=firefoxbrowser&logoColor=white"></a>
-  <!-- TODO(edge): add the Microsoft Edge Add-ons badge here once the listing is live, linking to https://microsoftedge.microsoft.com/addons/detail/mmnkbihmefffohbceikbcemhbimgcace (in review since 2026-11-07). -->
+  <!-- TODO(edge): once the listing is live, swap the static "in review" badge below for https://img.shields.io/badge/Edge%20Add-ons-available-0078D7?logo=microsoftedge&logoColor=white -->
+  <a href="https://microsoftedge.microsoft.com/addons/detail/mmnkbihmefffohbceikbcemhbimgcace"><img alt="Microsoft Edge Add-ons: in review" src="https://img.shields.io/badge/Edge%20Add--ons-in%20review-lightgrey?logo=microsoftedge&logoColor=white"></a>
   <a href="https://github.com/benoror/inbundly/blob/master/COPYING"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/License-GPL--3.0-blue"></a>
   <a href="https://github.com/sponsors/benoror"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white"></a>
 </p>
@@ -30,8 +31,8 @@ your inbox.
 ## Install
 
 - **Chrome / Brave:** [**Add to Chrome**](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) from the Chrome Web Store.
-- **Microsoft Edge:** install from the [Chrome Web Store](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) for now (Edge asks you to allow extensions from other stores). A Microsoft Edge Add-ons listing is coming.
-  <!-- TODO(edge): replace the line above with "[**Get it for Edge**](https://microsoftedge.microsoft.com/addons/detail/mmnkbihmefffohbceikbcemhbimgcace) from Microsoft Edge Add-ons." once the listing is live. -->
+- **Microsoft Edge:** [**Get it for Edge**](https://microsoftedge.microsoft.com/addons/detail/mmnkbihmefffohbceikbcemhbimgcace) from Microsoft Edge Add-ons (in review since 2026-11-07, so the link works once Microsoft approves it). Until then, install from the [Chrome Web Store](https://chromewebstore.google.com/detail/pbfjicjmcpogjlbpljebhhgkgfhbdcga) (Edge asks you to allow extensions from other stores).
+  <!-- TODO(edge): once the listing is live, drop the "in review" note and the Chrome Web Store fallback. -->
 - **Firefox:** [**Add to Firefox**](https://addons.mozilla.org/firefox/addon/inbundly/) from Firefox Add-ons.
 - **From source:** see [Setup](#setup) to build and load `dist/` as an unpacked extension.
 
