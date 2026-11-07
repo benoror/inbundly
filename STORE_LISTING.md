@@ -109,6 +109,20 @@ are read-only in Partner Center.
 **Package:** `npm run package:edge` (or `just package-edge`) builds
 `packages/inbundly-<version>-edge.zip`. Upload that zip under Packages.
 
+### Submission record
+- **v4.5.0** submitted 2026-11-07, in review (Microsoft quotes up to 7 business days).
+  It was uploaded as the v4.5.0 Chrome zip from the GitHub release, so that package still
+  has `background.js` and the `declarativeContent` permission. The Partner Center privacy
+  tab therefore has a `declarativeContent` justification. Remove it when the next version
+  (built from this branch, without that permission) is uploaded.
+- Store ID: `0RDCKB8NDZ6G`
+- CRX ID: `mmnkbihmefffohbceikbcemhbimgcace`
+- Product ID: `b9c9a1c6-66df-456c-9ae0-5cf92320c4c5`
+- Listing URL (works only after approval):
+  `https://microsoftedge.microsoft.com/addons/detail/mmnkbihmefffohbceikbcemhbimgcace`
+- After approval: add the README badge and the "Get it for Edge" line, and uncomment the
+  "Add to Edge" button in `docs/index.html` (all marked `TODO(edge)`).
+
 ### Availability
 - Visibility: **Public**
 - Markets: **all markets** (default)
