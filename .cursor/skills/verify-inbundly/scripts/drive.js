@@ -25,6 +25,7 @@ const {
     serveInbox,
     openInbox,
     openView,
+    extensionPage,
     setSyncOptions,
 } = require(path.join(ROOT, 'e2e', 'helpers', 'gmail'));
 
@@ -175,13 +176,14 @@ async function evaluateCheck(check) {
 // ---------------------------------------------------------------------------
 // Harness glue
 
+// The extension has no service worker; a background options page (the
+// harness's extensionPage) is the extension context for storage reads.
 async function extensionInfo(context) {
-    const worker = context.serviceWorkers()[0]
-        || await context.waitForEvent('serviceworker', { timeout: 10000 });
+    const extPage = await extensionPage(context);
     return {
-        worker,
-        extensionId: await worker.evaluate(() => chrome.runtime.id),
-        extensionVersion: await worker.evaluate(() => chrome.runtime.getManifest().version),
+        extPage,
+        extensionId: await extPage.evaluate(() => chrome.runtime.id),
+        extensionVersion: await extPage.evaluate(() => chrome.runtime.getManifest().version),
     };
 }
 
@@ -964,7 +966,7 @@ const FEATURES = {
         const actionTypes = async () => (await gmailActions()).map(a => a.type);
         const archived = async () => (await gmailActions()).filter(a => a.type === 'archive').map(a => a.subjects);
         const refreshes = () => inbox.evaluate(() => window.__gmail.refreshes);
-        const storedSync = () => info.worker.evaluate(
+        const storedSync = () => info.extPage.evaluate(
             () => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
         const switchFor = id => options.locator(`label.switch:has(#${id}) .slider`);
         const checked = id => () => options.locator(`#${id}`).isChecked();
@@ -1155,7 +1157,7 @@ const FEATURES = {
         const deleteSwitch = () => options.locator('label.switch:has(#show-bundle-delete-checkbox) .slider');
         const deleteChecked = () => options.locator('#show-bundle-delete-checkbox').isChecked();
         const saveStatus = () => options.locator('#save-status');
-        const storedSync = () => info.worker.evaluate(
+        const storedSync = () => info.extPage.evaluate(
             () => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
         const inboxHidesDelete = async () => (await htmlClass(I)()).includes('hide-bundle-delete');
 
@@ -1237,14 +1239,13 @@ const FEATURES = {
         const deleteRow = () => options.locator('.option-row', {
             has: options.locator('#show-bundle-delete-checkbox'),
         });
-        const storedSync = () => info.worker.evaluate(
+        const storedSync = () => info.extPage.evaluate(
             () => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
         const foldOpen = id => () => options.locator(`#${id}`).evaluate(d => d.open);
         const search = () => options.locator('#options-search');
 
         await rec.step('open-options', {
             action: async () => {
-                // The extension's service worker is up once the Gmail tab loaded.
                 const inbox = await openInbox(context);
                 await inbox.close();
                 options = await context.newPage();

@@ -31,8 +31,8 @@ screenshots in `docs/assets/`. Copy new renders there by hand after review.
 - `data.js` holds the invented data set from the plan, which was name-checked
   on 2026-10-21. The rows marked `extra` reuse the plan's senders and domains
   for shots that need more threads than the plan's table has.
-- Settings are written to `chrome.storage.sync` through the extension's
-  service worker. Stills are captured at DPR 2 and downscaled with Lanczos to
+- Settings are written to `chrome.storage.sync` through an extension
+  page (the options page, opened in the background). Stills are captured at DPR 2 and downscaled with Lanczos to
   sRGB PNGs, with no color profile and no alpha.
 - Clips are a deterministic sequence of screenshots: real mouse input (so
   hover is real) and real clicks, encoded with ffmpeg to VP9 WebM, plus an

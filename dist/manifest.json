@@ -12,9 +12,6 @@
             }
         }
     },
-    "background": {
-      "service_worker": "background.js"
-    },
     "content_scripts": [{
         "matches": ["*://mail.google.com/mail/*"],
         "js": ["content.js"],
@@ -28,8 +25,7 @@
         "open_in_tab": true
     },
     "permissions": [
-        "storage",
-        "declarativeContent"
+        "storage"
     ],
     "action": {
         "default_icon": {
@@ -44,8 +40,7 @@
             { "light": "icons/inbundly-dark-32.png", "dark": "icons/inbundly-light-32.png", "size": 32 },
             { "light": "icons/inbundly-dark-48.png", "dark": "icons/inbundly-light-48.png", "size": 48 }
         ],
-        "default_popup": "popup/popup.html",
-        "show_matches": ["*://mail.google.com/mail/*"]
+        "default_popup": "popup/popup.html"
     },
     "icons": {
         "16": "icons/inbundly-dark-16.png",

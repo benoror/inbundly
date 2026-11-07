@@ -3,14 +3,15 @@
 
 // Browser plumbing for the marketing renders: the real built extension
 // (dist/) in Chromium, the e2e fixture served at mail.google.com, and
-// chrome.storage.sync set through the extension's service worker, the same
-// harness the e2e suite uses (e2e/helpers/gmail.js).
+// chrome.storage.sync set through an extension page, the same harness the e2e
+// suite uses (e2e/helpers/gmail.js).
 
 const { chromium } = require('@playwright/test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { inboxPage } = require('../../e2e/fixture/inbox');
+const { extensionPage } = require('../../e2e/helpers/gmail');
 const { standIn } = require('./standin');
 const { rowsFor, NAV_LABELS } = require('./data');
 
@@ -56,20 +57,19 @@ async function launch({ viewport, colorScheme = 'light', deviceScaleFactor = 2 }
             '--font-render-hinting=none',
         ],
     });
-    let worker = context.serviceWorkers()[0];
-    if (!worker) {
-        worker = await context.waitForEvent('serviceworker', { timeout: 15000 });
-    }
-    const extensionId = await worker.evaluate(() => chrome.runtime.id);
+    // No service worker: an options page left open is the extension context
+    // used for storage writes.
+    const extPage = await extensionPage(context);
+    const extensionId = await extPage.evaluate(() => chrome.runtime.id);
     const close = async () => {
         await context.close();
         fs.rmSync(userDataDir, { recursive: true, force: true });
     };
-    const setOptions = options => worker.evaluate(
+    const setOptions = options => extPage.evaluate(
         opts => new Promise(resolve => chrome.storage.sync.set(opts, resolve)), options);
-    const clearOptions = () => worker.evaluate(
+    const clearOptions = () => extPage.evaluate(
         () => new Promise(resolve => chrome.storage.sync.clear(resolve)));
-    return { context, worker, extensionId, close, setOptions, clearOptions };
+    return { context, extPage, extensionId, close, setOptions, clearOptions };
 }
 
 /** Local midnight of the render day. */

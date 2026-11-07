@@ -27,7 +27,8 @@ function viewUrl(hash) {
 /**
  * Launch Chromium with the unpacked extension. Returns { context, cleanup }.
  * Chromium (not branded Chrome) still supports --load-extension, and modern
- * headless supports extensions.
+ * headless supports extensions. Set INBUNDLY_E2E_CHANNEL=msedge to run the
+ * same suite in an installed Microsoft Edge, which also accepts it.
  */
 async function launchWithExtension() {
     if (!fs.existsSync(path.join(DIST, 'content.js'))) {
@@ -35,7 +36,7 @@ async function launchWithExtension() {
     }
     const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'inbundly-e2e-'));
     const context = await chromium.launchPersistentContext(userDataDir, {
-        channel: 'chromium',
+        channel: process.env.INBUNDLY_E2E_CHANNEL || 'chromium',
         args: [
             `--disable-extensions-except=${DIST}`,
             `--load-extension=${DIST}`,
@@ -94,30 +95,42 @@ async function openView(context, hash, { expectBundles = true } = {}) {
 }
 
 /**
- * The extension's MV3 service worker (background.js). Evaluate in it to read
- * or write chrome.storage.sync, which live-syncs into the content script.
+ * The unpacked extension's ID, pinned by the `key` in dist/manifest.json.
  */
-async function extensionWorker(context) {
-    const existing = context.serviceWorkers();
-    if (existing.length) {
-        return existing[0];
+const EXTENSION_ID = 'cpggdbckpaoikhddngoeepdedfkleiab';
+
+/**
+ * An extension page (the options page) kept open in the background. The
+ * extension has no service worker, so tests evaluate in this page to read or
+ * write chrome.storage.sync, which live-syncs into the content script.
+ */
+const extensionPages = new WeakMap();
+async function extensionPage(context) {
+    const existing = extensionPages.get(context);
+    if (existing && !existing.isClosed()) {
+        return existing;
     }
-    return context.waitForEvent('serviceworker', { timeout: 10000 });
+    const page = await context.newPage();
+    await page.goto(`chrome-extension://${EXTENSION_ID}/options/options.html`);
+    extensionPages.set(context, page);
+    return page;
 }
 
 async function setSyncOptions(context, options) {
-    const worker = await extensionWorker(context);
-    await worker.evaluate(
+    const page = await extensionPage(context);
+    await page.evaluate(
         opts => new Promise(resolve => chrome.storage.sync.set(opts, resolve)),
         options);
 }
 
 module.exports = {
+    EXTENSION_ID,
     INBOX_URL,
     viewUrl,
     launchWithExtension,
     serveInbox,
     openInbox,
     openView,
+    extensionPage,
     setSyncOptions,
 };

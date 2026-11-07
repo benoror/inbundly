@@ -138,7 +138,7 @@ tags `v2.1.0` … `v4.5.0`.
 | 10.4 | Option changes sync live (other device / other tab) and rebundle | happy | e2e `bundle-actions.spec` (storage flip) · unit |
 | 10.5 | JSON export/import round-trip; unknown keys dropped | edge | unit `OptionsPage` |
 | 10.6 | Extension ID pinned via manifest `key` (sync depends on it) | contract | unit `ExtensionId` |
-| 10.7 | Options page UI itself (layout rows in section 16) | happy | unit `OptionsPage` (jsdom) · e2e `options-page.spec` · verify-inbundly `options-autosave` and `options-layout` walks (Playwright Chromium loads and scripts `chrome-extension://…/options/options.html`; flips a real switch, reads `chrome.storage.sync` through the service worker, checks the Gmail tab reacts live) · manual for branded Chrome, where automation of `chrome-extension://` pages is blocked |
+| 10.7 | Options page UI itself (layout rows in section 16) | happy | unit `OptionsPage` (jsdom) · e2e `options-page.spec` · verify-inbundly `options-autosave` and `options-layout` walks (Playwright Chromium loads and scripts `chrome-extension://…/options/options.html`; flips a real switch, reads `chrome.storage.sync` through a second extension page, checks the Gmail tab reacts live) · manual for branded Chrome, where automation of `chrome-extension://` pages is blocked |
 
 ## 11. Robustness
 
@@ -223,6 +223,14 @@ tags `v2.1.0` … `v4.5.0`.
 | 16.9 | Layout: each section is a card that opens with its `h2` title and `p.option-lead`; subsections (`.option-group`) are inset panels; help text (`.option-detail`, `.subsection-note`) shares one style; every switch row carries an empty `div.option-media[data-media-for=<checkbox id>][hidden]` slot for a future looping clip or still; light and dark (`prefers-color-scheme`) both use the palette tokens | contract / manual | unit `OptionsPage` (slots, header order) · manual (visual; verify-inbundly screenshots) |
 | 16.10 | Copy (Ducker's approved draft): "starred" everywhere a user acts (Starred threads, Show starred on their own rows, Archive buttons skip starred, Mark as read too, Remove stars too, Starred switch in search bar); Keep my bundle open says it is per tab; Sync & backup shows the compare-the-ID step (`#extension-id-compare`) only in Chrome and hides it in Firefox (detected by `browser.runtime.getBrowserInfo` or a `moz-extension:` URL), where the gecko id is pinned | contract | unit `OptionsPage` (copy, Firefox detection) |
 | 16.8 | Known limitations: search is a plain substring match over the visible copy (a word that appears in another setting's explanation finds that row too); fold open state is not remembered across reloads beyond the changed-setting rule; the live Options page in branded Chrome remains a human check (row 10.7) | note | - |
+
+## 17. Microsoft Edge and store packages (unreleased)
+
+| # | Scenario | Kind | Coverage |
+|---|----------|------|----------|
+| 17.1 | The whole e2e suite passes in an installed Microsoft Edge: `INBUNDLY_E2E_CHANNEL=msedge npm run test:e2e` (Edge accepts `--load-extension`, so the pinned ID `cpggdbckpaoikhddngoeepdedfkleiab` holds) | happy | e2e (all specs, `msedge` channel) · not in CI |
+| 17.2 | Manual Edge smoke: `npm run package:edge`, unzip `packages/inbundly-<version>-edge.zip`, load it at `edge://extensions` (Developer mode, Load unpacked); the card shows no errors; Gmail bundles form and open on click; the toolbar popup opens with the "Bundle my inbox" switch, and flipping it ungroups and regroups the inbox live; Options opens from the popup and a change persists after reopening it | happy | manual |
+| 17.3 | `scripts/package.mjs` builds chrome, firefox, and edge zips: chrome and edge drop `key`, `update_url`, and `browser_specific_settings`; firefox drops only `key`; the manifest has no background script and asks only for `storage` plus the Gmail host; without a `zip` CLI the built-in Node zip writer produces the same file list | contract | manual (`web-ext lint` on the firefox zip; store validators on upload) |
 
 ## How the e2e suite works
 

@@ -60,7 +60,7 @@ Preconditions:
 - **Skip starred, on the real Options page.** Open
   `chrome-extension://<id>/options/options.html` and click
   `label.switch:has(#skip-starred-on-archive-checkbox) .slider`. `#save-status` gains
-  `visible`; `chrome.storage.sync` (through the service worker) is
+  `visible`; `chrome.storage.sync` (through the harness extension page) is
   `{ skipStarredOnArchive: true }`; the Gmail tab's `window.__gmail.refreshes` stays `0`.
 - **Sweep leaves the pin.** Open a fresh inbox tab, `await sweep.dispatchEvent('click')`. Three rows
   selected, `Work pinned` has no `x7`, the archive action's subjects are

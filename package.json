@@ -11,6 +11,7 @@
     "package": "node scripts/package.mjs",
     "package:chrome": "node scripts/package.mjs chrome",
     "package:firefox": "node scripts/package.mjs firefox",
+    "package:edge": "node scripts/package.mjs edge",
     "store-assets": "node scripts/store-assets.mjs",
     "render:assets": "npm run build && node marketing/render/render.js && node marketing/render/check.js",
     "render:check": "node marketing/render/check.js"

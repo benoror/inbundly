@@ -10,9 +10,10 @@
 const { test, expect } = require('@playwright/test');
 const { inboxPage } = require('./fixture/inbox');
 const {
+    EXTENSION_ID,
+    extensionPage,
     launchWithExtension,
     serveInbox,
-    openInbox,
     setSyncOptions,
 } = require('./helpers/gmail');
 
@@ -39,13 +40,7 @@ test.beforeAll(async () => {
             { email: 'b@corp-two.com', subject: 'Work 2', labels: ['Work'] },
         ],
     }));
-    // The service worker only spins up once a page loads the extension.
-    const inbox = await openInbox(context);
-    const worker = context.serviceWorkers()[0]
-        || await context.waitForEvent('serviceworker', { timeout: 10000 });
-    const id = await worker.evaluate(() => chrome.runtime.id);
-    optionsUrl = `chrome-extension://${id}/options/options.html`;
-    await inbox.close();
+    optionsUrl = `chrome-extension://${EXTENSION_ID}/options/options.html`;
 });
 
 test.afterAll(async () => {
@@ -54,8 +49,8 @@ test.afterAll(async () => {
 
 // Each test starts from an empty sync store, as a fresh profile would.
 test.afterEach(async () => {
-    const worker = context.serviceWorkers()[0];
-    await worker.evaluate(() => new Promise(resolve => chrome.storage.sync.clear(resolve)));
+    const page = await extensionPage(context);
+    await page.evaluate(() => new Promise(resolve => chrome.storage.sync.clear(resolve)));
 });
 
 async function openOptions(hash = '') {
@@ -66,8 +61,8 @@ async function openOptions(hash = '') {
 }
 
 const storedSync = async () => {
-    const worker = context.serviceWorkers()[0];
-    return worker.evaluate(() => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
+    const page = await extensionPage(context);
+    return page.evaluate(() => new Promise(resolve => chrome.storage.sync.get(null, resolve)));
 };
 
 const visibleSections = page => page.locator('.option-category:not(.search-hidden)')

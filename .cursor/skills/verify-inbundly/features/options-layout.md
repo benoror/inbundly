@@ -50,9 +50,9 @@ Preconditions:
 
 - `scripts/verify.sh doctor` passed for the current `RUN_ID`.
 - Fixture inbox threads: `Work 1` and `Work 2` (label `Work`). This is the
-  `options-layout` seed in `scripts/drive.js`. The Gmail tab only needs to load once so
-  the extension's service worker is up; the walk closes it again.
-- Fresh profile, so `chrome.storage.sync.get(null)` (through `context.serviceWorkers()[0]`)
+  `options-layout` seed in `scripts/drive.js`. The walk loads the Gmail tab once and
+  closes it again.
+- Fresh profile, so `chrome.storage.sync.get(null)` (through the harness `extensionPage`)
   returns `{}` and every fold is closed.
 - `const deleteRow = options.locator('.option-row', { has: options.locator('#show-bundle-delete-checkbox') })`
   and `const search = options.locator('#options-search')`.

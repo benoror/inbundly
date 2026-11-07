@@ -43,7 +43,7 @@ drive end to end with the Playwright harness.
 - Capture the user action and the resulting state, not only the final screen: the walk
   saves a screenshot and an ARIA snapshot after every step.
 - Pair each visible result with its side effect: `sessionStorage['inbundly:openBundle:v1']`,
-  `chrome.storage.sync` (read through the service worker), `window.__gmail.clicks`.
+  `chrome.storage.sync` (read through the harness extension page), `window.__gmail.clicks`.
 - Record the feature id, the step name, and the evidence path with every claim.
 - Report an unreachable path with the attempted command and the unmet precondition. Live
   Gmail rows in `TESTING.md` (marked manual) are out of scope here; say so rather than
